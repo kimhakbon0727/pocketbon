@@ -1005,6 +1005,16 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ===== SW KeepAlive: 30초마다 SW를 깨워서 알람 체크 유지 =====
+// 안드로이드에서 SW가 슬립되지 않도록 앱이 열려있는 동안 주기적으로 핑
+function keepSWAlive() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.ready.then(reg => {
+    if (reg.active) reg.active.postMessage({ type: 'KEEP_ALIVE' });
+  });
+}
+setInterval(keepSWAlive, 25000); // 25초마다 SW 깨우기
+
 // Init alarms
 checkNotifPerm();
 renderAlarms();
