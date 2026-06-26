@@ -523,7 +523,31 @@ async function installPWA() {
   deferredPrompt = null;
   document.getElementById('install-banner').style.display = 'none';
 }
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    // 백그라운드에서 새 서비스 워커가 업데이트되었는지 감시
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      if (newWorker) {
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('새 버전 발견! 자동으로 페이지를 갱신합니다.');
+            window.location.reload();
+          }
+        });
+      }
+    });
+  });
+
+  // 서비스 워커가 바뀌면 화면을 싹 새로고침
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+}
 </script>
 </body>
 </html>
