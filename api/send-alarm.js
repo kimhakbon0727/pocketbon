@@ -47,8 +47,8 @@ export default async function handler(req, res) {
               notification: {
                 sound: 'default',
                 channel_id: 'alarm_channel',
-                vibrate_timings_millis: ['0', '500', '200', '500'],
-                priority: 'high',
+                //vibrate_timings_millis: ['0', '500', '200', '500'],
+                //priority: 'high',
                 visibility: 'PUBLIC',
               },
             },
@@ -74,17 +74,26 @@ export default async function handler(req, res) {
     
     if (!fcmRes.ok) {
       const err = await fcmRes.text();
-      console.error('FCM error:', err);
-      return res.status(500).json({ error: 'FCM send failed', detail: err });
+      console.error('FCM error:', fcmText); 
+      return res.status(500).json({ error: 'FCM send failed', detail: fcmText });
     }
 
     // 매일 반복 알람: 다음날 재예약
     const appUrl = process.env.APP_URL || `https://${req.headers.host}`;
+
+    try {
+
     await fetch(`${appUrl}/api/schedule-alarm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: Date.now(), time, label }), // 새 id로 재예약
     });
+
+    }
+    catch(e) {
+      console.error('재예약 실패:', e);
+    }
+
 
     return res.status(200).json({ ok: true });
   } catch (e) {
