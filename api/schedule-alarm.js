@@ -19,12 +19,19 @@ export default async function handler(req, res) {
   // KST 기준으로 delay 계산
   const [h, m] = time.split(':').map(Number);
   const now = Date.now();
-  const targetUtc = new Date();
-  targetUtc.setUTCHours(h - 9, m, 0, 0);
-  if (targetUtc.getTime() <= now) targetUtc.setUTCDate(targetUtc.getUTCDate() + 1);
-  const delaySeconds = Math.floor((targetUtc.getTime() - now) / 1000);
 
-  console.log(`delay: ${delaySeconds}초 후 발송`);
+  // KST = UTC+9, 현재 KST 시각
+  const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const kstTarget = new Date(kstNow);
+  kstTarget.setUTCHours(h, m, 0, 0); // KST 기준 목표 시각
+
+  if (kstTarget.getTime() <= kstNow.getTime()) {
+  kstTarget.setUTCDate(kstTarget.getUTCDate() + 1);
+}
+
+const delaySeconds = Math.floor((kstTarget.getTime() - now) / 1000); // 👈 이 줄 추가!
+
+console.log(`delay: ${delaySeconds}초 후 발송`);
 
   const appUrl = process.env.APP_URL || 'https://pocketbon.vercel.app';
   const targetUrl = `${appUrl}/api/send-alarm`;
