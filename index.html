@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f0f1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PocketBon" />
+  <title>PocketBon</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f1a; --surface: #1a1a2e; --surface2: #252540;
+      --accent: #7c6fff; --accent2: #ff6fa8;
+      --text: #f0f0ff; --text2: #9090b0;
+      --border: rgba(255,255,255,0.08); --radius: 16px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100dvh; display: flex; flex-direction: column;
+      max-width: 430px; margin: 0 auto; overflow-x: hidden;
+    }
+    .tab-bar {
+      display: flex; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 8px; position: sticky; top: 0; z-index: 10;
+    }
+    .tab {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 3px; padding: 12px 8px;
+      font-size: 11px; color: var(--text2); cursor: pointer;
+      border: none; background: none;
+      border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
+    }
+    .tab svg { width: 22px; height: 22px; }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .screen { display: none; flex: 1; padding: 20px 16px 100px; }
+    .screen.active { display: flex; flex-direction: column; gap: 16px; }
+
+    /* Calculator */
+    .calc-display {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 20px 24px; border: 1px solid var(--border);
+      min-height: 120px; display: flex; flex-direction: column;
+      justify-content: flex-end; align-items: flex-end;
+    }
+    .calc-expr { font-size: 16px; color: var(--text2); min-height: 22px; word-break: break-all; }
+    .calc-result { font-size: 52px; font-weight: 300; letter-spacing: -2px; word-break: break-all; line-height: 1.1; }
+    .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .btn {
+      height: 72px; border-radius: 14px; font-size: 20px; font-weight: 400;
+      border: 1px solid var(--border); cursor: pointer;
+      transition: transform 0.08s, opacity 0.1s;
+      background: var(--surface); color: var(--text);
+    }
+    .btn:active { transform: scale(0.93); opacity: 0.75; }
+    .btn.op { background: var(--surface2); color: var(--accent); }
+    .btn.eq { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; font-size: 24px; }
+    .btn.clear { color: var(--accent2); }
+    .btn.zero { grid-column: span 2; border-radius: 36px; text-align: left; padding-left: 28px; }
+
+    /* Weather */
+    .search-row { display: flex; gap: 8px; }
+    .search-row input {
+      flex: 1; padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-size: 16px; outline: none;
+    }
+    .search-row input:focus { border-color: var(--accent); }
+    .search-row input::placeholder { color: var(--text2); }
+    .search-btn {
+      width: 52px; height: 52px; border-radius: 14px; border: none;
+      background: var(--accent); color: #fff; font-size: 20px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .weather-card { background: var(--surface); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); }
+    .weather-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .weather-city { font-size: 20px; font-weight: 600; }
+    .weather-date { font-size: 13px; color: var(--text2); margin-top: 3px; }
+    .weather-icon-big { font-size: 56px; }
+    .weather-temp-big { font-size: 72px; font-weight: 200; letter-spacing: -3px; line-height: 1; margin: 8px 0 4px; }
+    .weather-desc { font-size: 16px; color: var(--text2); }
+    .weather-divider { height: 1px; background: var(--border); margin: 20px 0; }
+    .weather-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .weather-detail { background: var(--surface2); border-radius: 12px; padding: 14px; }
+    .weather-detail-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+    .weather-detail-val { font-size: 20px; font-weight: 500; }
+    .weather-hint { text-align: center; color: var(--text2); font-size: 15px; padding: 40px 0; }
+    .weather-hint span { display: block; font-size: 40px; margin-bottom: 12px; }
+    .weather-loading { text-align: center; padding: 40px 0; color: var(--text2); }
+    .weather-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3); border-radius: 14px; padding: 16px; color: #ff8080; font-size: 14px; text-align: center; }
+
+    .install-banner {
+      position: fixed; bottom: 80px; left: 16px; right: 16px;
+      background: var(--surface2); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; z-index: 100;
+      box-shadow: 0 8px 32px rgba(124,111,255,0.2);
+    }
+    .install-banner button { margin-left: auto; padding: 8px 16px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-size: 13px; cursor: pointer; }
+    .install-banner .close-btn { background: none; color: var(--text2); padding: 4px; font-size: 18px; margin-left: 0; }
+  </style>
+</head>
+<body>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('calc', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="4" y="2" width="16" height="20" rx="3"/>
+      <line x1="8" y1="7" x2="16" y2="7"/>
+      <line x1="8" y1="11" x2="10" y2="11"/><line x1="14" y1="11" x2="16" y2="11"/>
+      <line x1="8" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="16" y2="15"/>
+      <line x1="8" y1="19" x2="10" y2="19"/><line x1="14" y1="19" x2="16" y2="19"/>
+    </svg>
+    계산기
+  </button>
+  <button class="tab" onclick="switchTab('weather', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M18 10a6 6 0 10-11.4 2.6A4 4 0 106 20h12a4 4 0 000-8z"/>
+    </svg>
+    날씨
+  </button>
+</div>
+
+<div class="screen active" id="calc">
+  <div class="calc-display">
+    <div class="calc-expr" id="expr"></div>
+    <div class="calc-result" id="result">0</div>
+  </div>
+  <div class="calc-grid">
+    <button class="btn clear" onclick="calcClear()">C</button>
+    <button class="btn op" onclick="calcSign()">+/-</button>
+    <button class="btn op" onclick="calcPercent()">%</button>
+    <button class="btn op" onclick="calcOp('/')">÷</button>
+    <button class="btn" onclick="calcNum('7')">7</button>
+    <button class="btn" onclick="calcNum('8')">8</button>
+    <button class="btn" onclick="calcNum('9')">9</button>
+    <button class="btn op" onclick="calcOp('*')">×</button>
+    <button class="btn" onclick="calcNum('4')">4</button>
+    <button class="btn" onclick="calcNum('5')">5</button>
+    <button class="btn" onclick="calcNum('6')">6</button>
+    <button class="btn op" onclick="calcOp('-')">−</button>
+    <button class="btn" onclick="calcNum('1')">1</button>
+    <button class="btn" onclick="calcNum('2')">2</button>
+    <button class="btn" onclick="calcNum('3')">3</button>
+    <button class="btn op" onclick="calcOp('+')">+</button>
+    <button class="btn zero" onclick="calcNum('0')">0</button>
+    <button class="btn" onclick="calcDot()">.</button>
+    <button class="btn eq" onclick="calcEqual()">=</button>
+  </div>
+</div>
+
+<div class="screen" id="weather">
+  <div class="search-row">
+    <input type="text" id="city-input" placeholder="도시 이름 입력 (예: Seoul)" onkeydown="if(event.key==='Enter')fetchWeather()" />
+    <button class="search-btn" onclick="fetchWeather()">🔍</button>
+  </div>
+  <div id="weather-result">
+    <div class="weather-hint">
+      <span>🌤️</span>
+      도시 이름을 입력하고<br>날씨를 확인하세요
+    </div>
+  </div>
+</div>
+
+<div class="install-banner" id="install-banner" style="display:none">
+  <span>📱</span>
+  <span>홈 화면에 추가하면 앱처럼 사용!</span>
+  <button onclick="installPWA()">설치</button>
+  <button class="close-btn" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
+</div>
+
+<script>
+function switchTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+let state = { display: '0', expr: '', op: null, prev: null, reset: false };
+function updateCalc() {
+  document.getElementById('result').textContent = state.display;
+  document.getElementById('expr').textContent = state.expr;
+}
+function calcNum(n) {
+  if (state.reset) { state.display = n; state.reset = false; }
+  else state.display = state.display === '0' ? n : state.display + n;
+  updateCalc();
+}
+function calcDot() {
+  if (state.reset) { state.display = '0.'; state.reset = false; return updateCalc(); }
+  if (!state.display.includes('.')) state.display += '.';
+  updateCalc();
+}
+function calcOp(op) {
+  const cur = parseFloat(state.display);
+  if (state.op && !state.reset) {
+    const res = compute(state.prev, cur, state.op);
+    state.display = fmt(res); state.prev = res;
+  } else { state.prev = cur; }
+  state.op = op;
+  state.expr = state.display + ' ' + sym(op);
+  state.reset = true; updateCalc();
+}
+function calcEqual() {
+  if (!state.op) return;
+  const res = compute(state.prev, parseFloat(state.display), state.op);
+  state.expr = ''; state.display = fmt(res);
+  state.op = null; state.prev = null; state.reset = true; updateCalc();
+}
+function compute(a, b, op) {
+  if (op === '+') return a + b;
+  if (op === '-') return a - b;
+  if (op === '*') return a * b;
+  if (op === '/') return b !== 0 ? a / b : 0;
+}
+function fmt(n) { return !isFinite(n) ? 'Error' : parseFloat(n.toPrecision(10)).toString(); }
+function sym(op) { return op === '*' ? '×' : op === '/' ? '÷' : op; }
+function calcClear() { state = { display: '0', expr: '', op: null, prev: null, reset: false }; updateCalc(); }
+function calcSign() { state.display = fmt(parseFloat(state.display) * -1); updateCalc(); }
+function calcPercent() { state.display = fmt(parseFloat(state.display) / 100); updateCalc(); }
+
+const wmoMap = {0:'Clear',1:'Clear',2:'Clouds',3:'Clouds',51:'Drizzle',53:'Drizzle',55:'Drizzle',61:'Rain',63:'Rain',65:'Rain',71:'Snow',73:'Snow',75:'Snow',80:'Rain',81:'Rain',82:'Rain',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
+const descMap = {Clear:'맑음',Clouds:'흐림',Drizzle:'이슬비',Rain:'비',Snow:'눈',Thunderstorm:'천둥번개',Mist:'안개'};
+const icons = {Clear:'☀️',Clouds:'☁️',Rain:'🌧️',Drizzle:'🌦️',Thunderstorm:'⛈️',Snow:'❄️',Mist:'🌫️'};
+
+async function fetchWeather() {
+  const city = document.getElementById('city-input').value.trim();
+  if (!city) return;
+  const el = document.getElementById('weather-result');
+  el.innerHTML = '<div class="weather-loading">⏳ 불러오는 중...</div>';
+  try {
+    const geoRes = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=ko');
+    const geoData = await geoRes.json();
+    if (!geoData.results || !geoData.results.length) throw new Error('도시를 찾을 수 없어요');
+    const { latitude, longitude, name, country } = geoData.results[0];
+    const wRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto');
+    const wData = await wRes.json();
+    const c = wData.current;
+    const condition = wmoMap[c.weather_code] || 'Clouds';
+    const icon = icons[condition] || '🌤️';
+    const desc = descMap[condition] || '흐림';
+    const dateStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+    el.innerHTML = `<div class="weather-card">
+      <div class="weather-header">
+        <div><div class="weather-city">📍 ${name}, ${country}</div><div class="weather-date">${dateStr}</div></div>
+        <div class="weather-icon-big">${icon}</div>
+      </div>
+      <div class="weather-temp-big">${Math.round(c.temperature_2m)}°</div>
+      <div class="weather-desc">${desc}</div>
+      <div class="weather-divider"></div>
+      <div class="weather-details">
+        <div class="weather-detail"><div class="weather-detail-label">체감온도</div><div class="weather-detail-val">${Math.round(c.apparent_temperature)}°C</div></div>
+        <div class="weather-detail"><div class="weather-detail-label">습도</div><div class="weather-detail-val">${c.relative_humidity_2m}%</div></div>
+        <div class="weather-detail"><div class="weather-detail-label">풍속</div><div class="weather-detail-val">${Math.round(c.wind_speed_10m)} km/h</div></div>
+        <div class="weather-detail"><div class="weather-detail-label">날씨</div><div class="weather-detail-val">${icon} ${desc}</div></div>
+      </div>
+    </div>`;
+  } catch(e) {
+    el.innerHTML = '<div class="weather-error">⚠️ ' + (e.message || '오류 발생') + '<br><small>영어로 입력해보세요 (예: Seoul, Tokyo)</small></div>';
+  }
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+async function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').style.display = 'none';
+}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
