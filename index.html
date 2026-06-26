@@ -254,6 +254,61 @@
     }
     .install-banner button { margin-left: auto; padding: 8px 16px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-size: 13px; cursor: pointer; }
     .install-banner .close-btn { background: none; color: var(--text2); padding: 4px; font-size: 18px; margin-left: 0; }
+
+    /* Settings */
+    .settings-section { display: flex; flex-direction: column; gap: 10px; }
+    .settings-title { font-size: 13px; color: var(--text2); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 0 4px; }
+    .settings-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+    .settings-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 18px; border-bottom: 1px solid var(--border); cursor: pointer;
+      transition: background 0.15s;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:active { background: var(--surface2); }
+    .settings-row-icon { font-size: 22px; width: 28px; text-align: center; flex-shrink: 0; }
+    .settings-row-info { flex: 1; }
+    .settings-row-label { font-size: 15px; font-weight: 500; }
+    .settings-row-desc { font-size: 13px; color: var(--text2); margin-top: 2px; }
+    .settings-row-arrow { color: var(--text2); font-size: 18px; }
+    .settings-row.danger .settings-row-label { color: #ff8080; }
+    .settings-row.danger .settings-row-icon { filter: hue-rotate(180deg); }
+
+    /* Backup toast */
+    .toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+      background: var(--surface2); border: 1px solid var(--accent);
+      border-radius: 50px; padding: 12px 22px; font-size: 14px;
+      z-index: 200; white-space: nowrap; opacity: 0;
+      transition: opacity 0.3s; pointer-events: none;
+      box-shadow: 0 4px 20px rgba(124,111,255,0.25);
+    }
+    .toast.show { opacity: 1; }
+
+    /* Restore modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300; padding: 20px;
+    }
+    .modal-box {
+      background: var(--surface); border-radius: 20px;
+      padding: 28px 24px; width: 100%; max-width: 360px;
+      border: 1px solid var(--border);
+    }
+    .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .modal-desc { font-size: 14px; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
+    .modal-btn-row { display: flex; gap: 10px; }
+    .modal-btn {
+      flex: 1; padding: 13px; border-radius: 12px; border: none;
+      font-size: 15px; cursor: pointer; font-weight: 500; transition: opacity 0.1s;
+    }
+    .modal-btn:active { opacity: 0.8; }
+    .modal-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .modal-btn.secondary { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+    .modal-btn.danger-btn { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); }
+    .backup-info { background: var(--surface2); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; }
+    .backup-info strong { color: var(--text); }
   </style>
 </head>
 <body>
@@ -281,6 +336,13 @@
       <path d="M9 3h6M12 3v2"/>
     </svg>
     타이머
+  </button>
+  <button class="tab" onclick="switchTab('settings', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+    설정
   </button>
 </div>
 
@@ -409,6 +471,112 @@ End ALARM -->
   <span>홈 화면에 추가하면 앱처럼 사용!</span>
   <button onclick="installPWA()">설치</button>
   <button class="close-btn" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="settings">
+  <div class="settings-section">
+    <div class="settings-title">📦 백업 / 복원</div>
+    <div class="settings-card">
+      <div class="settings-row" onclick="backupData()">
+        <div class="settings-row-icon">💾</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">백업 파일 저장</div>
+          <div class="settings-row-desc">모든 데이터를 JSON 파일로 내보내기</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="document.getElementById('restore-input').click()">
+        <div class="settings-row-icon">📂</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">백업 파일 불러오기</div>
+          <div class="settings-row-desc">저장한 JSON 파일로 데이터 복원</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)">
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">ℹ️ 저장 정보</div>
+    <div class="settings-card">
+      <div class="settings-row" onclick="showStorageInfo()">
+        <div class="settings-row-icon">📊</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">저장된 데이터 현황</div>
+          <div class="settings-row-desc" id="storage-summary">확인하려면 탭하세요</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">⚠️ 위험 구역</div>
+    <div class="settings-card">
+      <div class="settings-row danger" onclick="confirmClearAll()">
+        <div class="settings-row-icon">🗑️</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">모든 데이터 삭제</div>
+          <div class="settings-row-desc">복구 불가 — 백업 후 진행하세요</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">💡 안내</div>
+    <div class="settings-card">
+      <div class="settings-row" style="cursor:default">
+        <div class="settings-row-icon">🔒</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">프라이버시 보호</div>
+          <div class="settings-row-desc">모든 데이터는 이 기기에만 저장됩니다. 서버 전송 없음.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Restore confirm modal -->
+<div class="modal-overlay" id="restore-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">📂 백업 불러오기</div>
+    <div class="backup-info" id="restore-preview"></div>
+    <div class="modal-desc">현재 데이터에 <strong>덮어씌웁니다.</strong><br>계속하시겠어요?</div>
+    <div class="modal-btn-row">
+      <button class="modal-btn secondary" onclick="closeModal('restore-modal')">취소</button>
+      <button class="modal-btn primary" onclick="doRestore()">복원하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clear all confirm modal -->
+<div class="modal-overlay" id="clear-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">🗑️ 모든 데이터 삭제</div>
+    <div class="modal-desc">저장된 모든 데이터가 <strong style="color:#ff8080">영구 삭제</strong>됩니다.<br>백업 없이 삭제하면 복구할 수 없어요.</div>
+    <div class="modal-btn-row">
+      <button class="modal-btn secondary" onclick="closeModal('clear-modal')">취소</button>
+      <button class="modal-btn danger-btn" onclick="doClearAll()">전체 삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- Storage info modal -->
+<div class="modal-overlay" id="storage-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">📊 저장된 데이터 현황</div>
+    <div class="backup-info" id="storage-detail"></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn secondary" style="flex:none;width:100%" onclick="closeModal('storage-modal')">닫기</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -790,6 +958,127 @@ function fmtMs(ms) {
   const s = Math.floor(ms/1000)%60, m = Math.floor(ms/60000)%60, h = Math.floor(ms/3600000);
   const cs = Math.floor((ms%1000)/10);
   return (h>0?pad(h)+':':'') + pad(m)+':'+pad(s)+'.'+pad(cs);
+}
+
+// ===== Backup / Restore =====
+const BACKUP_KEYS = [
+  'pocketbon-alarms',
+  'pocketbon-memos',
+  'pocketbon-todos',
+  'pocketbon-ledger'
+];
+
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function backupData() {
+  const backup = { version: 1, date: new Date().toISOString(), data: {} };
+  let hasData = false;
+  BACKUP_KEYS.forEach(k => {
+    const v = localStorage.getItem(k);
+    if (v) { backup.data[k] = JSON.parse(v); hasData = true; }
+  });
+  if (!hasData) { showToast('💡 저장된 데이터가 없어요'); return; }
+
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','');
+  a.href = url; a.download = 'pocketbon-backup-' + dateStr + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 백업 파일이 저장됐어요!');
+}
+
+let pendingRestoreData = null;
+
+function restoreData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const backup = JSON.parse(ev.target.result);
+      if (!backup.version || !backup.data) throw new Error('올바른 백업 파일이 아니에요');
+      pendingRestoreData = backup;
+
+      // 미리보기
+      const d = backup.data;
+      const date = new Date(backup.date).toLocaleString('ko-KR');
+      const lines = ['<strong>백업 날짜:</strong> ' + date];
+      if (d['pocketbon-alarms'])  lines.push('<strong>알람:</strong> ' + d['pocketbon-alarms'].length + '개');
+      if (d['pocketbon-memos'])   lines.push('<strong>메모:</strong> ' + d['pocketbon-memos'].length + '개');
+      if (d['pocketbon-todos'])   lines.push('<strong>할일:</strong> ' + d['pocketbon-todos'].length + '개');
+      if (d['pocketbon-ledger'])  lines.push('<strong>가계부:</strong> ' + d['pocketbon-ledger'].length + '건');
+      document.getElementById('restore-preview').innerHTML = lines.join('<br>');
+      document.getElementById('restore-modal').style.display = 'flex';
+    } catch(err) {
+      showToast('❌ ' + err.message);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function doRestore() {
+  if (!pendingRestoreData) return;
+  const d = pendingRestoreData.data;
+  BACKUP_KEYS.forEach(k => {
+    if (d[k] !== undefined) localStorage.setItem(k, JSON.stringify(d[k]));
+  });
+  pendingRestoreData = null;
+  closeModal('restore-modal');
+  showToast('✅ 복원 완료! 앱을 새로고침해요', 2000);
+  setTimeout(() => window.location.reload(), 2000);
+}
+
+function showStorageInfo() {
+  const lines = [];
+  let totalBytes = 0;
+  const labels = {
+    'pocketbon-alarms': '⏰ 알람',
+    'pocketbon-memos':  '📝 메모',
+    'pocketbon-todos':  '✅ 할일',
+    'pocketbon-ledger': '💰 가계부'
+  };
+  BACKUP_KEYS.forEach(k => {
+    const v = localStorage.getItem(k);
+    if (v) {
+      const bytes = new Blob([v]).size;
+      totalBytes += bytes;
+      const arr = JSON.parse(v);
+      lines.push('<strong>' + labels[k] + ':</strong> ' + arr.length + '개 (' + (bytes/1024).toFixed(1) + ' KB)');
+    } else {
+      lines.push('<strong>' + labels[k] + ':</strong> 없음');
+    }
+  });
+  lines.push('<br><strong>총 용량:</strong> ' + (totalBytes/1024).toFixed(1) + ' KB');
+
+  // summary 업데이트
+  document.getElementById('storage-summary').textContent =
+    BACKUP_KEYS.map(k => localStorage.getItem(k)).filter(Boolean).length + '개 항목 저장 중';
+
+  document.getElementById('storage-detail').innerHTML = lines.join('<br>');
+  document.getElementById('storage-modal').style.display = 'flex';
+}
+
+function confirmClearAll() {
+  document.getElementById('clear-modal').style.display = 'flex';
+}
+
+function doClearAll() {
+  BACKUP_KEYS.forEach(k => localStorage.removeItem(k));
+  closeModal('clear-modal');
+  showToast('🗑️ 모든 데이터가 삭제됐어요');
+  showStorageInfo();
 }
 
 // ===== PWA =====
