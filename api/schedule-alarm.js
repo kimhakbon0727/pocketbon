@@ -39,7 +39,7 @@ export default async function handler(req, res) {
   try {
     // 4. QStash 스케줄러 등록 요청
     const qstashToken = process.env.QSTASH_TOKEN;
-    const qstashRes = await fetch(`https://qstash.upstash.io/v2/publish/${encodeURIComponent(targetUrl)}`, {
+    const qstashRes = await fetch(`https://qstash.upstash.io/v2/publish/${targetUrl}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${qstashToken}`,
