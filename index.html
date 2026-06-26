@@ -93,7 +93,8 @@
     .weather-loading { text-align: center; padding: 40px 0; color: var(--text2); }
     .weather-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3); border-radius: 14px; padding: 16px; color: #ff8080; font-size: 14px; text-align: center; }
 
-    /* Alarm */
+    /* Alarm - 주석처리 */
+    /*
     .alarm-add {
       background: var(--surface); border-radius: var(--radius);
       padding: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px;
@@ -151,6 +152,7 @@
     .alarm-empty { text-align: center; color: var(--text2); padding: 30px 0; font-size: 15px; }
     .alarm-empty span { display: block; font-size: 36px; margin-bottom: 10px; }
     .alarm-permission {
+
       background: rgba(124,111,255,0.1); border: 1px solid rgba(124,111,255,0.3);
       border-radius: 14px; padding: 14px 16px; font-size: 14px;
       color: var(--accent); display: flex; align-items: center; gap: 10px;
@@ -180,6 +182,67 @@
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #fff; font-size: 18px; cursor: pointer;
     }
+    */ /* End Alarm 주석 */
+
+    /* Timer / Stopwatch */
+    .ts-tab-bar {
+      display: flex; background: var(--surface2); border-radius: 14px; padding: 4px; gap: 4px;
+    }
+    .ts-tab {
+      flex: 1; padding: 10px; border-radius: 10px; border: none;
+      background: none; color: var(--text2); font-size: 15px; cursor: pointer; transition: all 0.2s;
+    }
+    .ts-tab.active { background: var(--accent); color: #fff; }
+    .ts-panel { display: none; flex-direction: column; align-items: center; gap: 20px; }
+    .ts-panel.active { display: flex; }
+    .ts-display {
+      font-size: 72px; font-weight: 200; letter-spacing: -3px; text-align: center;
+      font-variant-numeric: tabular-nums; line-height: 1; padding: 20px 0 10px;
+    }
+    .ts-display.running { color: var(--accent); }
+    .ts-ms { font-size: 36px; color: var(--text2); }
+    .ts-btn-row { display: flex; gap: 14px; justify-content: center; }
+    .ts-btn {
+      width: 80px; height: 80px; border-radius: 50%; border: none;
+      font-size: 15px; cursor: pointer; font-weight: 500;
+      transition: transform 0.1s, opacity 0.1s;
+    }
+    .ts-btn:active { transform: scale(0.92); opacity: 0.8; }
+    .ts-btn.start { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .ts-btn.stop  { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); }
+    .ts-btn.reset { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+    .ts-btn.lap   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+    /* Timer input */
+    .timer-input-row { display: flex; align-items: center; gap: 6px; }
+    .timer-input-unit { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .timer-input-unit span { font-size: 12px; color: var(--text2); }
+    .timer-digit {
+      width: 80px; height: 70px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 32px; font-weight: 300;
+      text-align: center; outline: none; font-variant-numeric: tabular-nums;
+    }
+    .timer-digit:focus { border-color: var(--accent); }
+    .timer-colon { font-size: 32px; color: var(--text2); margin-bottom: 20px; }
+    .timer-progress {
+      width: 100%; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden;
+    }
+    .timer-progress-bar {
+      height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.5s linear; border-radius: 2px;
+    }
+
+    /* Lap list */
+    .lap-list { width: 100%; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .lap-item {
+      display: flex; justify-content: space-between; padding: 10px 14px;
+      background: var(--surface); border-radius: 10px; font-size: 15px;
+      border: 1px solid var(--border);
+    }
+    .lap-item .lap-num { color: var(--text2); }
+    .lap-item .lap-best { color: #6fff9e; }
+    .lap-item .lap-worst { color: #ff8080; }
 
     .install-banner {
       position: fixed; bottom: 80px; left: 16px; right: 16px;
@@ -212,12 +275,12 @@
     </svg>
     날씨
   </button>
-  <button class="tab" onclick="switchTab('alarm', this)">
+  <button class="tab" onclick="switchTab('timer', this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/>
-      <path d="M5 5l-2 2M19 5l2 2"/>
+      <path d="M9 3h6M12 3v2"/>
     </svg>
-    알람
+    타이머
   </button>
 </div>
 
@@ -264,7 +327,7 @@
   </div>
 </div>
 
-<!-- ALARM -->
+<!-- ALARM - 주석처리
 <div class="screen" id="alarm">
   <div id="notif-banner" class="alarm-permission" style="display:none">
     <span>🔔 알람 알림 권한이 필요해요</span>
@@ -283,13 +346,61 @@
   </div>
 </div>
 
-<!-- Ringing modal -->
+Ringing modal
 <div class="alarm-ring" id="alarm-ring" style="display:none">
   <div class="alarm-ring-inner">
     <div class="alarm-ring-emoji">⏰</div>
     <div class="alarm-ring-time" id="ring-time"></div>
     <div class="alarm-ring-label" id="ring-label"></div>
     <button class="alarm-ring-stop" onclick="stopAlarm()">알람 끄기</button>
+  </div>
+</div>
+End ALARM -->
+
+<!-- TIMER / STOPWATCH -->
+<div class="screen" id="timer">
+  <div class="ts-tab-bar">
+    <button class="ts-tab active" id="ts-tab-timer" onclick="switchTsTab('timer')">⏱ 타이머</button>
+    <button class="ts-tab" id="ts-tab-sw" onclick="switchTsTab('sw')">🏃 스톱워치</button>
+  </div>
+
+  <!-- 타이머 패널 -->
+  <div class="ts-panel active" id="ts-timer">
+    <div class="timer-input-row" id="timer-input-area">
+      <div class="timer-input-unit">
+        <input type="number" class="timer-digit" id="t-hh" min="0" max="23" value="0" placeholder="0">
+        <span>시간</span>
+      </div>
+      <div class="timer-colon">:</div>
+      <div class="timer-input-unit">
+        <input type="number" class="timer-digit" id="t-mm" min="0" max="59" value="0" placeholder="0">
+        <span>분</span>
+      </div>
+      <div class="timer-colon">:</div>
+      <div class="timer-input-unit">
+        <input type="number" class="timer-digit" id="t-ss" min="0" max="59" value="0" placeholder="0">
+        <span>초</span>
+      </div>
+    </div>
+    <div class="ts-display" id="timer-display" style="display:none">00:00:00</div>
+    <div class="timer-progress" id="timer-progress-wrap" style="width:90%;display:none">
+      <div class="timer-progress-bar" id="timer-progress-bar" style="width:100%"></div>
+    </div>
+    <div class="ts-btn-row">
+      <button class="ts-btn reset" id="timer-reset-btn" onclick="timerReset()">리셋</button>
+      <button class="ts-btn start" id="timer-start-btn" onclick="timerStartStop()">시작</button>
+    </div>
+  </div>
+
+  <!-- 스톱워치 패널 -->
+  <div class="ts-panel" id="ts-sw">
+    <div class="ts-display" id="sw-display">00:00<span class="ts-ms">.00</span></div>
+    <div class="ts-btn-row">
+      <button class="ts-btn reset" id="sw-reset-btn" onclick="swReset()">리셋</button>
+      <button class="ts-btn start" id="sw-start-btn" onclick="swStartStop()">시작</button>
+      <button class="ts-btn lap" id="sw-lap-btn" onclick="swLap()" disabled>랩</button>
+    </div>
+    <div class="lap-list" id="lap-list"></div>
   </div>
 </div>
 
@@ -395,7 +506,8 @@ async function fetchWeather() {
   }
 }
 
-// ===== Alarm =====
+// ===== Alarm - 주석처리 =====
+/*
 let alarms = JSON.parse(localStorage.getItem('pocketbon-alarms') || '[]');
 let alarmTimers = {};
 let ringAudio = null;
@@ -509,6 +621,176 @@ alarms.forEach(a => scheduleAlarm(a));
 // Set default time to now+1min
 const defTime = new Date(Date.now() + 60000);
 document.getElementById('alarm-time').value = defTime.getHours().toString().padStart(2,'0') + ':' + defTime.getMinutes().toString().padStart(2,'0');
+*/
+
+// ===== Timer / Stopwatch =====
+function switchTsTab(which) {
+  document.querySelectorAll('.ts-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ts-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ts-tab-' + which).classList.add('active');
+  document.getElementById('ts-' + which).classList.add('active');
+}
+
+// --- Timer ---
+let timerTotal = 0, timerRemain = 0, timerRunning = false, timerInterval = null;
+
+function timerStartStop() {
+  if (!timerRunning) {
+    // 처음 시작 시 입력값 읽기
+    if (timerRemain === 0) {
+      const hh = parseInt(document.getElementById('t-hh').value) || 0;
+      const mm = parseInt(document.getElementById('t-mm').value) || 0;
+      const ss = parseInt(document.getElementById('t-ss').value) || 0;
+      timerTotal = hh * 3600 + mm * 60 + ss;
+      timerRemain = timerTotal;
+      if (timerRemain === 0) { alert('시간을 입력해주세요'); return; }
+      document.getElementById('timer-input-area').style.display = 'none';
+      document.getElementById('timer-display').style.display = 'block';
+      document.getElementById('timer-progress-wrap').style.display = 'block';
+    }
+    timerRunning = true;
+    document.getElementById('timer-start-btn').textContent = '일시정지';
+    document.getElementById('timer-start-btn').className = 'ts-btn stop';
+    timerInterval = setInterval(() => {
+      timerRemain--;
+      timerUpdateDisplay();
+      if (timerRemain <= 0) { timerDone(); }
+    }, 1000);
+  } else {
+    timerRunning = false;
+    clearInterval(timerInterval);
+    document.getElementById('timer-start-btn').textContent = '계속';
+    document.getElementById('timer-start-btn').className = 'ts-btn start';
+  }
+}
+
+function timerUpdateDisplay() {
+  const h = Math.floor(timerRemain / 3600);
+  const m = Math.floor((timerRemain % 3600) / 60);
+  const s = timerRemain % 60;
+  const txt = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+  document.getElementById('timer-display').textContent = txt;
+  const pct = timerTotal > 0 ? (timerRemain / timerTotal * 100) : 0;
+  document.getElementById('timer-progress-bar').style.width = pct + '%';
+}
+
+function timerDone() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  timerRemain = 0;
+  timerUpdateDisplay();
+  document.getElementById('timer-start-btn').textContent = '시작';
+  document.getElementById('timer-start-btn').className = 'ts-btn start';
+  // 소리
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.35, 0.7].forEach(t => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.frequency.value = 660; osc.type = 'sine';
+      g.gain.setValueAtTime(0.5, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.3);
+    });
+  } catch(e) {}
+  document.getElementById('timer-display').style.color = 'var(--accent2)';
+  setTimeout(() => { document.getElementById('timer-display').style.color = ''; }, 1500);
+}
+
+function timerReset() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  timerRemain = 0; timerTotal = 0;
+  document.getElementById('timer-input-area').style.display = 'flex';
+  document.getElementById('timer-display').style.display = 'none';
+  document.getElementById('timer-progress-wrap').style.display = 'none';
+  document.getElementById('timer-start-btn').textContent = '시작';
+  document.getElementById('timer-start-btn').className = 'ts-btn start';
+  document.getElementById('t-hh').value = 0;
+  document.getElementById('t-mm').value = 0;
+  document.getElementById('t-ss').value = 0;
+}
+
+// --- Stopwatch ---
+let swRunning = false, swStart = 0, swElapsed = 0, swInterval = null;
+let swLaps = [];
+
+function swStartStop() {
+  if (!swRunning) {
+    swRunning = true;
+    swStart = Date.now() - swElapsed;
+    swInterval = setInterval(swTick, 30);
+    document.getElementById('sw-start-btn').textContent = '정지';
+    document.getElementById('sw-start-btn').className = 'ts-btn stop';
+    document.getElementById('sw-lap-btn').disabled = false;
+    document.getElementById('sw-display').classList.add('running');
+  } else {
+    swRunning = false;
+    swElapsed = Date.now() - swStart;
+    clearInterval(swInterval);
+    document.getElementById('sw-start-btn').textContent = '계속';
+    document.getElementById('sw-start-btn').className = 'ts-btn start';
+    document.getElementById('sw-display').classList.remove('running');
+  }
+}
+
+function swTick() {
+  swElapsed = Date.now() - swStart;
+  swUpdateDisplay();
+}
+
+function swUpdateDisplay() {
+  const ms = swElapsed % 1000;
+  const s  = Math.floor(swElapsed / 1000) % 60;
+  const m  = Math.floor(swElapsed / 60000) % 60;
+  const h  = Math.floor(swElapsed / 3600000);
+  const timeStr = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+  document.getElementById('sw-display').innerHTML = timeStr + '<span class="ts-ms">.' + pad(Math.floor(ms/10)) + '</span>';
+}
+
+function swLap() {
+  if (!swRunning) return;
+  const lapTime = swElapsed;
+  const prev = swLaps.length ? swLaps[swLaps.length-1].cumul : 0;
+  swLaps.push({ n: swLaps.length+1, split: lapTime - prev, cumul: lapTime });
+  swRenderLaps();
+}
+
+function swRenderLaps() {
+  if (!swLaps.length) { document.getElementById('lap-list').innerHTML = ''; return; }
+  const splits = swLaps.map(l => l.split);
+  const best = Math.min(...splits), worst = Math.max(...splits);
+  document.getElementById('lap-list').innerHTML = [...swLaps].reverse().map(l => {
+    let cls = '';
+    if (swLaps.length > 1 && l.split === best)  cls = 'lap-best';
+    if (swLaps.length > 1 && l.split === worst) cls = 'lap-worst';
+    return `<div class="lap-item">
+      <span class="lap-num">랩 ${l.n}</span>
+      <span class="${cls}">${fmtMs(l.split)}</span>
+      <span style="color:var(--text2)">${fmtMs(l.cumul)}</span>
+    </div>`;
+  }).join('');
+}
+
+function swReset() {
+  swRunning = false;
+  clearInterval(swInterval);
+  swElapsed = 0; swStart = 0; swLaps = [];
+  swUpdateDisplay();
+  document.getElementById('sw-start-btn').textContent = '시작';
+  document.getElementById('sw-start-btn').className = 'ts-btn start';
+  document.getElementById('sw-lap-btn').disabled = true;
+  document.getElementById('sw-display').classList.remove('running');
+  document.getElementById('lap-list').innerHTML = '';
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+function fmtMs(ms) {
+  const s = Math.floor(ms/1000)%60, m = Math.floor(ms/60000)%60, h = Math.floor(ms/3600000);
+  const cs = Math.floor((ms%1000)/10);
+  return (h>0?pad(h)+':':'') + pad(m)+':'+pad(s)+'.'+pad(cs);
+}
 
 // ===== PWA =====
 let deferredPrompt;
