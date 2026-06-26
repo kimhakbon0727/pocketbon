@@ -874,55 +874,123 @@ async function fetchWeather() {
   }
 }
 
-// ===== Alarm (Service Worker 백그라운드 알람) =====
+// ===== Alarm (FCM 백그라운드 알람) =====
 let alarms = JSON.parse(localStorage.getItem('pocketbon-alarms') || '[]');
 let alarmTimers = {};
 let ringAudio = null;
 
+// Firebase 초기화
+const firebaseConfig = {
+  apiKey: "AIzaSyArEEaF-fK6ZPq7mjVdQgDWqCn_zDchsKQ",
+  authDomain: "pocketbon.firebaseapp.com",
+  projectId: "pocketbon",
+  storageBucket: "pocketbon.firebasestorage.app",
+  messagingSenderId: "317305023515",
+  appId: "1:317305023515:web:79fa812518da5d2d665cbe",
+};
+const VAPID_KEY = "BOqR8WAmyR81A-qYpu6fpRBx9hf-Nc1uxet4t8F_Pf52ssoy9IWp2FOx5JiQNkZvgSk4do5JCDDebAfz-74QN7g";
+
+let firebaseApp, firebaseMessaging;
+
+async function initFirebase() {
+  if (firebaseApp) return;
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+    firebaseApp = initializeApp(firebaseConfig);
+    firebaseMessaging = getMessaging(firebaseApp);
+
+    // 앱 포그라운드 상태에서 FCM 메시지 수신 → 알람 UI 표시
+    onMessage(firebaseMessaging, payload => {
+      const data = payload.data || {};
+      if (data.type === 'ALARM') {
+        const alarm = { id: data.alarmId, time: data.alarmTime, label: data.alarmLabel };
+        ringAlarm(alarm);
+      }
+    });
+  } catch(e) { console.error('Firebase init error:', e); }
+}
+
+async function getFCMToken() {
+  await initFirebase();
+  if (!firebaseMessaging) return null;
+  try {
+    const { getToken } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+    const token = await getToken(firebaseMessaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+    });
+    return token;
+  } catch(e) { console.error('getToken error:', e); return null; }
+}
+
 function saveAlarms() { localStorage.setItem('pocketbon-alarms', JSON.stringify(alarms)); }
 
-function requestNotifPerm() {
-  Notification.requestPermission().then(p => {
-    if (p === 'granted') {
-      document.getElementById('notif-banner').style.display = 'none';
-      // 권한 허용 후 SW에 알람 재등록
-      syncAlarmsToSW();
-    }
+async function requestNotifPerm() {
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('notif-banner').style.display = 'none';
+    await registerFCMToken();
+  } else {
+    showToast('❌ 알림 권한이 거부됐어요. 브라우저 설정에서 허용해주세요.');
+  }
+}
+
+async function registerFCMToken() {
+  const token = await getFCMToken();
+  if (!token) { console.warn('FCM token 없음'); return; }
+  // 서버에 토큰 등록
+  await fetch('/api/register-token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token })
   });
+  localStorage.setItem('pocketbon-fcm-token', token);
 }
 
 function checkNotifPerm() {
   if ('Notification' in window && Notification.permission !== 'granted') {
     document.getElementById('notif-banner').style.display = 'flex';
+  } else if (Notification.permission === 'granted') {
+    // 이미 허용된 경우 토큰 자동 등록
+    registerFCMToken();
   }
 }
 
-// Service Worker에 알람 목록 전달 (백그라운드 알람 등록)
-function syncAlarmsToSW() {
-  if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.ready.then(reg => {
-    reg.active && reg.active.postMessage({
-      type: 'SYNC_ALARMS',
-      alarms: alarms.filter(a => a.active)
-    });
-  });
-}
-
-function addAlarm() {
+async function addAlarm() {
   const timeVal = document.getElementById('alarm-time').value;
   const label = document.getElementById('alarm-label').value.trim() || '알람';
   if (!timeVal) { showToast('⏰ 시간을 선택해주세요'); return; }
+
   const alarm = { id: Date.now(), time: timeVal, label, active: true };
   alarms.push(alarm);
   saveAlarms();
+
+  // 포그라운드 타이머 (앱 열려있을 때)
   scheduleAlarmForeground(alarm);
-  syncAlarmsToSW();
+
+  // 서버에 알람 예약 (앱 닫혀있을 때 FCM 푸시)
+  try {
+    const res = await fetch('/api/schedule-alarm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: alarm.id, time: timeVal, label })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast('✅ 알람이 설정됐어요! 앱 꺼도 울려요 🔔');
+    } else {
+      showToast('⚠️ 알람 설정됐지만 백그라운드 알람 오류');
+    }
+  } catch(e) {
+    showToast('✅ 알람 설정됐어요 (오프라인 모드)');
+  }
+
   renderAlarms();
   document.getElementById('alarm-label').value = '';
-  showToast('✅ 알람이 설정됐어요!');
 }
 
-// 포그라운드(앱 열려있을 때) setTimeout 방식
+// 포그라운드용 타이머
 function scheduleAlarmForeground(alarm) {
   if (!alarm.active) return;
   if (alarmTimers[alarm.id]) clearTimeout(alarmTimers[alarm.id]);
@@ -931,8 +999,7 @@ function scheduleAlarmForeground(alarm) {
   const target = new Date();
   target.setHours(h, m, 0, 0);
   if (target <= now) target.setDate(target.getDate() + 1);
-  const diff = target - now;
-  alarmTimers[alarm.id] = setTimeout(() => ringAlarm(alarm), diff);
+  alarmTimers[alarm.id] = setTimeout(() => ringAlarm(alarm), target - now);
 }
 
 function ringAlarm(alarm) {
@@ -945,15 +1012,14 @@ function ringAlarm(alarm) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      osc.type = 'sine';
+      osc.frequency.value = 880; osc.type = 'sine';
       gain.gain.setValueAtTime(0.4, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
       osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
     }
     ringAudio = setInterval(beep, 600);
   } catch(e) {}
-  scheduleAlarmForeground(alarm); // 다음날 재예약
+  scheduleAlarmForeground(alarm);
 }
 
 function stopAlarm() {
@@ -961,23 +1027,40 @@ function stopAlarm() {
   if (ringAudio) { clearInterval(ringAudio); ringAudio = null; }
 }
 
-function toggleAlarm(id) {
+async function toggleAlarm(id) {
   const alarm = alarms.find(a => a.id === id);
   if (!alarm) return;
   alarm.active = !alarm.active;
   saveAlarms();
-  if (alarm.active) scheduleAlarmForeground(alarm);
-  else { clearTimeout(alarmTimers[id]); delete alarmTimers[id]; }
-  syncAlarmsToSW();
+  if (alarm.active) {
+    scheduleAlarmForeground(alarm);
+    await fetch('/api/schedule-alarm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: alarm.id, time: alarm.time, label: alarm.label })
+    }).catch(() => {});
+  } else {
+    clearTimeout(alarmTimers[id]);
+    delete alarmTimers[id];
+    await fetch('/api/delete-alarm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    }).catch(() => {});
+  }
   renderAlarms();
 }
 
-function deleteAlarm(id) {
+async function deleteAlarm(id) {
   clearTimeout(alarmTimers[id]);
   delete alarmTimers[id];
   alarms = alarms.filter(a => a.id !== id);
   saveAlarms();
-  syncAlarmsToSW();
+  await fetch('/api/delete-alarm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id })
+  }).catch(() => {});
   renderAlarms();
 }
 
@@ -995,31 +1078,11 @@ function renderAlarms() {
     </div>`).join('');
 }
 
-// SW에서 오는 알람 트리거 메시지 수신 (앱이 열려있을 때)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', e => {
-    if (e.data && e.data.type === 'TRIGGER_ALARM') {
-      const alarm = alarms.find(a => a.id === e.data.id);
-      if (alarm) ringAlarm(alarm);
-    }
-  });
-}
-
-// ===== SW KeepAlive: 30초마다 SW를 깨워서 알람 체크 유지 =====
-// 안드로이드에서 SW가 슬립되지 않도록 앱이 열려있는 동안 주기적으로 핑
-function keepSWAlive() {
-  if (!('serviceWorker' in navigator)) return;
-  navigator.serviceWorker.ready.then(reg => {
-    if (reg.active) reg.active.postMessage({ type: 'KEEP_ALIVE' });
-  });
-}
-setInterval(keepSWAlive, 25000); // 25초마다 SW 깨우기
-
 // Init alarms
 checkNotifPerm();
 renderAlarms();
 alarms.forEach(a => scheduleAlarmForeground(a));
-syncAlarmsToSW();
+initFirebase();
 
 // Set default time
 const defTime = new Date(Date.now() + 60000);
