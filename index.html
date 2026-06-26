@@ -1329,7 +1329,7 @@ function fmtDate(iso) {
 
 // ===== Backup / Restore =====
 const BACKUP_KEYS = [
-  'pocketbon-alarms',
+  // 'pocketbon-alarms', // 알람 주석처리
   'pocketbon-memos',
   'pocketbon-todos',
   'pocketbon-ledger'
@@ -1381,7 +1381,7 @@ function restoreData(e) {
       const d = backup.data;
       const date = new Date(backup.date).toLocaleString('ko-KR');
       const lines = ['<strong>백업 날짜:</strong> ' + date];
-      if (d['pocketbon-alarms'])  lines.push('<strong>알람:</strong> ' + d['pocketbon-alarms'].length + '개');
+      // if (d['pocketbon-alarms'])  lines.push('<strong>알람:</strong> ' + d['pocketbon-alarms'].length + '개'); // 알람 주석처리
       if (d['pocketbon-memos'])   lines.push('<strong>메모:</strong> ' + d['pocketbon-memos'].length + '개');
       if (d['pocketbon-todos'])   lines.push('<strong>할일:</strong> ' + d['pocketbon-todos'].length + '개');
       if (d['pocketbon-ledger'])  lines.push('<strong>가계부:</strong> ' + d['pocketbon-ledger'].length + '건');
@@ -1411,7 +1411,7 @@ function showStorageInfo() {
   const lines = [];
   let totalBytes = 0;
   const labels = {
-    'pocketbon-alarms': '⏰ 알람',
+    // 'pocketbon-alarms': '⏰ 알람', // 알람 주석처리
     'pocketbon-memos':  '📝 메모',
     'pocketbon-todos':  '✅ 할일',
     'pocketbon-ledger': '💰 가계부'
