@@ -80,19 +80,19 @@ export default async function handler(req, res) {
 
     // 매일 반복 알람: 다음날 재예약
     const appUrl = process.env.APP_URL || `https://${req.headers.host}`;
+    
+    //try {
 
-    try {
+    //await fetch(`${appUrl}/api/schedule-alarm`, {
+    //  method: 'POST',
+    //  headers: { 'Content-Type': 'application/json' },
+    //  body: JSON.stringify({ id: Date.now(), time, label }), // 새 id로 재예약
+    //});
 
-    await fetch(`${appUrl}/api/schedule-alarm`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: Date.now(), time, label }), // 새 id로 재예약
-    });
-
-    }
-    catch(e) {
-      console.error('재예약 실패:', e);
-    }
+    //}
+    //catch(e) {
+    //  console.error('재예약 실패:', e);
+    //}
 
 
     return res.status(200).json({ ok: true });
