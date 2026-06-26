@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
   // KST 기준으로 delay 계산
   const [h, m] = time.split(':').map(Number);
-  const now = Date.now();
+  const now = new Date();
 
   // KST = UTC+9, 현재 KST 시각
   const kstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
