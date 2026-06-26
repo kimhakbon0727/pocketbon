@@ -255,6 +255,114 @@
     .install-banner button { margin-left: auto; padding: 8px 16px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-size: 13px; cursor: pointer; }
     .install-banner .close-btn { background: none; color: var(--text2); padding: 4px; font-size: 18px; margin-left: 0; }
 
+    /* Memo + Todo */
+    .memo-tabs { display: flex; background: var(--surface2); border-radius: 14px; padding: 4px; gap: 4px; }
+    .memo-tab { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: var(--text2); font-size: 15px; cursor: pointer; transition: all 0.2s; }
+    .memo-tab.active { background: var(--accent); color: #fff; }
+    .memo-panel { display: none; flex-direction: column; gap: 12px; }
+    .memo-panel.active { display: flex; }
+
+    .memo-input-row { display: flex; gap: 8px; }
+    .memo-input {
+      flex: 1; padding: 13px 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-size: 15px; outline: none; resize: none;
+      font-family: inherit;
+    }
+    .memo-input:focus { border-color: var(--accent); }
+    .memo-input::placeholder { color: var(--text2); }
+    .add-btn {
+      width: 48px; height: 48px; border-radius: 14px; border: none;
+      background: var(--accent); color: #fff; font-size: 22px;
+      cursor: pointer; flex-shrink: 0; align-self: flex-start;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .memo-list { display: flex; flex-direction: column; gap: 8px; }
+    .memo-item {
+      background: var(--surface); border-radius: 14px; padding: 14px 16px;
+      border: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-start;
+    }
+    .memo-item-text { flex: 1; font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    .memo-item-date { font-size: 11px; color: var(--text2); margin-top: 4px; }
+    .item-del { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 2px; flex-shrink: 0; }
+    .empty-hint { text-align: center; color: var(--text2); padding: 30px 0; font-size: 15px; }
+    .empty-hint span { display: block; font-size: 36px; margin-bottom: 8px; }
+
+    .todo-item {
+      background: var(--surface); border-radius: 14px; padding: 14px 16px;
+      border: 1px solid var(--border); display: flex; gap: 12px; align-items: center;
+    }
+    .todo-check {
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--accent);
+      flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s; background: none;
+    }
+    .todo-check.done { background: var(--accent); }
+    .todo-check.done::after { content: '✓'; color: #fff; font-size: 13px; }
+    .todo-text { flex: 1; font-size: 15px; }
+    .todo-text.done { text-decoration: line-through; color: var(--text2); }
+
+    /* Ledger */
+    .ledger-summary {
+      background: var(--surface); border-radius: var(--radius); padding: 20px;
+      border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px;
+    }
+    .ledger-balance { font-size: 36px; font-weight: 200; letter-spacing: -1px; text-align: center; padding: 4px 0; }
+    .ledger-balance.plus { color: #6fff9e; }
+    .ledger-balance.minus { color: #ff8080; }
+    .ledger-row { display: flex; justify-content: space-between; font-size: 14px; }
+    .ledger-income { color: #6fff9e; }
+    .ledger-expense { color: #ff8080; }
+
+    .ledger-form {
+      background: var(--surface); border-radius: var(--radius); padding: 16px;
+      border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px;
+    }
+    .ledger-type-row { display: flex; gap: 8px; }
+    .ledger-type-btn {
+      flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); font-size: 14px; cursor: pointer; transition: all 0.2s;
+    }
+    .ledger-type-btn.income.active  { background: rgba(111,255,158,0.15); color: #6fff9e; border-color: #6fff9e; }
+    .ledger-type-btn.expense.active { background: rgba(255,128,128,0.15); color: #ff8080; border-color: #ff8080; }
+    .ledger-fields { display: flex; gap: 8px; }
+    .ledger-input {
+      flex: 1; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none; font-family: inherit;
+    }
+    .ledger-input:focus { border-color: var(--accent); }
+    .ledger-input::placeholder { color: var(--text2); }
+    .ledger-add-btn {
+      padding: 12px 18px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 15px; cursor: pointer; white-space: nowrap;
+    }
+    .ledger-filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); font-size: 13px; cursor: pointer;
+    }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .ledger-list { display: flex; flex-direction: column; gap: 8px; }
+    .ledger-item {
+      background: var(--surface); border-radius: 14px; padding: 14px 16px;
+      border: 1px solid var(--border); display: flex; align-items: center; gap: 12px;
+    }
+    .ledger-item-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .ledger-item-dot.income  { background: #6fff9e; }
+    .ledger-item-dot.expense { background: #ff8080; }
+    .ledger-item-info { flex: 1; }
+    .ledger-item-desc { font-size: 15px; }
+    .ledger-item-date { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .ledger-item-amount { font-size: 16px; font-weight: 500; }
+    .ledger-item-amount.income  { color: #6fff9e; }
+    .ledger-item-amount.expense { color: #ff8080; }
+
+    .month-nav { display: flex; align-items: center; justify-content: space-between; padding: 0 4px; }
+    .month-nav-btn { background: none; border: none; color: var(--text2); font-size: 22px; cursor: pointer; padding: 4px 10px; }
+    .month-nav-label { font-size: 17px; font-weight: 500; }
+
     /* Settings */
     .settings-section { display: flex; flex-direction: column; gap: 10px; }
     .settings-title { font-size: 13px; color: var(--text2); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 0 4px; }
@@ -336,6 +444,20 @@
       <path d="M9 3h6M12 3v2"/>
     </svg>
     타이머
+  </button>
+  <button class="tab" onclick="switchTab('memo', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+      <path d="M14 2v6h6M9 13h6M9 17h4"/>
+    </svg>
+    메모
+  </button>
+  <button class="tab" onclick="switchTab('ledger', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="2" y="5" width="20" height="14" rx="2"/>
+      <path d="M2 10h20M6 15h2M10 15h4"/>
+    </svg>
+    가계부
   </button>
   <button class="tab" onclick="switchTab('settings', this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -471,6 +593,83 @@ End ALARM -->
   <span>홈 화면에 추가하면 앱처럼 사용!</span>
   <button onclick="installPWA()">설치</button>
   <button class="close-btn" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
+</div>
+
+<!-- MEMO + TODO -->
+<div class="screen" id="memo">
+  <div class="memo-tabs">
+    <button class="memo-tab active" id="mtab-memo" onclick="switchMemoTab('memo')">📝 메모</button>
+    <button class="memo-tab" id="mtab-todo" onclick="switchMemoTab('todo')">✅ 할일</button>
+  </div>
+
+  <!-- 메모 패널 -->
+  <div class="memo-panel active" id="mpanel-memo">
+    <div class="memo-input-row">
+      <textarea class="memo-input" id="memo-input" rows="2" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&event.metaKey)addMemo()"></textarea>
+      <button class="add-btn" onclick="addMemo()">+</button>
+    </div>
+    <div class="memo-list" id="memo-list"></div>
+  </div>
+
+  <!-- 할일 패널 -->
+  <div class="memo-panel" id="mpanel-todo">
+    <div class="memo-input-row">
+      <input type="text" class="memo-input" id="todo-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTodo()" style="height:48px">
+      <button class="add-btn" onclick="addTodo()">+</button>
+    </div>
+    <div class="ledger-filter-row" style="margin-bottom:4px">
+      <button class="filter-btn active" id="todo-filter-all"     onclick="setTodoFilter('all')">전체</button>
+      <button class="filter-btn"        id="todo-filter-active"  onclick="setTodoFilter('active')">미완료</button>
+      <button class="filter-btn"        id="todo-filter-done"    onclick="setTodoFilter('done')">완료</button>
+    </div>
+    <div class="memo-list" id="todo-list"></div>
+  </div>
+</div>
+
+<!-- LEDGER -->
+<div class="screen" id="ledger">
+  <!-- 월 네비게이션 -->
+  <div class="month-nav">
+    <button class="month-nav-btn" onclick="changeMonth(-1)">‹</button>
+    <div class="month-nav-label" id="month-label"></div>
+    <button class="month-nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+
+  <!-- 요약 -->
+  <div class="ledger-summary">
+    <div class="ledger-balance" id="ledger-balance">₩0</div>
+    <div class="ledger-row">
+      <span>💚 수입</span><span class="ledger-income" id="ledger-income-total">₩0</span>
+    </div>
+    <div class="ledger-row">
+      <span>❤️ 지출</span><span class="ledger-expense" id="ledger-expense-total">₩0</span>
+    </div>
+  </div>
+
+  <!-- 입력 폼 -->
+  <div class="ledger-form">
+    <div class="ledger-type-row">
+      <button class="ledger-type-btn income active" id="ltype-income"  onclick="setLedgerType('income')">💚 수입</button>
+      <button class="ledger-type-btn expense"       id="ltype-expense" onclick="setLedgerType('expense')">❤️ 지출</button>
+    </div>
+    <div class="ledger-fields">
+      <input type="text"   class="ledger-input" id="ledger-desc"   placeholder="내용 (예: 점심)" style="flex:2">
+      <input type="number" class="ledger-input" id="ledger-amount" placeholder="금액" style="flex:2" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+    </div>
+    <div style="display:flex;gap:8px">
+      <input type="date" class="ledger-input" id="ledger-date" style="flex:1">
+      <button class="ledger-add-btn" onclick="addLedger()">추가</button>
+    </div>
+  </div>
+
+  <!-- 필터 -->
+  <div class="ledger-filter-row">
+    <button class="filter-btn active" id="lfilter-all"     onclick="setLedgerFilter('all')">전체</button>
+    <button class="filter-btn"        id="lfilter-income"  onclick="setLedgerFilter('income')">수입</button>
+    <button class="filter-btn"        id="lfilter-expense" onclick="setLedgerFilter('expense')">지출</button>
+  </div>
+
+  <div class="ledger-list" id="ledger-list"></div>
 </div>
 
 <!-- SETTINGS -->
@@ -958,6 +1157,176 @@ function fmtMs(ms) {
   const s = Math.floor(ms/1000)%60, m = Math.floor(ms/60000)%60, h = Math.floor(ms/3600000);
   const cs = Math.floor((ms%1000)/10);
   return (h>0?pad(h)+':':'') + pad(m)+':'+pad(s)+'.'+pad(cs);
+}
+
+// ===== Memo =====
+let memos = JSON.parse(localStorage.getItem('pocketbon-memos') || '[]');
+function saveMemos() { localStorage.setItem('pocketbon-memos', JSON.stringify(memos)); }
+
+function switchMemoTab(which) {
+  document.querySelectorAll('.memo-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.memo-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('mtab-' + which).classList.add('active');
+  document.getElementById('mpanel-' + which).classList.add('active');
+}
+
+function addMemo() {
+  const val = document.getElementById('memo-input').value.trim();
+  if (!val) return;
+  memos.unshift({ id: Date.now(), text: val, date: new Date().toISOString() });
+  saveMemos(); renderMemos();
+  document.getElementById('memo-input').value = '';
+}
+
+function deleteMemo(id) {
+  memos = memos.filter(m => m.id !== id);
+  saveMemos(); renderMemos();
+}
+
+function renderMemos() {
+  const el = document.getElementById('memo-list');
+  if (!memos.length) { el.innerHTML = '<div class="empty-hint"><span>📝</span>메모가 없어요</div>'; return; }
+  el.innerHTML = memos.map(m => `
+    <div class="memo-item">
+      <div style="flex:1">
+        <div class="memo-item-text">${escHtml(m.text)}</div>
+        <div class="memo-item-date">${fmtDate(m.date)}</div>
+      </div>
+      <button class="item-del" onclick="deleteMemo(${m.id})">✕</button>
+    </div>`).join('');
+}
+renderMemos();
+
+// ===== Todo =====
+let todos = JSON.parse(localStorage.getItem('pocketbon-todos') || '[]');
+let todoFilter = 'all';
+function saveTodos() { localStorage.setItem('pocketbon-todos', JSON.stringify(todos)); }
+
+function addTodo() {
+  const val = document.getElementById('todo-input').value.trim();
+  if (!val) return;
+  todos.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString() });
+  saveTodos(); renderTodos();
+  document.getElementById('todo-input').value = '';
+}
+
+function toggleTodo(id) {
+  const t = todos.find(t => t.id === id);
+  if (t) { t.done = !t.done; saveTodos(); renderTodos(); }
+}
+
+function deleteTodo(id) {
+  todos = todos.filter(t => t.id !== id);
+  saveTodos(); renderTodos();
+}
+
+function setTodoFilter(f) {
+  todoFilter = f;
+  ['all','active','done'].forEach(x => document.getElementById('todo-filter-'+x).classList.toggle('active', x === f));
+  renderTodos();
+}
+
+function renderTodos() {
+  const el = document.getElementById('todo-list');
+  const list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
+  if (!list.length) { el.innerHTML = '<div class="empty-hint"><span>✅</span>할 일이 없어요</div>'; return; }
+  el.innerHTML = list.map(t => `
+    <div class="todo-item">
+      <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTodo(${t.id})"></div>
+      <div class="todo-text ${t.done ? 'done' : ''}">${escHtml(t.text)}</div>
+      <button class="item-del" onclick="deleteTodo(${t.id})">✕</button>
+    </div>`).join('');
+}
+renderTodos();
+
+// ===== Ledger =====
+let ledger = JSON.parse(localStorage.getItem('pocketbon-ledger') || '[]');
+let ledgerType = 'income';
+let ledgerFilter = 'all';
+let ledgerMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+function saveLedger() { localStorage.setItem('pocketbon-ledger', JSON.stringify(ledger)); }
+
+// 오늘 날짜 기본값
+document.getElementById('ledger-date').value = new Date().toISOString().slice(0,10);
+
+function setLedgerType(t) {
+  ledgerType = t;
+  document.getElementById('ltype-income').classList.toggle('active', t === 'income');
+  document.getElementById('ltype-expense').classList.toggle('active', t === 'expense');
+}
+
+function setLedgerFilter(f) {
+  ledgerFilter = f;
+  ['all','income','expense'].forEach(x => document.getElementById('lfilter-'+x).classList.toggle('active', x === f));
+  renderLedger();
+}
+
+function changeMonth(dir) {
+  const [y, m] = ledgerMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + dir, 1);
+  ledgerMonth = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  renderLedger();
+}
+
+function addLedger() {
+  const desc   = document.getElementById('ledger-desc').value.trim();
+  const amount = parseInt(document.getElementById('ledger-amount').value);
+  const date   = document.getElementById('ledger-date').value;
+  if (!desc) { showToast('💡 내용을 입력해주세요'); return; }
+  if (!amount || amount <= 0) { showToast('💡 금액을 입력해주세요'); return; }
+  if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
+  ledger.unshift({ id: Date.now(), type: ledgerType, desc, amount, date });
+  saveLedger(); renderLedger();
+  document.getElementById('ledger-desc').value = '';
+  document.getElementById('ledger-amount').value = '';
+  showToast(ledgerType === 'income' ? '💚 수입 추가됨' : '❤️ 지출 추가됨');
+}
+
+function deleteLedger(id) {
+  ledger = ledger.filter(l => l.id !== id);
+  saveLedger(); renderLedger();
+}
+
+function renderLedger() {
+  // 월 라벨
+  const [y, m] = ledgerMonth.split('-').map(Number);
+  document.getElementById('month-label').textContent = y + '년 ' + m + '월';
+
+  // 해당 월 데이터
+  const monthData = ledger.filter(l => l.date.startsWith(ledgerMonth));
+  const income  = monthData.filter(l => l.type === 'income').reduce((s, l) => s + l.amount, 0);
+  const expense = monthData.filter(l => l.type === 'expense').reduce((s, l) => s + l.amount, 0);
+  const balance = income - expense;
+
+  document.getElementById('ledger-income-total').textContent  = '₩' + income.toLocaleString();
+  document.getElementById('ledger-expense-total').textContent = '₩' + expense.toLocaleString();
+  const balEl = document.getElementById('ledger-balance');
+  balEl.textContent = (balance >= 0 ? '+' : '') + '₩' + balance.toLocaleString();
+  balEl.className = 'ledger-balance ' + (balance >= 0 ? 'plus' : 'minus');
+
+  // 목록
+  const filtered = monthData.filter(l => ledgerFilter === 'all' ? true : l.type === ledgerFilter);
+  const el = document.getElementById('ledger-list');
+  if (!filtered.length) { el.innerHTML = '<div class="empty-hint"><span>💰</span>이번 달 내역이 없어요</div>'; return; }
+  el.innerHTML = filtered.map(l => `
+    <div class="ledger-item">
+      <div class="ledger-item-dot ${l.type}"></div>
+      <div class="ledger-item-info">
+        <div class="ledger-item-desc">${escHtml(l.desc)}</div>
+        <div class="ledger-item-date">${l.date}</div>
+      </div>
+      <div class="ledger-item-amount ${l.type}">${l.type === 'income' ? '+' : '-'}₩${l.amount.toLocaleString()}</div>
+      <button class="item-del" onclick="deleteLedger(${l.id})">✕</button>
+    </div>`).join('');
+}
+renderLedger();
+
+// 공통 유틸
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
 // ===== Backup / Restore =====
