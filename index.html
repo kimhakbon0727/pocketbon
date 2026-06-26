@@ -957,38 +957,80 @@ function checkNotifPerm() {
   }
 }
 
-async function addAlarm() {
-  const timeVal = document.getElementById('alarm-time').value;
-  const label = document.getElementById('alarm-label').value.trim() || '알람';
-  if (!timeVal) { showToast('⏰ 시간을 선택해주세요'); return; }
 
-  const alarm = { id: Date.now(), time: timeVal, label, active: true };
-  alarms.push(alarm);
-  saveAlarms();
 
-  // 포그라운드 타이머 (앱 열려있을 때)
-  scheduleAlarmForeground(alarm);
 
-  // 서버에 알람 예약 (앱 닫혀있을 때 FCM 푸시)
+
+
+window.addAlarm = async function() {
+  const timeInput = document.getElementById('alarm-time').value;
+  const labelInput = document.getElementById('alarm-label').value || '알람';
+
+  if (!timeInput) {
+    alert('시간을 선택해 주세요.');
+    return;
+  }
+
+  // 1. 서버(Vercel)의 schedule-alarm API로 보낼 데이터 구조 맞추기
+  const alarmData = {
+    id: Date.now(), // 고유 ID (숫자나 문자열)
+    time: timeInput, // "08:30" 형태
+    label: labelInput
+  };
+
   try {
+    // 2. QStash 스케줄러 등록을 위해 백엔드 API 호출
     const res = await fetch('/api/schedule-alarm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: alarm.id, time: timeVal, label })
+      body: JSON.stringify(alarmData)
     });
-    const data = await res.json();
-    if (data.ok) {
-      showToast('✅ 알람이 설정됐어요! 앱 꺼도 울려요 🔔');
-    } else {
-      showToast('⚠️ 알람 설정됐지만 백그라운드 알람 오류');
-    }
-  } catch(e) {
-    showToast('✅ 알람 설정됐어요 (오프라인 모드)');
-  }
 
-  renderAlarms();
-  document.getElementById('alarm-label').value = '';
-}
+    // 만약 서버에서 에러 응답(400, 500 등)을 주면 catch 블록으로 던집니다.
+    if (!res.ok) {
+      throw new Error('서버 백그라운드 큐 등록 실패');
+    }
+
+    // 3. 서버 등록이 성공했을 때만 로컬스토리지(화면 표시용)에 저장
+    alarms.push({
+      id: alarmData.id,
+      time: alarmData.time,
+      label: alarmData.label,
+      enabled: true
+    });
+    localStorage.setItem('pb_alarms', JSON.stringify(alarms));
+    
+    // 서비스 워커 동기화 메시지 전송
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SYNC_ALARMS',
+        alarms: alarms
+      });
+    }
+
+    document.getElementById('alarm-label').value = '';
+    renderAlarms();
+    
+    // 성공 토스트나 알림창 띄우기
+    if (typeof showToast === 'function') {
+      showToast('⏰ 백그라운드 알람이 설정되었습니다!');
+    } else {
+      alert('⏰ 백그라운드 알람이 설정되었습니다!');
+    }
+
+  } catch (err) {
+    console.error('알람 설정 실패:', err);
+    // 여기가 지금 보시는 "백그라운드 알람 오류" 팝업이 뜨는 지점입니다.
+    alert('⚠️ 알람 설정됐지만 백그라운드 알람 오류가 발생했습니다.');
+  }
+};
+
+
+
+
+
+
+
 
 // 포그라운드용 타이머
 function scheduleAlarmForeground(alarm) {
