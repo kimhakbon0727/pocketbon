@@ -37,6 +37,87 @@
     }
     .tab svg { width: 22px; height: 22px; }
     .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Calendar */
+    .cal-header { display: flex; align-items: center; justify-content: space-between; }
+    .cal-nav-btn { background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; padding: 6px 12px; border-radius: 10px; }
+    .cal-nav-btn:active { background: var(--surface2); }
+    .cal-month-label { font-size: 18px; font-weight: 600; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-dow { text-align: center; font-size: 11px; color: var(--text2); padding: 6px 0; }
+    .cal-dow:first-child { color: #ff6fa8; }
+    .cal-dow:last-child { color: #7c6fff; }
+    .cal-day {
+      aspect-ratio: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-start; padding-top: 6px;
+      border-radius: 10px; cursor: pointer; font-size: 14px;
+      position: relative; transition: background 0.15s;
+      gap: 2px;
+    }
+    .cal-day:active { background: var(--surface2); }
+    .cal-day.empty { cursor: default; }
+    .cal-day.today .cal-day-num {
+      background: var(--accent); color: #fff;
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cal-day.sun .cal-day-num { color: #ff6fa8; }
+    .cal-day.sat .cal-day-num { color: #7c6fff; }
+    .cal-day.today.sun .cal-day-num, .cal-day.today.sat .cal-day-num { color: #fff; }
+    .cal-day-dots { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; max-width: 28px; }
+    .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; }
+    .cal-dot.color1 { background: #7c6fff; }
+    .cal-dot.color2 { background: #ff6fa8; }
+    .cal-dot.color3 { background: #6fdfff; }
+    .cal-dot.color4 { background: #ffd166; }
+
+    /* Schedule modal */
+    .sch-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 200;
+    }
+    .sch-modal {
+      background: var(--surface); border-radius: 24px 24px 0 0;
+      padding: 24px 20px 40px; width: 100%; max-width: 430px;
+      max-height: 80vh; overflow-y: auto;
+    }
+    .sch-modal-date { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
+    .sch-input {
+      width: 100%; padding: 12px 16px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none; margin-bottom: 10px;
+      font-family: inherit;
+    }
+    .sch-input:focus { border-color: var(--accent); }
+    .sch-time-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .sch-time-row .sch-input { margin-bottom: 0; }
+    .sch-color-row { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; }
+    .sch-color-label { font-size: 13px; color: var(--text2); }
+    .sch-color-btn {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; transition: transform 0.1s;
+    }
+    .sch-color-btn.selected { border-color: #fff; transform: scale(1.15); }
+    .sch-add-btn {
+      width: 100%; padding: 14px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 16px; cursor: pointer; margin-bottom: 16px;
+    }
+    .sch-list { display: flex; flex-direction: column; gap: 8px; }
+    .sch-item {
+      background: var(--surface2); border-radius: 12px; padding: 12px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sch-item-color { width: 8px; height: 36px; border-radius: 4px; flex-shrink: 0; }
+    .sch-item-info { flex: 1; }
+    .sch-item-title { font-size: 15px; font-weight: 500; }
+    .sch-item-time { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .sch-item-del { background: none; border: none; color: var(--text2); font-size: 18px; cursor: pointer; padding: 4px; }
+    .sch-modal-close {
+      width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
+      background: none; color: var(--text2); font-size: 15px; cursor: pointer; margin-top: 4px;
+    }
     .screen { display: none; flex: 1; padding: 20px 16px 100px; overflow-x: hidden; }
     .screen.active { display: flex; flex-direction: column; gap: 16px; }
 
@@ -465,6 +546,16 @@
     </svg>
     가계부
   </button>
+  <button class="tab" onclick="switchTab('calendar', this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="3" y="4" width="18" height="18" rx="3"/>
+      <path d="M16 2v4M8 2v4M3 10h18"/>
+      <circle cx="8" cy="16" r="1" fill="currentColor"/>
+      <circle cx="12" cy="16" r="1" fill="currentColor"/>
+      <circle cx="16" cy="16" r="1" fill="currentColor"/>
+    </svg>
+    달력
+  </button>
   <button class="tab" onclick="switchTab('settings', this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <circle cx="12" cy="12" r="3"/>
@@ -671,6 +762,38 @@
   </div>
 
   <div class="ledger-list" id="ledger-list"></div>
+</div>
+
+<!-- CALENDAR -->
+<div class="screen" id="calendar">
+  <div class="cal-header">
+    <button class="cal-nav-btn" onclick="calChangeMonth(-1)">‹</button>
+    <div class="cal-month-label" id="cal-month-label"></div>
+    <button class="cal-nav-btn" onclick="calChangeMonth(1)">›</button>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div class="sch-modal-overlay" id="sch-modal" style="display:none" onclick="if(event.target===this)closeSchModal()">
+  <div class="sch-modal">
+    <div class="sch-modal-date" id="sch-modal-date"></div>
+    <input class="sch-input" id="sch-title" placeholder="일정 제목" maxlength="30"/>
+    <div class="sch-time-row">
+      <input class="sch-input" id="sch-start" type="time" placeholder="시작"/>
+      <input class="sch-input" id="sch-end" type="time" placeholder="종료"/>
+    </div>
+    <div class="sch-color-row">
+      <span class="sch-color-label">색상</span>
+      <button class="sch-color-btn selected color1-btn" style="background:#7c6fff" onclick="selectSchColor(1,this)"></button>
+      <button class="sch-color-btn color2-btn" style="background:#ff6fa8" onclick="selectSchColor(2,this)"></button>
+      <button class="sch-color-btn color3-btn" style="background:#6fdfff" onclick="selectSchColor(3,this)"></button>
+      <button class="sch-color-btn color4-btn" style="background:#ffd166" onclick="selectSchColor(4,this)"></button>
+    </div>
+    <button class="sch-add-btn" onclick="addSchedule()">+ 일정 추가</button>
+    <div class="sch-list" id="sch-list"></div>
+    <button class="sch-modal-close" onclick="closeSchModal()">닫기</button>
+  </div>
 </div>
 
 <!-- SETTINGS -->
@@ -1628,6 +1751,125 @@ if ('serviceWorker' in navigator) {
     }
   });
 }
+
+// ===== CALENDAR =====
+const COLORS = { 1: '#7c6fff', 2: '#ff6fa8', 3: '#6fdfff', 4: '#ffd166' };
+let calYear, calMonth, schSelectedDate = null, schSelectedColor = 1;
+let schedules = JSON.parse(localStorage.getItem('pocketbon-schedules') || '{}');
+
+function saveSchedules() { localStorage.setItem('pocketbon-schedules', JSON.stringify(schedules)); }
+
+function calInit() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCal();
+}
+
+function calChangeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCal();
+}
+
+function renderCal() {
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('cal-month-label').textContent = calYear + '년 ' + months[calMonth];
+
+  const grid = document.getElementById('cal-grid');
+  const dows = ['일','월','화','수','목','금','토'];
+  const today = new Date();
+
+  let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
+
+  for (let d = 1; d <= lastDate; d++) {
+    const dateKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === d;
+    const dow = (firstDay + d - 1) % 7;
+    const dowClass = dow === 0 ? 'sun' : dow === 6 ? 'sat' : '';
+    const todayClass = isToday ? 'today' : '';
+    const daySchedules = schedules[dateKey] || [];
+    const dots = daySchedules.slice(0, 3).map(s => `<div class="cal-dot color${s.color}"></div>`).join('');
+
+    html += `<div class="cal-day ${dowClass} ${todayClass}" onclick="openSchModal('${dateKey}', ${d})">
+      <div class="cal-day-num">${d}</div>
+      <div class="cal-day-dots">${dots}</div>
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function openSchModal(dateKey, day) {
+  schSelectedDate = dateKey;
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('sch-modal-date').textContent = `${calYear}년 ${months[calMonth]} ${day}일`;
+  document.getElementById('sch-title').value = '';
+  document.getElementById('sch-start').value = '';
+  document.getElementById('sch-end').value = '';
+  selectSchColor(1, document.querySelector('.color1-btn'));
+  renderSchList();
+  document.getElementById('sch-modal').style.display = 'flex';
+}
+
+function closeSchModal() {
+  document.getElementById('sch-modal').style.display = 'none';
+  schSelectedDate = null;
+}
+
+function selectSchColor(num, el) {
+  schSelectedColor = num;
+  document.querySelectorAll('.sch-color-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function addSchedule() {
+  const title = document.getElementById('sch-title').value.trim();
+  if (!title) { showToast('일정 제목을 입력해주세요'); return; }
+  const start = document.getElementById('sch-start').value;
+  const end = document.getElementById('sch-end').value;
+  if (!schedules[schSelectedDate]) schedules[schSelectedDate] = [];
+  schedules[schSelectedDate].push({ id: Date.now(), title, start, end, color: schSelectedColor });
+  saveSchedules();
+  document.getElementById('sch-title').value = '';
+  document.getElementById('sch-start').value = '';
+  document.getElementById('sch-end').value = '';
+  renderSchList();
+  renderCal();
+  showToast('일정이 추가됐어요 ✅');
+}
+
+function deleteSchedule(id) {
+  if (!schSelectedDate) return;
+  schedules[schSelectedDate] = (schedules[schSelectedDate] || []).filter(s => s.id !== id);
+  if (!schedules[schSelectedDate].length) delete schedules[schSelectedDate];
+  saveSchedules();
+  renderSchList();
+  renderCal();
+}
+
+function renderSchList() {
+  const list = document.getElementById('sch-list');
+  const items = schedules[schSelectedDate] || [];
+  if (!items.length) { list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:12px;font-size:14px">등록된 일정이 없어요</div>'; return; }
+  list.innerHTML = items.map(s => `
+    <div class="sch-item">
+      <div class="sch-item-color" style="background:${COLORS[s.color]}"></div>
+      <div class="sch-item-info">
+        <div class="sch-item-title">${s.title}</div>
+        <div class="sch-item-time">${s.start && s.end ? s.start + ' ~ ' + s.end : s.start || s.end || '종일'}</div>
+      </div>
+      <button class="sch-item-del" onclick="deleteSchedule(${s.id})">🗑️</button>
+    </div>`).join('');
+}
+
+calInit();
 </script>
 </body>
 </html>
