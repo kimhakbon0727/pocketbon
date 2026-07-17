@@ -1031,7 +1031,16 @@ function switchTab(id) {
   renderTabBar();
   if (id === 'settings') renderTabSettings();
   if (id === 'calendar') renderCal();
-  if (id === 'map') { setTimeout(() => { if (window.kakao && window.kakao.maps) { kakao.maps.load(initKakaoMap); } }, 100); }
+  if (id === 'map') {
+    const tryInit = () => {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+        initKakaoMap();
+      } else {
+        setTimeout(tryInit, 300);
+      }
+    };
+    tryInit();
+  }
 }
 
 // ===== Calculator =====
@@ -2140,7 +2149,19 @@ function clearRoutePolylines() {
 }
 
 async function searchRoute() {
-  if (!kakaoMap) { showToast('지도를 먼저 불러와주세요'); return; }
+  if (!kakaoMap) {
+    const tryInit = () => {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+        initKakaoMap();
+        setTimeout(searchRoute, 500);
+      } else {
+        setTimeout(tryInit, 300);
+      }
+    };
+    tryInit();
+    showToast('지도 초기화 중...');
+    return;
+  }
   const fromVal = document.getElementById('map-from').value.trim();
   const toVal = document.getElementById('map-to').value.trim();
   if (!toVal) { showToast('도착지를 입력해주세요'); return; }
@@ -2263,14 +2284,12 @@ function guideIcon(type) {
   return icons[type] || '•';
 }
 
-// 지도 탭 클릭 시 초기화
-const origSwitchTab = switchTab;
-// map 탭 전환 시 지도 초기화
-document.addEventListener('DOMContentLoaded', () => {});
-// kakao 로드 후 자동 초기화 (지도 탭일 때)
-if (window.kakao && window.kakao.maps) {
-  kakao.maps.load(() => { /* 대기 */ });
-}
+// kakao SDK가 이미 로드된 경우 맵 화면이 활성화되면 바로 초기화
+window.addEventListener('load', () => {
+  if (currentTab === 'map' && window.kakao && window.kakao.maps) {
+    initKakaoMap();
+  }
+});
 </script>
 </body>
 </html>
