@@ -121,7 +121,61 @@
     .cal-holiday { font-size: 9px; color: #ff6fa8; text-align: center; line-height: 1.1; max-width: 36px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .cal-day.holiday .cal-day-num { color: #ff6fa8; }
     .cal-day.today.holiday .cal-day-num { color: #fff; }
+
+    /* Map */
+    .map-screen { display: none; flex: 1; flex-direction: column; padding: 0; overflow: hidden; }
+    .map-screen.active { display: flex; }
+    .map-top { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 5; }
+    .map-input-row { display: flex; gap: 8px; align-items: center; }
+    .map-input-wrap { flex: 1; position: relative; }
+    .map-input {
+      width: 100%; padding: 10px 36px 10px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 14px; outline: none; font-family: inherit;
+    }
+    .map-input:focus { border-color: var(--accent); }
+    .map-input::placeholder { color: var(--text2); }
+    .map-input-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 16px; cursor: pointer; }
+    .map-mode-row { display: flex; gap: 6px; }
+    .map-mode-btn {
+      flex: 1; padding: 8px 4px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); font-size: 13px; cursor: pointer;
+      transition: all 0.15s; text-align: center;
+    }
+    .map-mode-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .map-search-btn {
+      padding: 10px 16px; border-radius: 12px; border: none;
+      background: var(--accent); color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap;
+    }
+    #kakao-map { flex: 1; width: 100%; }
+    .map-result {
+      position: absolute; bottom: 0; left: 0; right: 0; max-width: 430px; margin: 0 auto;
+      background: var(--surface); border-radius: 20px 20px 0 0;
+      padding: 16px 20px 32px; border-top: 1px solid var(--border);
+      z-index: 10; max-height: 45vh; overflow-y: auto;
+      transform: translateY(100%); transition: transform 0.3s;
+    }
+    .map-result.show { transform: translateY(0); }
+    .map-result-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 14px; }
+    .map-result-summary { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+    .map-result-stat { text-align: center; }
+    .map-result-stat-val { font-size: 22px; font-weight: 600; color: var(--accent); }
+    .map-result-stat-label { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .map-steps { display: flex; flex-direction: column; gap: 0; }
+    .map-step { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .map-step:last-child { border-bottom: none; }
+    .map-step-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+    .map-step-text { font-size: 14px; color: var(--text); flex: 1; line-height: 1.4; }
+    .map-step-dist { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .map-my-loc-btn {
+      position: absolute; right: 16px; z-index: 5;
+      width: 42px; height: 42px; border-radius: 50%; border: none;
+      background: var(--surface); color: var(--accent); font-size: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
     .screen { display: none; flex: 1; padding: 20px 16px 100px; overflow-x: hidden; }
+    .map-screen { padding: 0 !important; gap: 0 !important; }
     .screen.active { display: flex; flex-direction: column; gap: 16px; }
 
     /* Calculator */
@@ -737,6 +791,39 @@
   </div>
 </div>
 
+<!-- MAP -->
+<div class="screen map-screen" id="map">
+  <div class="map-top">
+    <div class="map-input-row">
+      <div class="map-input-wrap">
+        <input class="map-input" id="map-from" placeholder="출발지 (비우면 현재 위치)" />
+        <span class="map-input-icon" onclick="useMyLocation('from')">📍</span>
+      </div>
+    </div>
+    <div class="map-input-row">
+      <div class="map-input-wrap">
+        <input class="map-input" id="map-to" placeholder="도착지 입력" onkeydown="if(event.key==='Enter')searchRoute()" />
+        <span class="map-input-icon" onclick="document.getElementById('map-to').value=''">✕</span>
+      </div>
+      <button class="map-search-btn" onclick="searchRoute()">탐색</button>
+    </div>
+    <div class="map-mode-row">
+      <button class="map-mode-btn active" id="mode-walk" onclick="setMapMode('walk')">🚶 도보</button>
+      <button class="map-mode-btn" id="mode-car" onclick="setMapMode('car')">🚗 자동차</button>
+      <button class="map-mode-btn" id="mode-transit" onclick="setMapMode('transit')">🚌 대중교통</button>
+    </div>
+  </div>
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;">
+    <div id="kakao-map" style="flex:1;"></div>
+    <button class="map-my-loc-btn" id="my-loc-btn" style="bottom:200px;" onclick="moveToMyLocation()">📍</button>
+    <div class="map-result" id="map-result">
+      <div class="map-result-handle"></div>
+      <div class="map-result-summary" id="map-result-summary"></div>
+      <div class="map-steps" id="map-steps"></div>
+    </div>
+  </div>
+</div>
+
 <!-- SETTINGS -->
 <div class="screen" id="settings">
   <div class="settings-section">
@@ -859,6 +946,7 @@ const ALL_TABS = [
   { id: 'memo',     label: '메모',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>` },
   { id: 'ledger',   label: '가계부', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h2M10 15h4"/></svg>` },
   { id: 'calendar', label: '달력',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>` },
+  { id: 'map',      label: '길찾기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>` },
   { id: 'settings', label: '설정',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` },
 ];
 
@@ -943,6 +1031,7 @@ function switchTab(id) {
   renderTabBar();
   if (id === 'settings') renderTabSettings();
   if (id === 'calendar') renderCal();
+  if (id === 'map') { setTimeout(() => { if (window.kakao && window.kakao.maps) { kakao.maps.load(initKakaoMap); } }, 100); }
 }
 
 // ===== Calculator =====
@@ -1959,6 +2048,229 @@ calInit();
 // 탭바 초기 렌더
 renderTabBar();
 switchTab('calc');
+</script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=dccb14fb604dd641939de28221277303&libraries=services,clusterer"></script>
+<script>
+// ===== MAP =====
+const KAKAO_REST_KEY = '1468ea325312af45cfb69691aa9bd0a6';
+let kakaoMap = null, mapMode = 'walk';
+let myMarker = null, watchId = null;
+let fromCoords = null, toCoords = null;
+let routePolylines = [];
+
+function initKakaoMap() {
+  if (kakaoMap) return;
+  const container = document.getElementById('kakao-map');
+  if (!container || !window.kakao) return;
+  kakaoMap = new kakao.maps.Map(container, {
+    center: new kakao.maps.LatLng(35.1796, 129.0756), // 부산 중심
+    level: 5
+  });
+  startWatchLocation();
+}
+
+function startWatchLocation() {
+  if (!navigator.geolocation) return;
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+  watchId = navigator.geolocation.watchPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const latlng = new kakao.maps.LatLng(lat, lng);
+    if (!myMarker) {
+      const img = new kakao.maps.MarkerImage(
+        'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+        new kakao.maps.Size(24, 35)
+      );
+      myMarker = new kakao.maps.Marker({ position: latlng, map: kakaoMap, image: img, title: '내 위치' });
+    } else {
+      myMarker.setPosition(latlng);
+    }
+    // 처음 한 번만 내 위치로 이동
+    if (!fromCoords) kakaoMap.setCenter(latlng);
+  }, err => {}, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
+}
+
+function moveToMyLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(pos => {
+    const latlng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
+    kakaoMap.setCenter(latlng);
+    kakaoMap.setLevel(3);
+  });
+}
+
+function setMapMode(mode) {
+  mapMode = mode;
+  document.querySelectorAll('.map-mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mode-' + mode).classList.add('active');
+}
+
+function useMyLocation(field) {
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    fromCoords = { lat, lng };
+    document.getElementById('map-from').value = '현재 위치';
+    showToast('현재 위치를 출발지로 설정했어요 📍');
+  });
+}
+
+async function geocode(address) {
+  return new Promise((resolve, reject) => {
+    const geocoder = new kakao.maps.services.Geocoder();
+    geocoder.addressSearch(address, (result, status) => {
+      if (status === kakao.maps.services.Status.OK) {
+        resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
+      } else {
+        // 키워드 검색으로 fallback
+        const places = new kakao.maps.services.Places();
+        places.keywordSearch(address, (res, st) => {
+          if (st === kakao.maps.services.Status.OK) {
+            resolve({ lat: parseFloat(res[0].y), lng: parseFloat(res[0].x) });
+          } else reject(new Error('장소를 찾을 수 없어요'));
+        });
+      }
+    });
+  });
+}
+
+function clearRoutePolylines() {
+  routePolylines.forEach(p => p.setMap(null));
+  routePolylines = [];
+}
+
+async function searchRoute() {
+  if (!kakaoMap) { showToast('지도를 먼저 불러와주세요'); return; }
+  const fromVal = document.getElementById('map-from').value.trim();
+  const toVal = document.getElementById('map-to').value.trim();
+  if (!toVal) { showToast('도착지를 입력해주세요'); return; }
+
+  showToast('경로 탐색 중...');
+  clearRoutePolylines();
+
+  try {
+    // 출발지
+    if (fromVal && fromVal !== '현재 위치') {
+      fromCoords = await geocode(fromVal);
+    } else if (!fromCoords) {
+      await new Promise((res, rej) => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          fromCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          res();
+        }, rej);
+      });
+    }
+    // 도착지
+    toCoords = await geocode(toVal);
+
+    // 마커 표시
+    new kakao.maps.Marker({ position: new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng), map: kakaoMap });
+    new kakao.maps.Marker({ position: new kakao.maps.LatLng(toCoords.lat, toCoords.lng), map: kakaoMap });
+
+    // 카카오 REST API 경로 탐색
+    let url, color;
+    if (mapMode === 'walk') {
+      url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${fromCoords.lng},${fromCoords.lat}&destination=${toCoords.lng},${toCoords.lat}&priority=RECOMMEND`;
+      color = '#7c6fff';
+    } else if (mapMode === 'car') {
+      url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${fromCoords.lng},${fromCoords.lat}&destination=${toCoords.lng},${toCoords.lat}&priority=RECOMMEND`;
+      color = '#ff6fa8';
+    } else {
+      // 대중교통은 직선 경로 + 안내
+      drawStraightLine(fromCoords, toCoords, '#6fdfff');
+      showTransitResult(fromCoords, toCoords);
+      return;
+    }
+
+    const res = await fetch(url, { headers: { Authorization: 'KakaoAK ' + KAKAO_REST_KEY } });
+    const data = await res.json();
+
+    if (data.routes && data.routes[0]) {
+      const route = data.routes[0];
+      const summary = route.summary;
+      // 경로 그리기
+      route.sections.forEach(section => {
+        section.roads.forEach(road => {
+          const path = [];
+          for (let i = 0; i < road.vertexes.length; i += 2) {
+            path.push(new kakao.maps.LatLng(road.vertexes[i+1], road.vertexes[i]));
+          }
+          const poly = new kakao.maps.Polyline({ path, strokeColor: color, strokeWeight: 5, strokeOpacity: 0.8, map: kakaoMap });
+          routePolylines.push(poly);
+        });
+      });
+
+      // 지도 범위 조정
+      const bounds = new kakao.maps.LatLngBounds();
+      bounds.extend(new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng));
+      bounds.extend(new kakao.maps.LatLng(toCoords.lat, toCoords.lng));
+      kakaoMap.setBounds(bounds);
+
+      // 결과 표시
+      const dist = summary.distance >= 1000 ? (summary.distance/1000).toFixed(1) + 'km' : summary.distance + 'm';
+      const time = Math.ceil(summary.duration / 60) + '분';
+      const toll = summary.fare?.toll ? summary.fare.toll.toLocaleString() + '원' : '없음';
+
+      document.getElementById('map-result-summary').innerHTML = `
+        <div class="map-result-stat"><div class="map-result-stat-val">${time}</div><div class="map-result-stat-label">소요시간</div></div>
+        <div class="map-result-stat"><div class="map-result-stat-val">${dist}</div><div class="map-result-stat-label">거리</div></div>
+        ${mapMode === 'car' ? `<div class="map-result-stat"><div class="map-result-stat-val">${toll}</div><div class="map-result-stat-label">통행료</div></div>` : ''}
+      `;
+
+      const steps = route.sections[0]?.guides || [];
+      document.getElementById('map-steps').innerHTML = steps.slice(0, 10).map(g => `
+        <div class="map-step">
+          <div class="map-step-icon">${guideIcon(g.type)}</div>
+          <div class="map-step-text">${g.name || g.guidance}
+            <div class="map-step-dist">${g.distance >= 1000 ? (g.distance/1000).toFixed(1)+'km' : g.distance+'m'}</div>
+          </div>
+        </div>`).join('');
+
+      document.getElementById('map-result').classList.add('show');
+    } else {
+      showToast('경로를 찾을 수 없어요');
+    }
+  } catch(e) {
+    showToast('오류: ' + (e.message || '경로 탐색 실패'));
+  }
+}
+
+function drawStraightLine(from, to, color) {
+  const path = [new kakao.maps.LatLng(from.lat, from.lng), new kakao.maps.LatLng(to.lat, to.lng)];
+  const poly = new kakao.maps.Polyline({ path, strokeColor: color, strokeWeight: 4, strokeOpacity: 0.7, strokeStyle: 'dashed', map: kakaoMap });
+  routePolylines.push(poly);
+  const bounds = new kakao.maps.LatLngBounds();
+  path.forEach(p => bounds.extend(p));
+  kakaoMap.setBounds(bounds);
+}
+
+function showTransitResult(from, to) {
+  const dist = Math.round(Math.sqrt(Math.pow((to.lat-from.lat)*111000,2) + Math.pow((to.lng-from.lng)*88000,2)));
+  const time = Math.ceil(dist / 300);
+  document.getElementById('map-result-summary').innerHTML = `
+    <div class="map-result-stat"><div class="map-result-stat-val">약 ${time}분</div><div class="map-result-stat-label">예상 소요시간</div></div>
+    <div class="map-result-stat"><div class="map-result-stat-val">${dist >= 1000 ? (dist/1000).toFixed(1)+'km' : dist+'m'}</div><div class="map-result-stat-label">직선거리</div></div>
+  `;
+  document.getElementById('map-steps').innerHTML = `
+    <div class="map-step"><div class="map-step-icon">ℹ️</div><div class="map-step-text">대중교통 상세 경로는 카카오맵 앱에서 확인하세요<div class="map-step-dist">더 정확한 환승 정보 제공</div></div></div>
+    <div class="map-step"><div class="map-step-icon">🚌</div><div class="map-step-text">버스/지하철 이용 예상 소요시간: 약 ${time}분</div></div>
+  `;
+  document.getElementById('map-result').classList.add('show');
+}
+
+function guideIcon(type) {
+  const icons = { 1:'↑', 2:'↖', 3:'←', 5:'↙', 6:'↓', 7:'↘', 8:'→', 9:'↗', 10:'↕', 11:'⤴', 12:'⤵', 16:'🏁', 17:'🏁', 18:'⛽', 19:'🅿', 25:'🔀', 26:'🔀', 27:'🔀', 28:'🔀' };
+  return icons[type] || '•';
+}
+
+// 지도 탭 클릭 시 초기화
+const origSwitchTab = switchTab;
+// map 탭 전환 시 지도 초기화
+document.addEventListener('DOMContentLoaded', () => {});
+// kakao 로드 후 자동 초기화 (지도 탭일 때)
+if (window.kakao && window.kakao.maps) {
+  kakao.maps.load(() => { /* 대기 */ });
+}
 </script>
 </body>
 </html>
