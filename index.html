@@ -30,12 +30,12 @@
     }
     .tab {
       flex: 1; display: flex; flex-direction: column;
-      align-items: center; gap: 3px; padding: 12px 8px;
-      font-size: 11px; color: var(--text2); cursor: pointer;
+      align-items: center; justify-content: center; padding: 12px 4px;
+      color: var(--text2); cursor: pointer;
       border: none; background: none;
       border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
     }
-    .tab svg { width: 22px; height: 22px; }
+    .tab svg { width: 24px; height: 24px; }
     .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
     /* Calendar */
@@ -504,69 +504,7 @@
 </head>
 <body>
 
-<div class="tab-bar">
-  <button class="tab active" onclick="switchTab('calc', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="4" y="2" width="16" height="20" rx="3"/>
-      <line x1="8" y1="7" x2="16" y2="7"/>
-      <line x1="8" y1="11" x2="10" y2="11"/><line x1="14" y1="11" x2="16" y2="11"/>
-      <line x1="8" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="16" y2="15"/>
-      <line x1="8" y1="19" x2="10" y2="19"/><line x1="14" y1="19" x2="16" y2="19"/>
-    </svg>
-    계산기
-  </button>
-  <button class="tab" onclick="switchTab('weather', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M18 10a6 6 0 10-11.4 2.6A4 4 0 106 20h12a4 4 0 000-8z"/>
-    </svg>
-    날씨
-  </button>
-  <button class="tab" onclick="switchTab('alarm', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/>
-      <path d="M4 4l2 2M20 4l-2 2M9 3h6M12 3v2"/>
-    </svg>
-    알람
-  </button>
-  <button class="tab" onclick="switchTab('timer', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/>
-      <path d="M9 3h6M12 3v2"/>
-    </svg>
-    타이머
-  </button>
-  <button class="tab" onclick="switchTab('memo', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-      <path d="M14 2v6h6M9 13h6M9 17h4"/>
-    </svg>
-    메모
-  </button>
-  <button class="tab" onclick="switchTab('ledger', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="2" y="5" width="20" height="14" rx="2"/>
-      <path d="M2 10h20M6 15h2M10 15h4"/>
-    </svg>
-    가계부
-  </button>
-  <button class="tab" onclick="switchTab('calendar', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="3" y="4" width="18" height="18" rx="3"/>
-      <path d="M16 2v4M8 2v4M3 10h18"/>
-      <circle cx="8" cy="16" r="1" fill="currentColor"/>
-      <circle cx="12" cy="16" r="1" fill="currentColor"/>
-      <circle cx="16" cy="16" r="1" fill="currentColor"/>
-    </svg>
-    달력
-  </button>
-  <button class="tab" onclick="switchTab('settings', this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-    </svg>
-    설정
-  </button>
-</div>
+<div class="tab-bar" id="tab-bar"></div>
 
 <!-- CALCULATOR -->
 <div class="screen active" id="calc">
@@ -802,6 +740,11 @@
 <!-- SETTINGS -->
 <div class="screen" id="settings">
   <div class="settings-section">
+    <div class="settings-title">🗂️ 탭 관리</div>
+    <div class="settings-card" id="tab-settings-list"></div>
+  </div>
+
+  <div class="settings-section">
     <div class="settings-title">📦 백업 / 복원</div>
     <div class="settings-card">
       <div class="settings-row" onclick="backupData()">
@@ -907,11 +850,99 @@
 
 <script>
 // ===== Tab =====
-function switchTab(id, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+// ===== Tab Management =====
+const ALL_TABS = [
+  { id: 'calc',     label: '계산기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="10" y2="11"/><line x1="14" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="16" y2="15"/><line x1="8" y1="19" x2="10" y2="19"/><line x1="14" y1="19" x2="16" y2="19"/></svg>` },
+  { id: 'weather',  label: '날씨',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 10a6 6 0 10-11.4 2.6A4 4 0 106 20h12a4 4 0 000-8z"/></svg>` },
+  { id: 'alarm',    label: '알람',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M4 4l2 2M20 4l-2 2M9 3h6M12 3v2"/></svg>` },
+  { id: 'timer',    label: '타이머', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M9 3h6M12 3v2"/></svg>` },
+  { id: 'memo',     label: '메모',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>` },
+  { id: 'ledger',   label: '가계부', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h2M10 15h4"/></svg>` },
+  { id: 'calendar', label: '달력',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>` },
+  { id: 'settings', label: '설정',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` },
+];
+
+let tabCounts  = JSON.parse(localStorage.getItem('pb-tab-counts')  || '{}');
+let tabEnabled = JSON.parse(localStorage.getItem('pb-tab-enabled') || '{}');
+// 기본: 모두 활성화
+ALL_TABS.forEach(t => { if (tabEnabled[t.id] === undefined) tabEnabled[t.id] = true; });
+// settings는 항상 활성화
+tabEnabled['settings'] = true;
+
+function saveTabPrefs() {
+  localStorage.setItem('pb-tab-counts',  JSON.stringify(tabCounts));
+  localStorage.setItem('pb-tab-enabled', JSON.stringify(tabEnabled));
+}
+
+function getVisibleTabs() {
+  return ALL_TABS
+    .filter(t => tabEnabled[t.id])
+    .sort((a, b) => {
+      if (a.id === 'settings') return 1;
+      if (b.id === 'settings') return -1;
+      return (tabCounts[b.id] || 0) - (tabCounts[a.id] || 0);
+    });
+}
+
+let currentTab = 'calc';
+
+function renderTabBar() {
+  const bar = document.getElementById('tab-bar');
+  const visible = getVisibleTabs();
+  bar.innerHTML = visible.map(t => `
+    <button class="tab ${t.id === currentTab ? 'active' : ''}" onclick="switchTab('${t.id}')">
+      ${t.svg}
+    </button>`).join('');
+}
+
+function renderTabSettings() {
+  const el = document.getElementById('tab-settings-list');
+  if (!el) return;
+  // 설정 제외하고 보여주기
+  const tabs = ALL_TABS.filter(t => t.id !== 'settings');
+  el.innerHTML = tabs.map(t => `
+    <div class="settings-row" style="cursor:default">
+      <div class="settings-row-icon">${t.svg.replace('width="1.5"','width="1.5" width="22" height="22"')}</div>
+      <div class="settings-row-info">
+        <div class="settings-row-label">${t.label}</div>
+        <div class="settings-row-desc">클릭 수: ${tabCounts[t.id] || 0}회</div>
+      </div>
+      <div onclick="toggleTab('${t.id}')" style="cursor:pointer">
+        <div style="width:46px;height:26px;border-radius:13px;background:${tabEnabled[t.id] ? 'var(--accent)' : 'var(--surface2)'};border:1px solid var(--border);position:relative;transition:background 0.2s">
+          <div style="position:absolute;top:3px;${tabEnabled[t.id] ? 'left:23px' : 'left:3px'};width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleTab(id) {
+  // 마지막 하나 남은 탭은 끄기 불가
+  const enabledCount = ALL_TABS.filter(t => t.id !== 'settings' && tabEnabled[t.id]).length;
+  if (tabEnabled[id] && enabledCount <= 1) { showToast('최소 1개는 활성화해야 해요'); return; }
+  tabEnabled[id] = !tabEnabled[id];
+  saveTabPrefs();
+  // 현재 탭이 비활성화되면 첫 번째 활성 탭으로 이동
+  if (!tabEnabled[currentTab]) {
+    const first = getVisibleTabs()[0];
+    if (first) switchTab(first.id);
+  } else {
+    renderTabBar();
+  }
+  renderTabSettings();
+}
+
+function switchTab(id) {
+  // 클릭 수 증가 (설정 제외)
+  if (id !== 'settings') {
+    tabCounts[id] = (tabCounts[id] || 0) + 1;
+    saveTabPrefs();
+  }
+  currentTab = id;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  el.classList.add('active');
+  renderTabBar();
+  if (id === 'settings') renderTabSettings();
+  if (id === 'calendar') renderCal();
 }
 
 // ===== Calculator =====
@@ -1761,7 +1792,7 @@ let calYear, calMonth, schSelectedDate = null, schSelectedColor = 1;
 let schedules = JSON.parse(localStorage.getItem('pocketbon-schedules') || '{}');
 let holidayCache = {}; // { 'YYYY-MM': { 'YYYY-MM-DD': '공휴일명' } }
 
-const HOLIDAY_API_KEY = '807d4208dd631095100d8449ffc74c0f1afd2eb811858b5787c27183aa7628ae'; // ← 재발급 후 여기에 붙여넣기
+const HOLIDAY_API_KEY = '여기에_API키_입력'; // ← 재발급 후 여기에 붙여넣기
 
 function saveSchedules() { localStorage.setItem('pocketbon-schedules', JSON.stringify(schedules)); }
 
@@ -1909,6 +1940,10 @@ function renderSchList() {
 }
 
 calInit();
+
+// 탭바 초기 렌더
+renderTabBar();
+switchTab('calc');
 </script>
 </body>
 </html>
