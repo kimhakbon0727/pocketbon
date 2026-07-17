@@ -946,36 +946,51 @@ function switchTab(id) {
 }
 
 // ===== Calculator =====
-let state = { display: '0', expr: '', op: null, prev: null, reset: false };
+let state = { raw: '0', display: '0', expr: '', op: null, prev: null, prevRaw: null, reset: false };
+
+// 숫자에 콤마 추가 (소수점 있을 때도 처리)
+function addComma(str) {
+  if (str === 'Error') return str;
+  const neg = str.startsWith('-');
+  const s = neg ? str.slice(1) : str;
+  const [int, dec] = s.split('.');
+  const formatted = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (neg ? '-' : '') + formatted + (dec !== undefined ? '.' + dec : '');
+}
+
 function updateCalc() {
-  document.getElementById('result').textContent = state.display;
+  document.getElementById('result').textContent = addComma(state.display);
   document.getElementById('expr').textContent = state.expr;
 }
 function calcNum(n) {
-  if (state.reset) { state.display = n; state.reset = false; }
-  else state.display = state.display === '0' ? n : state.display + n;
+  if (state.reset) { state.raw = n; state.reset = false; }
+  else state.raw = state.raw === '0' ? n : state.raw + n;
+  state.display = state.raw;
   updateCalc();
 }
 function calcDot() {
-  if (state.reset) { state.display = '0.'; state.reset = false; return updateCalc(); }
-  if (!state.display.includes('.')) state.display += '.';
+  if (state.reset) { state.raw = '0.'; state.display = '0.'; state.reset = false; return updateCalc(); }
+  if (!state.raw.includes('.')) { state.raw += '.'; state.display = state.raw; }
   updateCalc();
 }
 function calcOp(op) {
-  const cur = parseFloat(state.display);
+  const cur = parseFloat(state.raw);
   if (state.op && !state.reset) {
     const res = compute(state.prev, cur, state.op);
-    state.display = fmt(res); state.prev = res;
-  } else { state.prev = cur; }
+    state.display = fmt(res); state.raw = state.display; state.prev = res; state.prevRaw = state.display;
+  } else { state.prev = cur; state.prevRaw = state.raw; }
   state.op = op;
-  state.expr = state.display + ' ' + sym(op);
+  state.expr = addComma(state.prevRaw || state.raw) + ' ' + sym(op);
   state.reset = true; updateCalc();
 }
 function calcEqual() {
   if (!state.op) return;
-  const res = compute(state.prev, parseFloat(state.display), state.op);
-  state.expr = ''; state.display = fmt(res);
-  state.op = null; state.prev = null; state.reset = true; updateCalc();
+  const cur = parseFloat(state.raw);
+  const res = compute(state.prev, cur, state.op);
+  const resStr = fmt(res);
+  state.expr = addComma(state.prevRaw) + ' ' + sym(state.op) + ' ' + addComma(state.raw) + ' =';
+  state.display = resStr; state.raw = resStr;
+  state.op = null; state.prev = null; state.prevRaw = null; state.reset = true; updateCalc();
 }
 function compute(a, b, op) {
   if (op === '+') return a + b;
@@ -985,9 +1000,9 @@ function compute(a, b, op) {
 }
 function fmt(n) { return !isFinite(n) ? 'Error' : parseFloat(n.toPrecision(10)).toString(); }
 function sym(op) { return op === '*' ? '×' : op === '/' ? '÷' : op; }
-function calcClear() { state = { display: '0', expr: '', op: null, prev: null, reset: false }; updateCalc(); }
-function calcSign() { state.display = fmt(parseFloat(state.display) * -1); updateCalc(); }
-function calcPercent() { state.display = fmt(parseFloat(state.display) / 100); updateCalc(); }
+function calcClear() { state = { raw: '0', display: '0', expr: '', op: null, prev: null, prevRaw: null, reset: false }; updateCalc(); }
+function calcSign() { state.raw = fmt(parseFloat(state.raw) * -1); state.display = state.raw; updateCalc(); }
+function calcPercent() { state.raw = fmt(parseFloat(state.raw) / 100); state.display = state.raw; updateCalc(); }
 
 // ===== Weather =====
 const wmoMap = {0:'Clear',1:'Clear',2:'Clouds',3:'Clouds',51:'Drizzle',53:'Drizzle',55:'Drizzle',61:'Rain',63:'Rain',65:'Rain',71:'Snow',73:'Snow',75:'Snow',80:'Rain',81:'Rain',82:'Rain',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
@@ -1792,7 +1807,7 @@ let calYear, calMonth, schSelectedDate = null, schSelectedColor = 1;
 let schedules = JSON.parse(localStorage.getItem('pocketbon-schedules') || '{}');
 let holidayCache = {}; // { 'YYYY-MM': { 'YYYY-MM-DD': '공휴일명' } }
 
-const HOLIDAY_API_KEY = '807d4208dd631095100d8449ffc74c0f1afd2eb811858b5787c27183aa7628ae'; // ← 재발급 후 여기에 붙여넣기
+const HOLIDAY_API_KEY = '여기에_API키_입력'; // ← 재발급 후 여기에 붙여넣기
 
 function saveSchedules() { localStorage.setItem('pocketbon-schedules', JSON.stringify(schedules)); }
 
