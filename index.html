@@ -1905,7 +1905,7 @@ let calYear, calMonth, schSelectedDate = null, schSelectedColor = 1;
 let schedules = JSON.parse(localStorage.getItem('pocketbon-schedules') || '{}');
 let holidayCache = {}; // { 'YYYY-MM': { 'YYYY-MM-DD': '공휴일명' } }
 
-const HOLIDAY_API_KEY = '여기에_API키_입력'; // ← 재발급 후 여기에 붙여넣기
+const HOLIDAY_API_KEY = '807d4208dd631095100d8449ffc74c0f1afd2eb811858b5787c27183aa7628ae'; // ← 재발급 후 여기에 붙여넣기
 
 function saveSchedules() { localStorage.setItem('pocketbon-schedules', JSON.stringify(schedules)); }
 
