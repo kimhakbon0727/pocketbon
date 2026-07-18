@@ -519,6 +519,36 @@
     .settings-row.danger .settings-row-label { color: #ff8080; }
     .settings-row.danger .settings-row-icon { filter: hue-rotate(180deg); }
 
+    /* PIN Modal */
+    .pin-overlay {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500; gap: 32px;
+    }
+    .pin-title { font-size: 20px; font-weight: 600; color: var(--text); }
+    .pin-subtitle { font-size: 14px; color: var(--text2); margin-top: -24px; }
+    .pin-dots { display: flex; gap: 16px; }
+    .pin-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--text2); background: transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .pin-dot.filled { background: var(--accent); border-color: var(--accent); }
+    .pin-dot.error { background: #ff6fa8; border-color: #ff6fa8; }
+    .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 280px; }
+    .pin-key {
+      height: 72px; border-radius: 50%; border: none;
+      background: var(--surface); color: var(--text);
+      font-size: 24px; font-weight: 300; cursor: pointer;
+      transition: background 0.1s, transform 0.08s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pin-key:active { background: var(--surface2); transform: scale(0.93); }
+    .pin-key.del { font-size: 18px; }
+    .pin-key.empty { background: transparent; cursor: default; }
+    .pin-error-msg { font-size: 14px; color: #ff6fa8; min-height: 20px; }
+
     /* Backup toast */
     .toast {
       position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
@@ -824,6 +854,32 @@
   </div>
 </div>
 
+<!-- PIN MODAL -->
+<div class="pin-overlay" id="pin-overlay" style="display:none">
+  <div class="pin-title" id="pin-title">가계부 잠금</div>
+  <div class="pin-subtitle" id="pin-subtitle">6자리 PIN을 입력하세요</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot"></div><div class="pin-dot"></div>
+    <div class="pin-dot"></div><div class="pin-dot"></div>
+    <div class="pin-dot"></div><div class="pin-dot"></div>
+  </div>
+  <div class="pin-error-msg" id="pin-error"></div>
+  <div class="pin-keypad">
+    <button class="pin-key" onclick="pinInput('1')">1</button>
+    <button class="pin-key" onclick="pinInput('2')">2</button>
+    <button class="pin-key" onclick="pinInput('3')">3</button>
+    <button class="pin-key" onclick="pinInput('4')">4</button>
+    <button class="pin-key" onclick="pinInput('5')">5</button>
+    <button class="pin-key" onclick="pinInput('6')">6</button>
+    <button class="pin-key" onclick="pinInput('7')">7</button>
+    <button class="pin-key" onclick="pinInput('8')">8</button>
+    <button class="pin-key" onclick="pinInput('9')">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" onclick="pinInput('0')">0</button>
+    <button class="pin-key del" onclick="pinDelete()">⌫</button>
+  </div>
+</div>
+
 <!-- SETTINGS -->
 <div class="screen" id="settings">
   <div class="settings-section">
@@ -986,21 +1042,39 @@ function renderTabBar() {
 function renderTabSettings() {
   const el = document.getElementById('tab-settings-list');
   if (!el) return;
-  // 설정 제외하고 보여주기
   const tabs = ALL_TABS.filter(t => t.id !== 'settings');
-  el.innerHTML = tabs.map(t => `
-    <div class="settings-row" style="cursor:default">
-      <div class="settings-row-icon">${t.svg.replace('width="1.5"','width="1.5" width="22" height="22"')}</div>
-      <div class="settings-row-info">
-        <div class="settings-row-label">${t.label}</div>
-        <div class="settings-row-desc">클릭 수: ${tabCounts[t.id] || 0}회</div>
-      </div>
-      <div onclick="toggleTab('${t.id}')" style="cursor:pointer">
-        <div style="width:46px;height:26px;border-radius:13px;background:${tabEnabled[t.id] ? 'var(--accent)' : 'var(--surface2)'};border:1px solid var(--border);position:relative;transition:background 0.2s">
-          <div style="position:absolute;top:3px;${tabEnabled[t.id] ? 'left:23px' : 'left:3px'};width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
+  el.innerHTML = tabs.map(t => {
+    const isOn = tabEnabled[t.id];
+    const isLedger = t.id === 'ledger';
+    const hasPIN = !!localStorage.getItem('pb-ledger-pin');
+    return `
+    <div class="settings-row" style="cursor:default;flex-wrap:wrap;gap:0">
+      <div style="display:flex;align-items:center;gap:12px;width:100%;padding:4px 0">
+        <div class="settings-row-icon">${t.svg.replace('width="1.5"','width="1.5" width="22" height="22"')}</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">${t.label}</div>
+          <div class="settings-row-desc">클릭 수: ${tabCounts[t.id] || 0}회</div>
+        </div>
+        <div onclick="toggleTab('${t.id}')" style="cursor:pointer;flex-shrink:0">
+          <div style="width:46px;height:26px;border-radius:13px;background:${isOn ? 'var(--accent)' : 'var(--surface2)'};border:1px solid var(--border);position:relative;transition:background 0.2s">
+            <div style="position:absolute;top:3px;${isOn ? 'left:23px' : 'left:3px'};width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
+          </div>
         </div>
       </div>
-    </div>`).join('');
+      ${isLedger && isOn ? `
+      <div style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 0 4px 36px;border-top:1px solid var(--border);margin-top:4px">
+        <div class="settings-row-info">
+          <div class="settings-row-label" style="font-size:14px">🔒 PIN 잠금</div>
+          <div class="settings-row-desc">${hasPIN ? 'PIN이 설정되어 있어요' : '가계부 진입 시 PIN 입력'}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${hasPIN ? `<button onclick="changePIN()" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer">변경</button>
+          <button onclick="removePIN()" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">해제</button>` :
+          `<button onclick="setPIN()" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">설정</button>`}
+        </div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
 }
 
 function toggleTab(id) {
@@ -1020,6 +1094,18 @@ function toggleTab(id) {
 }
 
 function switchTab(id) {
+  // 가계부 PIN 체크
+  if (id === 'ledger' && localStorage.getItem('pb-ledger-pin')) {
+    openPinOverlay('verify', () => {
+      // PIN 확인 후 실제 탭 전환
+      if (id !== 'settings') { tabCounts[id] = (tabCounts[id] || 0) + 1; saveTabPrefs(); }
+      currentTab = id;
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      renderTabBar();
+    });
+    return;
+  }
   // 클릭 수 증가 (설정 제외)
   if (id !== 'settings') {
     tabCounts[id] = (tabCounts[id] || 0) + 1;
@@ -2052,9 +2138,106 @@ function renderSchList() {
     </div>`).join('');
 }
 
-calInit();
+// ===== PIN LOCK =====
+let pinBuffer = '';
+let pinMode = 'verify'; // 'verify' | 'set' | 'confirm'
+let pinTemp = '';
+let pinCallback = null;
+
+function openPinOverlay(mode, callback) {
+  pinBuffer = ''; pinTemp = ''; pinMode = mode; pinCallback = callback;
+  const titles = { verify: '가계부 잠금', set: 'PIN 설정', confirm: 'PIN 확인' };
+  const subs = { verify: '6자리 PIN을 입력하세요', set: '새 PIN 6자리를 입력하세요', confirm: 'PIN을 한 번 더 입력하세요' };
+  document.getElementById('pin-title').textContent = titles[mode];
+  document.getElementById('pin-subtitle').textContent = subs[mode];
+  document.getElementById('pin-error').textContent = '';
+  updatePinDots();
+  document.getElementById('pin-overlay').style.display = 'flex';
+}
+
+function closePinOverlay() {
+  pinBuffer = ''; pinTemp = '';
+  document.getElementById('pin-overlay').style.display = 'none';
+}
+
+function updatePinDots() {
+  const dots = document.querySelectorAll('.pin-dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('filled', 'error');
+    if (i < pinBuffer.length) d.classList.add('filled');
+  });
+}
+
+function pinInput(n) {
+  if (pinBuffer.length >= 6) return;
+  pinBuffer += n;
+  updatePinDots();
+  if (pinBuffer.length === 6) {
+    setTimeout(() => processPIN(), 150);
+  }
+}
+
+function pinDelete() {
+  if (pinBuffer.length > 0) { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); }
+}
+
+function processPIN() {
+  if (pinMode === 'verify') {
+    const saved = localStorage.getItem('pb-ledger-pin');
+    if (pinBuffer === saved) {
+      closePinOverlay();
+      if (pinCallback) pinCallback();
+    } else {
+      shakePin();
+      document.getElementById('pin-error').textContent = 'PIN이 틀렸어요';
+      pinBuffer = ''; updatePinDots();
+    }
+  } else if (pinMode === 'set') {
+    pinTemp = pinBuffer;
+    pinBuffer = '';
+    pinMode = 'confirm';
+    document.getElementById('pin-title').textContent = 'PIN 확인';
+    document.getElementById('pin-subtitle').textContent = 'PIN을 한 번 더 입력하세요';
+    document.getElementById('pin-error').textContent = '';
+    updatePinDots();
+  } else if (pinMode === 'confirm') {
+    if (pinBuffer === pinTemp) {
+      localStorage.setItem('pb-ledger-pin', pinBuffer);
+      closePinOverlay();
+      showToast('PIN이 설정됐어요 🔒');
+      renderTabSettings();
+    } else {
+      shakePin();
+      document.getElementById('pin-error').textContent = 'PIN이 일치하지 않아요';
+      pinBuffer = ''; pinMode = 'set'; pinTemp = '';
+      document.getElementById('pin-title').textContent = 'PIN 설정';
+      document.getElementById('pin-subtitle').textContent = '새 PIN 6자리를 입력하세요';
+      updatePinDots();
+    }
+  }
+}
+
+function shakePin() {
+  const dots = document.querySelectorAll('.pin-dot');
+  dots.forEach(d => d.classList.add('error'));
+  setTimeout(() => dots.forEach(d => d.classList.remove('error')), 500);
+}
+
+function setPIN() { openPinOverlay('set', null); }
+function changePIN() { openPinOverlay('set', null); }
+function removePIN() {
+  localStorage.removeItem('pb-ledger-pin');
+  showToast('PIN이 해제됐어요 🔓');
+  renderTabSettings();
+}
+
+// switchTab 오버라이드: 가계부 탭 진입 시 PIN 확인
+const _origSwitchTab = switchTab;
+// 기존 switchTab 함수 내부에 ledger PIN 체크 삽입
+
 
 // 탭바 초기 렌더
+calInit();
 renderTabBar();
 switchTab('calc');
 </script>
