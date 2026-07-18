@@ -2460,10 +2460,8 @@ async function searchRoute() {
       }
 
     } else {
-      // 대중교통
-      drawStraightLine(fromCoords, toCoords, '#6fdfff');
-      kakaoMap.setBounds(bounds);
-      showTransitResult(fromCoords, toCoords, toVal);
+      // 대중교통 - ODsay API
+      await searchTransitRoute(fromCoords, toCoords, toVal, bounds);
     }
 
     // 경로 탐색 완료 후 위치 추적 시작
@@ -2506,14 +2504,142 @@ function drawStraightLine(from, to, color) {
   routePolylines.push(poly);
 }
 
-function showTransitResult(from, to, toName) {
+const ODSAY_KEY = encodeURIComponent('ahMdwx/DtlETqFOkZlWXwQ');
+
+async function searchTransitRoute(from, to, toName, bounds) {
+  try {
+    const url = `https://api.odsay.com/v1/api/searchPubTransPathT?SX=${from.lng}&SY=${from.lat}&EX=${to.lng}&EY=${to.lat}&apiKey=${ODSAY_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.result || !data.result.path || !data.result.path.length) {
+      drawStraightLine(from, to, '#6fdfff');
+      kakaoMap.setBounds(bounds);
+      showTransitFallback(from, to, toName);
+      return;
+    }
+
+    // 첫 번째 추천 경로
+    const path = data.result.path[0];
+    const info = path.info;
+    const subPaths = path.subPath;
+
+    // 경로선 그리기
+    for (const sub of subPaths) {
+      if (sub.trafficType === 1) {
+        // 지하철
+        const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
+        if (sub.passStopList?.stations) {
+          const coords = sub.passStopList.stations.map(s =>
+            new kakao.maps.LatLng(s.y, s.x)
+          );
+          if (coords.length > 1) {
+            const poly = new kakao.maps.Polyline({ path: coords, strokeColor: color, strokeWeight: 6, strokeOpacity: 0.9, map: kakaoMap });
+            routePolylines.push(poly);
+          }
+        }
+      } else if (sub.trafficType === 2) {
+        // 버스
+        if (sub.passStopList?.stations) {
+          const coords = sub.passStopList.stations.map(s =>
+            new kakao.maps.LatLng(s.y, s.x)
+          );
+          if (coords.length > 1) {
+            const poly = new kakao.maps.Polyline({ path: coords, strokeColor: '#ff6fa8', strokeWeight: 5, strokeOpacity: 0.85, map: kakaoMap });
+            routePolylines.push(poly);
+          }
+        }
+      }
+    }
+
+    kakaoMap.setBounds(bounds);
+
+    // 결과 정보 구성
+    const totalTime = info.totalTime;
+    const totalFare = info.payment;
+    const totalDist = info.totalDistance;
+
+    const steps = [];
+    for (const sub of subPaths) {
+      if (sub.trafficType === 3) {
+        // 도보
+        if (sub.distance > 0) {
+          steps.push({ icon: '🚶', text: `도보 ${sub.sectionTime}분`, dist: sub.distance, color: null });
+        }
+      } else if (sub.trafficType === 1) {
+        // 지하철
+        const lineName = sub.lane?.[0]?.name || '지하철';
+        const stationCnt = sub.stationCount;
+        const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
+        steps.push({
+          icon: '🚇',
+          text: `${sub.startName} 승차 → ${lineName} → ${sub.endName} 하차 (${stationCnt}정거장, ${sub.sectionTime}분)`,
+          dist: sub.distance,
+          lineColor: color
+        });
+      } else if (sub.trafficType === 2) {
+        // 버스
+        const busNo = sub.lane?.[0]?.busNo || '버스';
+        const stationCnt = sub.stationCount;
+        steps.push({
+          icon: '🚌',
+          text: `${sub.startName} 승차 → ${busNo}번 버스 → ${sub.endName} 하차 (${stationCnt}정거장, ${sub.sectionTime}분)`,
+          dist: sub.distance,
+          lineColor: '#ff6fa8'
+        });
+      }
+    }
+    steps.push({ icon: '🏁', text: toName + ' 도착', dist: 0, lineColor: null });
+
+    // 결과 표시
+    const timeStr = totalTime >= 60 ? Math.floor(totalTime/60) + '시간 ' + (totalTime%60) + '분' : totalTime + '분';
+    const distStr = totalDist >= 1000 ? (totalDist/1000).toFixed(1) + 'km' : totalDist + 'm';
+
+    document.getElementById('map-result-summary').innerHTML = `
+      <div class="map-result-stat"><div class="map-result-stat-val">${timeStr}</div><div class="map-result-stat-label">소요시간</div></div>
+      <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">거리</div></div>
+      <div class="map-result-stat"><div class="map-result-stat-val">${totalFare.toLocaleString()}원</div><div class="map-result-stat-label">요금</div></div>
+    `;
+
+    document.getElementById('map-steps').innerHTML = steps.map(s => `
+      <div class="map-step">
+        <div class="map-step-icon" style="${s.lineColor ? `color:${s.lineColor}` : ''}">${s.icon}</div>
+        <div class="map-step-text">${s.text}
+          ${s.dist > 0 ? `<div class="map-step-dist">${s.dist >= 1000 ? (s.dist/1000).toFixed(1)+'km' : s.dist+'m'}</div>` : ''}
+        </div>
+      </div>`).join('');
+
+    document.getElementById('map-result').classList.add('show');
+
+  } catch(e) {
+    drawStraightLine(from, to, '#6fdfff');
+    kakaoMap.setBounds(bounds);
+    showTransitFallback(from, to, toName);
+  }
+}
+
+function getSubwayColor(code) {
+  const colors = {
+    1: '#0052A4', 2: '#00A84D', 3: '#EF7C1C', 4: '#00A5DE',
+    5: '#996CAC', 6: '#CD7C2F', 7: '#747F00', 8: '#E6186C',
+    9: '#BDB092', 21: '#F5A200', 22: '#F5A200'
+  };
+  return colors[code] || '#7c6fff';
+}
+
+function showTransitFallback(from, to, toName) {
   const dist = Math.round(Math.sqrt(Math.pow((to.lat-from.lat)*111000,2) + Math.pow((to.lng-from.lng)*88000,2)));
   const time = Math.ceil(dist / 300);
-  showRouteResult('transit', dist, time, 0, [
-    { icon: '🚌', text: '대중교통 이용', dist },
-    { icon: 'ℹ️', text: '상세 환승 경로는 카카오맵 앱에서 확인하세요', dist: 0 },
-    { icon: '🏁', text: toName + ' 도착', dist: 0 }
-  ]);
+  const timeStr = time >= 60 ? Math.floor(time/60) + '시간 ' + (time%60) + '분' : time + '분';
+  const distStr = dist >= 1000 ? (dist/1000).toFixed(1) + 'km' : dist + 'm';
+  document.getElementById('map-result-summary').innerHTML = `
+    <div class="map-result-stat"><div class="map-result-stat-val">약 ${timeStr}</div><div class="map-result-stat-label">예상시간</div></div>
+    <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">직선거리</div></div>
+  `;
+  document.getElementById('map-steps').innerHTML = `
+    <div class="map-step"><div class="map-step-icon">ℹ️</div><div class="map-step-text">경로 정보를 불러올 수 없어요<div class="map-step-dist">카카오맵 앱에서 확인해보세요</div></div></div>
+  `;
+  document.getElementById('map-result').classList.add('show');
 }
 
 function guideIcon(type) {
