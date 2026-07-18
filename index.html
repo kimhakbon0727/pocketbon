@@ -173,7 +173,7 @@
       padding: 14px 20px; display: flex; align-items: center; gap: 10px;
       font-size: 14px; color: var(--text); z-index: 20;
       backdrop-filter: blur(6px); border: 1px solid var(--border);
-      pointer-events: none;
+      pointer-events: none; white-space: nowrap;
     }
     .map-loading-spinner {
       width: 18px; height: 18px; border-radius: 50%;
@@ -181,6 +181,7 @@
       animation: spin 0.7s linear infinite; flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .map-my-loc-btn {
       position: absolute; right: 16px; z-index: 5;
       width: 42px; height: 42px; border-radius: 50%; border: none;
       background: var(--surface); color: var(--accent); font-size: 20px;
