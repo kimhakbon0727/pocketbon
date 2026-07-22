@@ -2096,17 +2096,12 @@ function renderCal() {
 function openSchModal(dateKey, day) {
   schSelectedDate = dateKey;
   const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-  const cacheKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-  const holidays = holidayCache[cacheKey] || {};
-  const holidayName = holidays[dateKey] || '';
-
-  let dateText = `${calYear}년 ${months[calMonth]} ${day}일`;
-  document.getElementById('sch-modal-date').textContent = dateText;
+  document.getElementById('sch-modal-date').textContent = `${calYear}년 ${months[calMonth]} ${day}일`;
   document.getElementById('sch-title').value = '';
   document.getElementById('sch-start').value = '';
   document.getElementById('sch-end').value = '';
   selectSchColor(1, document.querySelector('.color1-btn'));
-  renderSchList(holidayName);
+  renderSchList();
   document.getElementById('sch-modal').style.display = 'flex';
 }
 
@@ -2146,30 +2141,11 @@ function deleteSchedule(id) {
   renderCal();
 }
 
-function renderSchList(holidayName = '') {
+function renderSchList() {
   const list = document.getElementById('sch-list');
   const items = schedules[schSelectedDate] || [];
-
-  let html = '';
-
-  // 공휴일 표시
-  if (holidayName) {
-    html += `
-      <div class="sch-item">
-        <div class="sch-item-color" style="background:#ff6fa8"></div>
-        <div class="sch-item-info">
-          <div class="sch-item-title">🎉 ${holidayName}</div>
-          <div class="sch-item-time">공휴일</div>
-        </div>
-      </div>`;
-  }
-
-  if (!items.length && !holidayName) {
-    list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:12px;font-size:14px">등록된 일정이 없어요</div>';
-    return;
-  }
-
-  html += items.map(s => `
+  if (!items.length) { list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:12px;font-size:14px">등록된 일정이 없어요</div>'; return; }
+  list.innerHTML = items.map(s => `
     <div class="sch-item">
       <div class="sch-item-color" style="background:${COLORS[s.color]}"></div>
       <div class="sch-item-info">
@@ -2177,10 +2153,6 @@ function renderSchList(holidayName = '') {
         <div class="sch-item-time">${s.start && s.end ? s.start + ' ~ ' + s.end : s.start || s.end || '종일'}</div>
       </div>
       <button class="sch-item-del" onclick="deleteSchedule(${s.id})">🗑️</button>
-    </div>`).join('');
-
-  list.innerHTML = html;
-}
     </div>`).join('');
 }
 
@@ -2414,13 +2386,6 @@ async function searchRoute() {
   const loadingEl = document.getElementById('map-loading');
   loadingEl.style.display = 'flex';
   clearRoutePolylines();
-  // 이전 결과 초기화
-  document.getElementById('map-result').classList.remove('show');
-  document.getElementById('map-result-summary').innerHTML = '';
-  document.getElementById('map-steps').innerHTML = '';
-  // 이전 출발/도착 마커 제거
-  if (window._routeMarkers) { window._routeMarkers.forEach(m => m.setMap(null)); }
-  window._routeMarkers = [];
   isNavigating = false;
 
   const hideLoading = () => { loadingEl.style.display = 'none'; };
@@ -2440,9 +2405,8 @@ async function searchRoute() {
     toCoords = await geocode(toVal);
 
     // 출발/도착 마커
-    const fromMarker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng), map: kakaoMap });
+    new kakao.maps.Marker({ position: new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng), map: kakaoMap });
     const destMarker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(toCoords.lat, toCoords.lng), map: kakaoMap });
-    window._routeMarkers = [fromMarker, destMarker];
 
     const bounds = new kakao.maps.LatLngBounds();
     bounds.extend(new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng));
