@@ -434,8 +434,26 @@
     .memo-item-text { flex: 1; font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
     .memo-item-date { font-size: 11px; color: var(--text2); margin-top: 4px; }
     .item-del { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 2px; flex-shrink: 0; }
+    .item-edit { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 2px; flex-shrink: 0; }
     .empty-hint { text-align: center; color: var(--text2); padding: 30px 0; font-size: 15px; }
     .empty-hint span { display: block; font-size: 36px; margin-bottom: 8px; }
+    .memo-edit-area {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--accent); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none;
+      font-family: inherit; line-height: 1.5; resize: none;
+      box-sizing: border-box;
+    }
+    .memo-edit-btns { display: flex; gap: 8px; margin-top: 8px; }
+    .memo-edit-save {
+      flex: 1; padding: 8px; border-radius: 10px; border: none;
+      background: var(--accent); color: #fff; font-size: 14px; cursor: pointer;
+    }
+    .memo-edit-cancel {
+      flex: 1; padding: 8px; border-radius: 10px;
+      border: 1px solid var(--border); background: none;
+      color: var(--text2); font-size: 14px; cursor: pointer;
+    }
 
     .todo-item {
       background: var(--surface); border-radius: 14px; padding: 14px 16px;
@@ -1697,15 +1715,39 @@ function deleteMemo(id) {
   saveMemos(); renderMemos();
 }
 
+function editMemo(id) {
+  const memo = memos.find(m => m.id === id);
+  if (!memo) return;
+  const el = document.getElementById(`memo-item-${id}`);
+  el.innerHTML = `
+    <div style="flex:1">
+      <textarea class="memo-edit-area" id="memo-edit-${id}" rows="3">${escHtml(memo.text)}</textarea>
+      <div class="memo-edit-btns">
+        <button class="memo-edit-save" onclick="saveMemoEdit(${id})">저장</button>
+        <button class="memo-edit-cancel" onclick="renderMemos()">취소</button>
+      </div>
+    </div>`;
+  document.getElementById(`memo-edit-${id}`).focus();
+}
+
+function saveMemoEdit(id) {
+  const val = document.getElementById(`memo-edit-${id}`).value.trim();
+  if (!val) return;
+  const memo = memos.find(m => m.id === id);
+  if (memo) { memo.text = val; memo.date = new Date().toISOString(); }
+  saveMemos(); renderMemos();
+}
+
 function renderMemos() {
   const el = document.getElementById('memo-list');
   if (!memos.length) { el.innerHTML = '<div class="empty-hint"><span>📝</span>메모가 없어요</div>'; return; }
   el.innerHTML = memos.map(m => `
-    <div class="memo-item">
+    <div class="memo-item" id="memo-item-${m.id}">
       <div style="flex:1">
         <div class="memo-item-text">${escHtml(m.text)}</div>
         <div class="memo-item-date">${fmtDate(m.date)}</div>
       </div>
+      <button class="item-edit" onclick="editMemo(${m.id})">✏️</button>
       <button class="item-del" onclick="deleteMemo(${m.id})">✕</button>
     </div>`).join('');
 }
@@ -1734,6 +1776,29 @@ function deleteTodo(id) {
   saveTodos(); renderTodos();
 }
 
+function editTodo(id) {
+  const todo = todos.find(t => t.id === id);
+  if (!todo) return;
+  const el = document.getElementById(`todo-item-${id}`);
+  el.innerHTML = `
+    <div style="flex:1">
+      <input class="memo-edit-area" id="todo-edit-${id}" value="${escHtml(todo.text)}" style="height:42px;resize:none" />
+      <div class="memo-edit-btns">
+        <button class="memo-edit-save" onclick="saveTodoEdit(${id})">저장</button>
+        <button class="memo-edit-cancel" onclick="renderTodos()">취소</button>
+      </div>
+    </div>`;
+  document.getElementById(`todo-edit-${id}`).focus();
+}
+
+function saveTodoEdit(id) {
+  const val = document.getElementById(`todo-edit-${id}`).value.trim();
+  if (!val) return;
+  const todo = todos.find(t => t.id === id);
+  if (todo) todo.text = val;
+  saveTodos(); renderTodos();
+}
+
 function setTodoFilter(f) {
   todoFilter = f;
   ['all','active','done'].forEach(x => document.getElementById('todo-filter-'+x).classList.toggle('active', x === f));
@@ -1745,9 +1810,10 @@ function renderTodos() {
   const list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
   if (!list.length) { el.innerHTML = '<div class="empty-hint"><span>✅</span>할 일이 없어요</div>'; return; }
   el.innerHTML = list.map(t => `
-    <div class="todo-item">
+    <div class="todo-item" id="todo-item-${t.id}">
       <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTodo(${t.id})"></div>
-      <div class="todo-text ${t.done ? 'done' : ''}">${escHtml(t.text)}</div>
+      <div class="todo-text ${t.done ? 'done' : ''}" style="flex:1">${escHtml(t.text)}</div>
+      <button class="item-edit" onclick="editTodo(${t.id})">✏️</button>
       <button class="item-del" onclick="deleteTodo(${t.id})">✕</button>
     </div>`).join('');
 }
