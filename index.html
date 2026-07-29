@@ -560,10 +560,10 @@
       z-index: 500; gap: 32px;
     }
     .pin-title { font-size: 20px; font-weight: 600; color: var(--text); }
-    .pin-subtitle { 
-    font-size: 14px; 
-    color: var(--text2); 
-    margin-top: 4px;  /* -24px → 양수로 변경 */
+    .pin-subtitle {
+      font-size: 14px;
+      color: var(--text2);
+      margin-top: 4px;
     }
     .pin-dots { display: flex; gap: 16px; }
     .pin-dot {
@@ -628,7 +628,7 @@
       transition: transform 0.08s, background 0.1s;
     }
     .cam-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.5); }
-    .cam-shutter-inner { width: 54px; height: 54px; border-radius: 50%; background: #fff; }
+    .cam-shutter-inner { width: 54px; height: 54px; border-radius: 50%; background: #fff; transition: border-radius 0.15s, width 0.15s, height 0.15s, background 0.15s; }
     .camera-gallery {
       display: flex; gap: 3px; padding: 3px; background: #000;
       overflow-x: auto; min-height: 72px; align-items: center;
@@ -642,6 +642,42 @@
     .cam-no-photos { color: rgba(255,255,255,0.3); font-size: 13px; padding: 0 12px; }
     .cam-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.05s; }
     .cam-flash.on { opacity: 0.8; }
+
+    /* Camera mode switch + recording */
+    .cam-mode-row {
+      display: flex; justify-content: center; gap: 24px;
+      padding: 10px 0; background: #000;
+    }
+    .cam-mode-btn {
+      background: none; border: none; color: rgba(255,255,255,0.5);
+      font-size: 14px; padding: 6px 4px; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+    }
+    .cam-mode-btn.active { color: #ffd166; border-bottom-color: #ffd166; }
+
+    .cam-rec-timer {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.5); color: #fff; font-size: 13px;
+      padding: 6px 14px; border-radius: 20px; z-index: 5;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .cam-rec-dot {
+      width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d;
+      animation: recPulse 1s infinite;
+    }
+    @keyframes recPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .cam-shutter.recording { border-color: #ff4d4d; }
+    .cam-shutter.recording .cam-shutter-inner {
+      border-radius: 10px; width: 30px; height: 30px; background: #ff4d4d;
+    }
+
+    .cam-thumb-wrap { position: relative; flex-shrink: 0; }
+    .cam-thumb-vid-badge {
+      position: absolute; bottom: 2px; right: 2px;
+      background: rgba(0,0,0,0.6); color: #fff; font-size: 9px;
+      padding: 1px 4px; border-radius: 4px;
+    }
 
     /* Backup toast */
     .toast {
@@ -1018,14 +1054,21 @@
     <video id="camera-video" autoplay playsinline muted></video>
     <canvas id="camera-canvas"></canvas>
     <div class="cam-flash" id="cam-flash"></div>
+    <div class="cam-rec-timer" id="cam-rec-timer" style="display:none">
+      <span class="cam-rec-dot"></span><span id="cam-rec-time">00:00</span>
+    </div>
+  </div>
+  <div class="cam-mode-row">
+    <button class="cam-mode-btn active" id="cam-mode-photo" onclick="setCameraMode('photo')">사진</button>
+    <button class="cam-mode-btn" id="cam-mode-video" onclick="setCameraMode('video')">동영상</button>
   </div>
   <div class="camera-gallery" id="camera-gallery">
-    <span class="cam-no-photos">촬영한 사진이 없어요</span>
+    <span class="cam-no-photos">촬영한 사진/영상이 없어요</span>
   </div>
   <div class="camera-controls">
     <button class="cam-btn" onclick="toggleCameraFacing()" title="전/후면 전환">🔄</button>
-    <div class="cam-shutter" onclick="takePhoto()">
-      <div class="cam-shutter-inner"></div>
+    <div class="cam-shutter" id="cam-shutter" onclick="handleShutter()">
+      <div class="cam-shutter-inner" id="cam-shutter-inner"></div>
     </div>
     <button class="cam-btn" onclick="downloadLastPhoto()" title="저장">💾</button>
   </div>
@@ -1487,11 +1530,6 @@ function checkNotifPerm() {
   }
 }
 
-
-
-
-
-
 window.addAlarm = async function() {
   const timeInput = document.getElementById('alarm-time').value;
   const labelInput = document.getElementById('alarm-label').value || '알람';
@@ -1501,27 +1539,23 @@ window.addAlarm = async function() {
     return;
   }
 
-  // 1. 서버(Vercel)의 schedule-alarm API로 보낼 데이터 구조 맞추기
   const alarmData = {
-    id: Date.now(), // 고유 ID (숫자나 문자열)
-    time: timeInput, // "08:30" 형태
+    id: Date.now(),
+    time: timeInput,
     label: labelInput
   };
 
   try {
-    // 2. QStash 스케줄러 등록을 위해 백엔드 API 호출
     const res = await fetch('/api/schedule-alarm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(alarmData)
     });
 
-    // 만약 서버에서 에러 응답(400, 500 등)을 주면 catch 블록으로 던집니다.
     if (!res.ok) {
       throw new Error('서버 백그라운드 큐 등록 실패');
     }
 
-    // 3. 서버 등록이 성공했을 때만 로컬스토리지(화면 표시용)에 저장
     alarms.push({
       id: alarmData.id,
       time: alarmData.time,
@@ -1529,8 +1563,7 @@ window.addAlarm = async function() {
       enabled: true
     });
     localStorage.setItem('pb_alarms', JSON.stringify(alarms));
-    
-    // 서비스 워커 동기화 메시지 전송
+
     if (navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({
         type: 'SYNC_ALARMS',
@@ -1540,8 +1573,7 @@ window.addAlarm = async function() {
 
     document.getElementById('alarm-label').value = '';
     renderAlarms();
-    
-    // 성공 토스트나 알림창 띄우기
+
     if (typeof showToast === 'function') {
       showToast('⏰ 백그라운드 알람이 설정되었습니다!');
     } else {
@@ -1550,17 +1582,9 @@ window.addAlarm = async function() {
 
   } catch (err) {
     console.error('알람 설정 실패:', err);
-    // 여기가 지금 보시는 "백그라운드 알람 오류" 팝업이 뜨는 지점입니다.
     alert('⚠️ 알람 설정됐지만 백그라운드 알람 오류가 발생했습니다.');
   }
 };
-
-
-
-
-
-
-
 
 // 포그라운드용 타이머
 function scheduleAlarmForeground(alarm) {
@@ -1673,7 +1697,6 @@ let timerTotal = 0, timerRemain = 0, timerRunning = false, timerInterval = null;
 
 function timerStartStop() {
   if (!timerRunning) {
-    // 처음 시작 시 입력값 읽기
     if (timerRemain === 0) {
       const hh = parseInt(document.getElementById('t-hh').value) || 0;
       const mm = parseInt(document.getElementById('t-mm').value) || 0;
@@ -1718,7 +1741,6 @@ function timerDone() {
   timerUpdateDisplay();
   document.getElementById('timer-start-btn').textContent = '시작';
   document.getElementById('timer-start-btn').className = 'ts-btn start';
-  // 소리
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     [0, 0.35, 0.7].forEach(t => {
@@ -1961,11 +1983,10 @@ renderTodos();
 let ledger = JSON.parse(localStorage.getItem('pocketbon-ledger') || '[]');
 let ledgerType = 'income';
 let ledgerFilter = 'all';
-let ledgerMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+let ledgerMonth = new Date().toISOString().slice(0, 7);
 
 function saveLedger() { localStorage.setItem('pocketbon-ledger', JSON.stringify(ledger)); }
 
-// 오늘 날짜 기본값
 document.getElementById('ledger-date').value = new Date().toISOString().slice(0,10);
 
 function setLedgerType(t) {
@@ -2007,11 +2028,9 @@ function deleteLedger(id) {
 }
 
 function renderLedger() {
-  // 월 라벨
   const [y, m] = ledgerMonth.split('-').map(Number);
   document.getElementById('month-label').textContent = y + '년 ' + m + '월';
 
-  // 해당 월 데이터
   const monthData = ledger.filter(l => l.date.startsWith(ledgerMonth));
   const income  = monthData.filter(l => l.type === 'income').reduce((s, l) => s + l.amount, 0);
   const expense = monthData.filter(l => l.type === 'expense').reduce((s, l) => s + l.amount, 0);
@@ -2023,7 +2042,6 @@ function renderLedger() {
   balEl.textContent = (balance >= 0 ? '+' : '') + '₩' + balance.toLocaleString();
   balEl.className = 'ledger-balance ' + (balance >= 0 ? 'plus' : 'minus');
 
-  // 목록
   const filtered = monthData.filter(l => ledgerFilter === 'all' ? true : l.type === ledgerFilter);
   const el = document.getElementById('ledger-list');
   if (!filtered.length) { el.innerHTML = '<div class="empty-hint"><span>💰</span>이번 달 내역이 없어요</div>'; return; }
@@ -2097,7 +2115,6 @@ function restoreData(e) {
       if (!backup.version || !backup.data) throw new Error('올바른 백업 파일이 아니에요');
       pendingRestoreData = backup;
 
-      // 미리보기
       const d = backup.data;
       const date = new Date(backup.date).toLocaleString('ko-KR');
       const lines = ['<strong>백업 날짜:</strong> ' + date];
@@ -2149,7 +2166,6 @@ function showStorageInfo() {
   });
   lines.push('<br><strong>총 용량:</strong> ' + (totalBytes/1024).toFixed(1) + ' KB');
 
-  // summary 업데이트
   document.getElementById('storage-summary').textContent =
     BACKUP_KEYS.map(k => localStorage.getItem(k)).filter(Boolean).length + '개 항목 저장 중';
 
@@ -2183,7 +2199,6 @@ async function installPWA() {
 }
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then((reg) => {
-    // 백그라운드에서 새 서비스 워커가 업데이트되었는지 감시
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       if (newWorker) {
@@ -2197,7 +2212,6 @@ if ('serviceWorker' in navigator) {
     });
   });
 
-  // 서비스 워커가 바뀌면 화면을 싹 새로고침
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!refreshing) {
@@ -2211,9 +2225,9 @@ if ('serviceWorker' in navigator) {
 const COLORS = { 1: '#7c6fff', 2: '#ff6fa8', 3: '#6fdfff', 4: '#ffd166' };
 let calYear, calMonth, schSelectedDate = null, schSelectedColor = 1;
 let schedules = JSON.parse(localStorage.getItem('pocketbon-schedules') || '{}');
-let holidayCache = {}; // { 'YYYY-MM': { 'YYYY-MM-DD': '공휴일명' } }
+let holidayCache = {};
 
-const HOLIDAY_API_KEY = '807d4208dd631095100d8449ffc74c0f1afd2eb811858b5787c27183aa7628ae'; // ← 재발급 후 여기에 붙여넣기
+const HOLIDAY_API_KEY = '807d4208dd631095100d8449ffc74c0f1afd2eb811858b5787c27183aa7628ae';
 
 function saveSchedules() { localStorage.setItem('pocketbon-schedules', JSON.stringify(schedules)); }
 
@@ -2235,7 +2249,7 @@ function calChangeMonth(dir) {
 
 async function fetchHolidays(year, month) {
   const cacheKey = `${year}-${String(month).padStart(2,'0')}`;
-  if (holidayCache[cacheKey]) return; // 이미 불러옴
+  if (holidayCache[cacheKey]) return;
 
   try {
     const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?serviceKey=${HOLIDAY_API_KEY}&solYear=${year}&solMonth=${String(month).padStart(2,'0')}&_type=json&numOfRows=20`;
@@ -2252,9 +2266,9 @@ async function fetchHolidays(year, month) {
       });
     }
     holidayCache[cacheKey] = map;
-    renderCal(); // 공휴일 받으면 다시 렌더
+    renderCal();
   } catch(e) {
-    holidayCache[cacheKey] = {}; // 실패해도 빈 객체로 캐시
+    holidayCache[cacheKey] = {};
   }
 }
 
@@ -2362,7 +2376,7 @@ function renderSchList() {
 
 // ===== PIN LOCK =====
 let pinBuffer = '';
-let pinMode = 'verify'; // 'verify' | 'set' | 'confirm'
+let pinMode = 'verify';
 let pinTemp = '';
 let pinCallback = null;
 let pinFailCount = 0;
@@ -2418,7 +2432,6 @@ function pinDelete() {
 
 function processPIN() {
   if (pinMode === 'verify') {
-    // 탭별 PIN 키 확인
     const pinKey = pinCurrentTab ? `pb-pin-${pinCurrentTab}` : 'pb-ledger-pin';
     const saved = localStorage.getItem(pinKey);
     if (pinBuffer === saved) {
@@ -2452,7 +2465,6 @@ function processPIN() {
     if (pinBuffer === pinTemp) {
       const pinKey = pinCurrentTab ? `pb-pin-${pinCurrentTab}` : 'pb-ledger-pin';
       localStorage.setItem(pinKey, pinBuffer);
-      // 질문/답변 등록 화면으로
       document.getElementById('pin-main-view').style.display = 'none';
       document.getElementById('pin-qa-view').style.display = '';
     } else {
@@ -2496,7 +2508,6 @@ function checkPinRecovery() {
   if (!qa || answer.toLowerCase() !== qa.answer.toLowerCase()) {
     showToast('답변이 틀렸어요'); return;
   }
-  // 정답 → PIN 재설정
   closePinOverlay();
   showToast('정답이에요! 새 PIN을 설정해주세요');
   setTimeout(() => openPinOverlay('set', () => { renderTabSettings(); }, pinCurrentTab), 300);
@@ -2528,7 +2539,6 @@ function removePIN(tabId = '') {
   renderTabSettings();
 }
 
-// switchTab 오버라이드: PIN 잠긴 탭 진입 시 확인
 const _origSwitchTab = switchTab;
 window.switchTab = function(id) {
   const pinKey = `pb-pin-${id}`;
@@ -2540,8 +2550,6 @@ window.switchTab = function(id) {
   }
 };
 
-
-// 탭바 초기 렌더
 calInit();
 renderTabBar();
 switchTab('calc');
@@ -2554,7 +2562,7 @@ let kakaoMap = null, mapMode = 'walk';
 let myMarker = null, watchId = null;
 let fromCoords = null, toCoords = null;
 let routePolylines = [];
-let isNavigating = false; // 경로 탐색 중 위치 추적 여부
+let isNavigating = false;
 
 function initKakaoMap() {
   if (kakaoMap) return;
@@ -2575,7 +2583,6 @@ function startWatchLocation() {
     const lng = pos.coords.longitude;
     const latlng = new kakao.maps.LatLng(lat, lng);
 
-    // 내 위치 마커 업데이트
     if (!myMarker) {
       const img = new kakao.maps.MarkerImage(
         'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
@@ -2586,7 +2593,6 @@ function startWatchLocation() {
       kakaoMap.setLevel(4);
     } else {
       myMarker.setPosition(latlng);
-      // 경로 탐색 중이면 내 위치 따라가기
       if (isNavigating) kakaoMap.setCenter(latlng);
     }
   }, err => {
@@ -2595,7 +2601,7 @@ function startWatchLocation() {
 }
 
 function moveToMyLocation() {
-  isNavigating = false; // 수동 이동 시 추적 해제
+  isNavigating = false;
   if (myMarker) {
     kakaoMap.setCenter(myMarker.getPosition());
     kakaoMap.setLevel(3);
@@ -2678,7 +2684,6 @@ async function searchRoute() {
   const hideLoading = () => { loadingEl.style.display = 'none'; };
 
   try {
-    // 출발지 좌표
     if (fromVal && fromVal !== '현재 위치') {
       fromCoords = await geocode(fromVal);
     } else if (!fromCoords) {
@@ -2691,7 +2696,6 @@ async function searchRoute() {
     }
     toCoords = await geocode(toVal);
 
-    // 출발/도착 마커
     new kakao.maps.Marker({ position: new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng), map: kakaoMap });
     const destMarker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(toCoords.lat, toCoords.lng), map: kakaoMap });
 
@@ -2700,14 +2704,12 @@ async function searchRoute() {
     bounds.extend(new kakao.maps.LatLng(toCoords.lat, toCoords.lng));
 
     if (mapMode === 'walk') {
-      // 도보: 카카오맵 SDK 내장 경로 (무료)
       const walkDist = Math.round(Math.sqrt(
         Math.pow((toCoords.lat - fromCoords.lat) * 111000, 2) +
         Math.pow((toCoords.lng - fromCoords.lng) * 88000, 2)
       ));
-      const walkTime = Math.ceil(walkDist / 67); // 도보 평균 속도 4km/h
+      const walkTime = Math.ceil(walkDist / 67);
 
-      // 도보 경로선 (SDK 직선 + 실제감 있게)
       const path = [
         new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng),
         new kakao.maps.LatLng(toCoords.lat, toCoords.lng)
@@ -2722,7 +2724,6 @@ async function searchRoute() {
       ]);
 
     } else if (mapMode === 'car') {
-      // 자동차: 카카오 모빌리티 REST API
       const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${fromCoords.lng},${fromCoords.lat}&destination=${toCoords.lng},${toCoords.lat}&priority=RECOMMEND`;
       const res = await fetch(url, { headers: { Authorization: 'KakaoAK ' + KAKAO_REST_KEY } });
       const data = await res.json();
@@ -2747,11 +2748,9 @@ async function searchRoute() {
       }
 
     } else {
-      // 대중교통 - ODsay API
       await searchTransitRoute(fromCoords, toCoords, toVal, bounds);
     }
 
-    // 경로 탐색 완료 후 위치 추적 시작
     isNavigating = true;
     hideLoading();
 
@@ -2806,15 +2805,12 @@ async function searchTransitRoute(from, to, toName, bounds) {
       return;
     }
 
-    // 첫 번째 추천 경로
     const path = data.result.path[0];
     const info = path.info;
     const subPaths = path.subPath;
 
-    // 경로선 그리기
     for (const sub of subPaths) {
       if (sub.trafficType === 1) {
-        // 지하철
         const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
         if (sub.passStopList?.stations) {
           const coords = sub.passStopList.stations.map(s =>
@@ -2826,7 +2822,6 @@ async function searchTransitRoute(from, to, toName, bounds) {
           }
         }
       } else if (sub.trafficType === 2) {
-        // 버스
         if (sub.passStopList?.stations) {
           const coords = sub.passStopList.stations.map(s =>
             new kakao.maps.LatLng(s.y, s.x)
@@ -2841,7 +2836,6 @@ async function searchTransitRoute(from, to, toName, bounds) {
 
     kakaoMap.setBounds(bounds);
 
-    // 결과 정보 구성
     const totalTime = info.totalTime;
     const totalFare = info.payment;
     const totalDist = info.totalDistance;
@@ -2849,12 +2843,10 @@ async function searchTransitRoute(from, to, toName, bounds) {
     const steps = [];
     for (const sub of subPaths) {
       if (sub.trafficType === 3) {
-        // 도보
         if (sub.distance > 0) {
           steps.push({ icon: '🚶', text: `도보 ${sub.sectionTime}분`, dist: sub.distance, color: null });
         }
       } else if (sub.trafficType === 1) {
-        // 지하철
         const lineName = sub.lane?.[0]?.name || '지하철';
         const stationCnt = sub.stationCount;
         const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
@@ -2865,7 +2857,6 @@ async function searchTransitRoute(from, to, toName, bounds) {
           lineColor: color
         });
       } else if (sub.trafficType === 2) {
-        // 버스
         const busNo = sub.lane?.[0]?.busNo || '버스';
         const stationCnt = sub.stationCount;
         steps.push({
@@ -2878,7 +2869,6 @@ async function searchTransitRoute(from, to, toName, bounds) {
     }
     steps.push({ icon: '🏁', text: toName + ' 도착', dist: 0, lineColor: null });
 
-    // 결과 표시
     const timeStr = totalTime >= 60 ? Math.floor(totalTime/60) + '시간 ' + (totalTime%60) + '분' : totalTime + '분';
     const distStr = totalDist >= 1000 ? (totalDist/1000).toFixed(1) + 'km' : totalDist + 'm';
 
@@ -2934,87 +2924,6 @@ function guideIcon(type) {
   return icons[type] || '•';
 }
 
-function initKakaoMap() {
-  if (kakaoMap) return;
-  const container = document.getElementById('kakao-map');
-  if (!container || !window.kakao) return;
-  kakaoMap = new kakao.maps.Map(container, {
-    center: new kakao.maps.LatLng(35.1796, 129.0756), // 부산 중심
-    level: 5
-  });
-  startWatchLocation();
-}
-
-function startWatchLocation() {
-  if (!navigator.geolocation) return;
-  if (watchId) navigator.geolocation.clearWatch(watchId);
-  watchId = navigator.geolocation.watchPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
-    const latlng = new kakao.maps.LatLng(lat, lng);
-    if (!myMarker) {
-      const img = new kakao.maps.MarkerImage(
-        'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
-        new kakao.maps.Size(24, 35)
-      );
-      myMarker = new kakao.maps.Marker({ position: latlng, map: kakaoMap, image: img, title: '내 위치' });
-    } else {
-      myMarker.setPosition(latlng);
-    }
-    // 처음 한 번만 내 위치로 이동
-    if (!fromCoords) kakaoMap.setCenter(latlng);
-  }, err => {}, { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 });
-}
-
-function moveToMyLocation() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    const latlng = new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-    kakaoMap.setCenter(latlng);
-    kakaoMap.setLevel(3);
-  });
-}
-
-function setMapMode(mode) {
-  mapMode = mode;
-  document.querySelectorAll('.map-mode-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('mode-' + mode).classList.add('active');
-}
-
-function useMyLocation(field) {
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
-    fromCoords = { lat, lng };
-    document.getElementById('map-from').value = '현재 위치';
-    showToast('현재 위치를 출발지로 설정했어요 📍');
-  });
-}
-
-async function geocode(address) {
-  return new Promise((resolve, reject) => {
-    const geocoder = new kakao.maps.services.Geocoder();
-    geocoder.addressSearch(address, (result, status) => {
-      if (status === kakao.maps.services.Status.OK) {
-        resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
-      } else {
-        // 키워드 검색으로 fallback
-        const places = new kakao.maps.services.Places();
-        places.keywordSearch(address, (res, st) => {
-          if (st === kakao.maps.services.Status.OK) {
-            resolve({ lat: parseFloat(res[0].y), lng: parseFloat(res[0].x) });
-          } else reject(new Error('장소를 찾을 수 없어요'));
-        });
-      }
-    });
-  });
-}
-
-function clearRoutePolylines() {
-  routePolylines.forEach(p => p.setMap(null));
-  routePolylines = [];
-}
-
 // kakao SDK가 이미 로드된 경우 맵 화면이 활성화되면 바로 초기화
 window.addEventListener('load', () => {
   if (currentTab === 'map' && window.kakao && window.kakao.maps) {
@@ -3022,33 +2931,39 @@ window.addEventListener('load', () => {
   }
 });
 
-// ===== CAMERA =====
+// ===== CAMERA (사진 + 동영상) =====
 let cameraStream = null;
 let cameraFacing = 'environment'; // 'environment'=후면, 'user'=전면
-let cameraPhotos = [];
+let cameraPhotos = []; // { type: 'photo'|'video', url, blob? }
 let lastPhoto = null;
+let cameraMode = 'photo'; // 'photo' | 'video'
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+let recTimerInterval = null;
+let recSeconds = 0;
 
 async function initCamera() {
   if (cameraStream) return;
   try {
     cameraStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: cameraFacing, width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: false
+      audio: cameraMode === 'video'
     });
     const video = document.getElementById('camera-video');
     video.srcObject = cameraStream;
     await video.play();
   } catch(e) {
-    showToast('카메라 권한이 필요해요 📷');
+    showToast('카메라/마이크 권한이 필요해요 📷');
   }
 }
 
 function stopCamera() {
+  if (isRecording) stopRecording();
   if (cameraStream) {
     cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
-    const video = document.getElementById('camera-video');
-    video.srcObject = null;
+    document.getElementById('camera-video').srcObject = null;
   }
 }
 
@@ -3058,6 +2973,25 @@ async function toggleCameraFacing() {
   await initCamera();
 }
 
+function setCameraMode(mode) {
+  if (isRecording) { showToast('녹화 중에는 전환할 수 없어요'); return; }
+  cameraMode = mode;
+  document.getElementById('cam-mode-photo').classList.toggle('active', mode === 'photo');
+  document.getElementById('cam-mode-video').classList.toggle('active', mode === 'video');
+  // 오디오 트랙 유무가 달라지므로 스트림 재시작
+  stopCamera();
+  initCamera();
+}
+
+function handleShutter() {
+  if (cameraMode === 'photo') {
+    takePhoto();
+  } else {
+    isRecording ? stopRecording() : startRecording();
+  }
+}
+
+// --- 사진 ---
 function takePhoto() {
   const video = document.getElementById('camera-video');
   const canvas = document.getElementById('camera-canvas');
@@ -3067,7 +3001,6 @@ function takePhoto() {
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
 
-  // 전면 카메라는 좌우 반전
   if (cameraFacing === 'user') {
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
@@ -3075,10 +3008,9 @@ function takePhoto() {
   ctx.drawImage(video, 0, 0);
 
   const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-  lastPhoto = dataUrl;
-  cameraPhotos.unshift(dataUrl);
+  lastPhoto = { type: 'photo', url: dataUrl };
+  cameraPhotos.unshift(lastPhoto);
 
-  // 플래시 효과
   const flash = document.getElementById('cam-flash');
   flash.classList.add('on');
   setTimeout(() => flash.classList.remove('on'), 100);
@@ -3087,26 +3019,88 @@ function takePhoto() {
   showToast('📷 촬영됐어요!');
 }
 
+// --- 동영상 ---
+function startRecording() {
+  if (!cameraStream) { showToast('카메라가 준비되지 않았어요'); return; }
+
+  recordedChunks = [];
+  const mimeType = (window.MediaRecorder && MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus'))
+    ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+
+  try {
+    mediaRecorder = new MediaRecorder(cameraStream, { mimeType });
+  } catch(e) {
+    showToast('이 기기에서는 동영상 녹화를 지원하지 않아요');
+    return;
+  }
+
+  mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const item = { type: 'video', url, blob };
+    lastPhoto = item;
+    cameraPhotos.unshift(item);
+    renderCameraGallery();
+    showToast('🎬 녹화가 저장됐어요!');
+  };
+
+  mediaRecorder.start();
+  isRecording = true;
+  recSeconds = 0;
+
+  const shutter = document.getElementById('cam-shutter');
+  shutter.classList.add('recording');
+  const timerEl = document.getElementById('cam-rec-timer');
+  timerEl.style.display = 'flex';
+  updateRecTimer();
+  recTimerInterval = setInterval(() => { recSeconds++; updateRecTimer(); }, 1000);
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  isRecording = false;
+  clearInterval(recTimerInterval);
+  document.getElementById('cam-shutter').classList.remove('recording');
+  document.getElementById('cam-rec-timer').style.display = 'none';
+}
+
+function updateRecTimer() {
+  const m = Math.floor(recSeconds / 60), s = recSeconds % 60;
+  document.getElementById('cam-rec-time').textContent = pad(m) + ':' + pad(s);
+}
+
+// --- 갤러리 ---
 function renderCameraGallery() {
   const el = document.getElementById('camera-gallery');
   if (!cameraPhotos.length) {
-    el.innerHTML = '<span class="cam-no-photos">촬영한 사진이 없어요</span>';
+    el.innerHTML = '<span class="cam-no-photos">촬영한 사진/영상이 없어요</span>';
     return;
   }
-  el.innerHTML = cameraPhotos.map((p, i) => `
-    <img class="cam-thumb" src="${p}" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요" />`).join('');
+  el.innerHTML = cameraPhotos.map((p, i) => {
+    if (p.type === 'video') {
+      return `<div class="cam-thumb-wrap" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요">
+        <video class="cam-thumb" src="${p.url}" muted></video>
+        <span class="cam-thumb-vid-badge">▶ 영상</span>
+      </div>`;
+    }
+    return `<div class="cam-thumb-wrap">
+      <img class="cam-thumb" src="${p.url}" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요" />
+    </div>`;
+  }).join('');
 }
 
 function downloadPhoto(idx) {
-  const url = cameraPhotos[idx];
+  const item = cameraPhotos[idx];
   const a = document.createElement('a');
-  a.href = url;
-  a.download = `pocketbon_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.jpg`;
+  const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  a.href = item.url;
+  a.download = item.type === 'video' ? `pocketbon_${ts}.webm` : `pocketbon_${ts}.jpg`;
   a.click();
 }
 
 function downloadLastPhoto() {
-  if (!lastPhoto) { showToast('먼저 사진을 찍어주세요'); return; }
+  if (!lastPhoto) { showToast('먼저 촬영해주세요'); return; }
   downloadPhoto(0);
 }
 </script>
