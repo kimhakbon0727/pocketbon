@@ -190,6 +190,7 @@
     }
     .screen { display: none; flex: 1; padding: 20px 16px 100px; overflow-x: hidden; }
     .map-screen { padding: 0 !important; gap: 0 !important; }
+    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
     .screen.active { display: flex; flex-direction: column; gap: 16px; }
 
     /* Calculator */
@@ -580,6 +581,63 @@
     .pin-key.del { font-size: 18px; }
     .pin-key.empty { background: transparent; cursor: default; }
     .pin-error-msg { font-size: 14px; color: #ff6fa8; min-height: 20px; }
+    .pin-forgot { font-size: 13px; color: var(--accent); cursor: pointer; margin-top: -16px; text-decoration: underline; }
+
+    /* PIN 복구 */
+    .pin-recovery { display: flex; flex-direction: column; gap: 12px; width: 280px; }
+    .pin-recovery-title { font-size: 17px; font-weight: 600; text-align: center; }
+    .pin-recovery-q { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 4px; }
+    .pin-recovery-input {
+      width: 100%; padding: 12px 16px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none; font-family: inherit;
+      box-sizing: border-box;
+    }
+    .pin-recovery-input:focus { border-color: var(--accent); }
+    .pin-recovery-btn {
+      width: 100%; padding: 13px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 15px; cursor: pointer;
+    }
+    .pin-back { font-size: 13px; color: var(--text2); cursor: pointer; text-align: center; }
+
+    /* Camera */
+    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    .camera-viewfinder { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    #camera-video { width: 100%; height: 100%; object-fit: cover; }
+    #camera-canvas { display: none; }
+    .camera-controls {
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 20px 24px 36px; background: #000;
+    }
+    .cam-btn {
+      width: 52px; height: 52px; border-radius: 50%; border: none;
+      background: rgba(255,255,255,0.15); color: #fff; font-size: 22px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, transform 0.08s;
+    }
+    .cam-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
+    .cam-shutter {
+      width: 72px; height: 72px; border-radius: 50%;
+      border: 4px solid #fff; background: rgba(255,255,255,0.2);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.08s, background 0.1s;
+    }
+    .cam-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.5); }
+    .cam-shutter-inner { width: 54px; height: 54px; border-radius: 50%; background: #fff; }
+    .camera-gallery {
+      display: flex; gap: 3px; padding: 3px; background: #000;
+      overflow-x: auto; min-height: 72px; align-items: center;
+    }
+    .cam-thumb {
+      width: 68px; height: 68px; object-fit: cover; border-radius: 6px;
+      flex-shrink: 0; cursor: pointer; border: 2px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .cam-thumb:active { border-color: var(--accent); }
+    .cam-no-photos { color: rgba(255,255,255,0.3); font-size: 13px; padding: 0 12px; }
+    .cam-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.05s; }
+    .cam-flash.on { opacity: 0.8; }
 
     /* Backup toast */
     .toast {
@@ -892,27 +950,80 @@
 
 <!-- PIN MODAL -->
 <div class="pin-overlay" id="pin-overlay" style="display:none">
-  <div class="pin-title" id="pin-title">가계부 잠금</div>
-  <div class="pin-subtitle" id="pin-subtitle">6자리 PIN을 입력하세요</div>
-  <div class="pin-dots" id="pin-dots">
-    <div class="pin-dot"></div><div class="pin-dot"></div>
-    <div class="pin-dot"></div><div class="pin-dot"></div>
-    <div class="pin-dot"></div><div class="pin-dot"></div>
+  <!-- 일반 PIN 입력 화면 -->
+  <div id="pin-main-view">
+    <div class="pin-title" id="pin-title">잠금</div>
+    <div class="pin-subtitle" id="pin-subtitle">6자리 PIN을 입력하세요</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="pin-error-msg" id="pin-error"></div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinInput('1')">1</button>
+      <button class="pin-key" onclick="pinInput('2')">2</button>
+      <button class="pin-key" onclick="pinInput('3')">3</button>
+      <button class="pin-key" onclick="pinInput('4')">4</button>
+      <button class="pin-key" onclick="pinInput('5')">5</button>
+      <button class="pin-key" onclick="pinInput('6')">6</button>
+      <button class="pin-key" onclick="pinInput('7')">7</button>
+      <button class="pin-key" onclick="pinInput('8')">8</button>
+      <button class="pin-key" onclick="pinInput('9')">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" onclick="pinInput('0')">0</button>
+      <button class="pin-key del" onclick="pinDelete()">⌫</button>
+    </div>
+    <div class="pin-forgot" id="pin-forgot" onclick="showPinRecovery()" style="display:none">비밀번호를 잊으셨나요?</div>
   </div>
-  <div class="pin-error-msg" id="pin-error"></div>
-  <div class="pin-keypad">
-    <button class="pin-key" onclick="pinInput('1')">1</button>
-    <button class="pin-key" onclick="pinInput('2')">2</button>
-    <button class="pin-key" onclick="pinInput('3')">3</button>
-    <button class="pin-key" onclick="pinInput('4')">4</button>
-    <button class="pin-key" onclick="pinInput('5')">5</button>
-    <button class="pin-key" onclick="pinInput('6')">6</button>
-    <button class="pin-key" onclick="pinInput('7')">7</button>
-    <button class="pin-key" onclick="pinInput('8')">8</button>
-    <button class="pin-key" onclick="pinInput('9')">9</button>
-    <button class="pin-key empty"></button>
-    <button class="pin-key" onclick="pinInput('0')">0</button>
-    <button class="pin-key del" onclick="pinDelete()">⌫</button>
+
+  <!-- 비밀번호 복구 화면 -->
+  <div id="pin-recovery-view" style="display:none">
+    <div class="pin-recovery">
+      <div class="pin-recovery-title">🔑 비밀번호 찾기</div>
+      <div class="pin-recovery-q" id="pin-recovery-question"></div>
+      <input class="pin-recovery-input" id="pin-recovery-answer" placeholder="답변을 입력하세요" />
+      <button class="pin-recovery-btn" onclick="checkPinRecovery()">확인</button>
+      <div class="pin-back" onclick="hidePinRecovery()">← 돌아가기</div>
+    </div>
+  </div>
+
+  <!-- PIN 설정 시 질문/답변 등록 -->
+  <div id="pin-qa-view" style="display:none">
+    <div class="pin-recovery">
+      <div class="pin-recovery-title">🔐 보안 질문 설정</div>
+      <div class="pin-recovery-q">PIN을 잊었을 때 사용할 질문과 답변을 등록하세요</div>
+      <select class="pin-recovery-input" id="pin-qa-question" style="cursor:pointer">
+        <option value="">질문 선택</option>
+        <option value="태어난 도시는?">태어난 도시는?</option>
+        <option value="어머니 성함은?">어머니 성함은?</option>
+        <option value="초등학교 이름은?">초등학교 이름은?</option>
+        <option value="첫 번째 반려동물 이름은?">첫 번째 반려동물 이름은?</option>
+        <option value="좋아하는 음식은?">좋아하는 음식은?</option>
+      </select>
+      <input class="pin-recovery-input" id="pin-qa-answer" placeholder="답변 입력" />
+      <button class="pin-recovery-btn" onclick="savePinQA()">저장</button>
+      <div class="pin-back" onclick="skipPinQA()">건너뛰기</div>
+    </div>
+  </div>
+</div>
+
+<!-- CAMERA -->
+<div class="screen camera-screen" id="camera">
+  <div class="camera-viewfinder">
+    <video id="camera-video" autoplay playsinline muted></video>
+    <canvas id="camera-canvas"></canvas>
+    <div class="cam-flash" id="cam-flash"></div>
+  </div>
+  <div class="camera-gallery" id="camera-gallery">
+    <span class="cam-no-photos">촬영한 사진이 없어요</span>
+  </div>
+  <div class="camera-controls">
+    <button class="cam-btn" onclick="toggleCameraFacing()" title="전/후면 전환">🔄</button>
+    <div class="cam-shutter" onclick="takePhoto()">
+      <div class="cam-shutter-inner"></div>
+    </div>
+    <button class="cam-btn" onclick="downloadLastPhoto()" title="저장">💾</button>
   </div>
 </div>
 
@@ -1039,6 +1150,7 @@ const ALL_TABS = [
   { id: 'ledger',   label: '가계부', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h2M10 15h4"/></svg>` },
   { id: 'calendar', label: '달력',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>` },
   { id: 'map',      label: '길찾기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>` },
+  { id: 'camera',   label: '카메라', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
   { id: 'settings', label: '설정',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` },
 ];
 
@@ -1081,8 +1193,7 @@ function renderTabSettings() {
   const tabs = ALL_TABS.filter(t => t.id !== 'settings');
   el.innerHTML = tabs.map(t => {
     const isOn = tabEnabled[t.id];
-    const isLedger = t.id === 'ledger';
-    const hasPIN = !!localStorage.getItem('pb-ledger-pin');
+    const hasPIN = !!localStorage.getItem(`pb-pin-${t.id}`);
     return `
     <div class="settings-row" style="cursor:default;flex-wrap:wrap;gap:0">
       <div style="display:flex;align-items:center;gap:12px;width:100%;padding:4px 0">
@@ -1097,20 +1208,41 @@ function renderTabSettings() {
           </div>
         </div>
       </div>
-      ${isLedger && isOn ? `
+      ${isOn ? `
       <div style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 0 4px 36px;border-top:1px solid var(--border);margin-top:4px">
         <div class="settings-row-info">
           <div class="settings-row-label" style="font-size:14px">🔒 PIN 잠금</div>
-          <div class="settings-row-desc">${hasPIN ? 'PIN이 설정되어 있어요' : '가계부 진입 시 PIN 입력'}</div>
+          <div class="settings-row-desc">${hasPIN ? 'PIN이 설정되어 있어요' : '탭 진입 시 PIN 입력'}</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          ${hasPIN ? `<button onclick="changePIN()" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer">변경</button>
-          <button onclick="removePIN()" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">해제</button>` :
-          `<button onclick="setPIN()" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">설정</button>`}
+          ${hasPIN ?
+            `<button onclick="changePIN('${t.id}')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer">변경</button>
+            <button onclick="removePIN('${t.id}')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">해제</button>` :
+            `<button onclick="setPIN('${t.id}')" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">설정</button>`}
         </div>
       </div>` : ''}
     </div>`;
   }).join('');
+
+  // 설정 탭 자체도 PIN 설정 가능
+  const settingsHasPIN = !!localStorage.getItem('pb-pin-settings');
+  const settingsPinHTML = `
+    <div class="settings-row" style="cursor:default;flex-wrap:wrap;gap:0">
+      <div style="display:flex;align-items:center;gap:12px;width:100%;padding:4px 0">
+        <div class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">설정</div>
+          <div class="settings-row-desc">${settingsHasPIN ? 'PIN이 설정되어 있어요' : '설정 탭 진입 시 PIN 입력'}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${settingsHasPIN ?
+            `<button onclick="changePIN('settings')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer">변경</button>
+            <button onclick="removePIN('settings')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">해제</button>` :
+            `<button onclick="setPIN('settings')" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">설정</button>`}
+        </div>
+      </div>
+    </div>`;
+  el.innerHTML += settingsPinHTML;
 }
 
 function toggleTab(id) {
@@ -1163,6 +1295,8 @@ function switchTab(id) {
     };
     tryInit();
   }
+  if (id === 'camera') initCamera();
+  else stopCamera();
 }
 
 // ===== Calculator =====
@@ -2227,14 +2361,29 @@ let pinBuffer = '';
 let pinMode = 'verify'; // 'verify' | 'set' | 'confirm'
 let pinTemp = '';
 let pinCallback = null;
+let pinFailCount = 0;
+let pinCurrentTab = '';
 
-function openPinOverlay(mode, callback) {
+function openPinOverlay(mode, callback, tabId = '') {
   pinBuffer = ''; pinTemp = ''; pinMode = mode; pinCallback = callback;
-  const titles = { verify: '가계부 잠금', set: 'PIN 설정', confirm: 'PIN 확인' };
-  const subs = { verify: '6자리 PIN을 입력하세요', set: '새 PIN 6자리를 입력하세요', confirm: 'PIN을 한 번 더 입력하세요' };
+  pinFailCount = 0; pinCurrentTab = tabId;
+  const titles = {
+    verify: '🔒 잠금 해제',
+    set: 'PIN 설정',
+    confirm: 'PIN 확인'
+  };
+  const subs = {
+    verify: '6자리 PIN을 입력하세요',
+    set: '새 PIN 6자리를 입력하세요',
+    confirm: 'PIN을 한 번 더 입력하세요'
+  };
   document.getElementById('pin-title').textContent = titles[mode];
   document.getElementById('pin-subtitle').textContent = subs[mode];
   document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-forgot').style.display = 'none';
+  document.getElementById('pin-main-view').style.display = '';
+  document.getElementById('pin-recovery-view').style.display = 'none';
+  document.getElementById('pin-qa-view').style.display = 'none';
   updatePinDots();
   document.getElementById('pin-overlay').style.display = 'flex';
 }
@@ -2256,9 +2405,7 @@ function pinInput(n) {
   if (pinBuffer.length >= 6) return;
   pinBuffer += n;
   updatePinDots();
-  if (pinBuffer.length === 6) {
-    setTimeout(() => processPIN(), 150);
-  }
+  if (pinBuffer.length === 6) setTimeout(() => processPIN(), 150);
 }
 
 function pinDelete() {
@@ -2267,18 +2414,31 @@ function pinDelete() {
 
 function processPIN() {
   if (pinMode === 'verify') {
-    const saved = localStorage.getItem('pb-ledger-pin');
+    // 탭별 PIN 키 확인
+    const pinKey = pinCurrentTab ? `pb-pin-${pinCurrentTab}` : 'pb-ledger-pin';
+    const saved = localStorage.getItem(pinKey);
     if (pinBuffer === saved) {
+      pinFailCount = 0;
       closePinOverlay();
       if (pinCallback) pinCallback();
     } else {
+      pinFailCount++;
       shakePin();
-      document.getElementById('pin-error').textContent = 'PIN이 틀렸어요';
+      if (pinFailCount >= 3) {
+        const qa = JSON.parse(localStorage.getItem(`pb-pin-qa-${pinCurrentTab}`) || 'null');
+        if (qa) {
+          document.getElementById('pin-error').textContent = `3회 실패 — 비밀번호 찾기를 이용하세요`;
+          document.getElementById('pin-forgot').style.display = 'block';
+        } else {
+          document.getElementById('pin-error').textContent = `3회 실패 — 등록된 보안 질문이 없어요`;
+        }
+      } else {
+        document.getElementById('pin-error').textContent = `PIN이 틀렸어요 (${pinFailCount}/3)`;
+      }
       pinBuffer = ''; updatePinDots();
     }
   } else if (pinMode === 'set') {
-    pinTemp = pinBuffer;
-    pinBuffer = '';
+    pinTemp = pinBuffer; pinBuffer = '';
     pinMode = 'confirm';
     document.getElementById('pin-title').textContent = 'PIN 확인';
     document.getElementById('pin-subtitle').textContent = 'PIN을 한 번 더 입력하세요';
@@ -2286,10 +2446,11 @@ function processPIN() {
     updatePinDots();
   } else if (pinMode === 'confirm') {
     if (pinBuffer === pinTemp) {
-      localStorage.setItem('pb-ledger-pin', pinBuffer);
-      closePinOverlay();
-      showToast('PIN이 설정됐어요 🔒');
-      renderTabSettings();
+      const pinKey = pinCurrentTab ? `pb-pin-${pinCurrentTab}` : 'pb-ledger-pin';
+      localStorage.setItem(pinKey, pinBuffer);
+      // 질문/답변 등록 화면으로
+      document.getElementById('pin-main-view').style.display = 'none';
+      document.getElementById('pin-qa-view').style.display = '';
     } else {
       shakePin();
       document.getElementById('pin-error').textContent = 'PIN이 일치하지 않아요';
@@ -2307,17 +2468,73 @@ function shakePin() {
   setTimeout(() => dots.forEach(d => d.classList.remove('error')), 500);
 }
 
-function setPIN() { openPinOverlay('set', null); }
-function changePIN() { openPinOverlay('set', null); }
-function removePIN() {
-  localStorage.removeItem('pb-ledger-pin');
+function showPinRecovery() {
+  const qa = JSON.parse(localStorage.getItem(`pb-pin-qa-${pinCurrentTab}`) || 'null');
+  if (!qa) { showToast('등록된 보안 질문이 없어요'); return; }
+  document.getElementById('pin-recovery-question').textContent = qa.question;
+  document.getElementById('pin-recovery-answer').value = '';
+  document.getElementById('pin-main-view').style.display = 'none';
+  document.getElementById('pin-recovery-view').style.display = '';
+}
+
+function hidePinRecovery() {
+  document.getElementById('pin-recovery-view').style.display = 'none';
+  document.getElementById('pin-main-view').style.display = '';
+  pinBuffer = ''; pinFailCount = 0;
+  document.getElementById('pin-forgot').style.display = 'none';
+  document.getElementById('pin-error').textContent = '';
+  updatePinDots();
+}
+
+function checkPinRecovery() {
+  const qa = JSON.parse(localStorage.getItem(`pb-pin-qa-${pinCurrentTab}`) || 'null');
+  const answer = document.getElementById('pin-recovery-answer').value.trim();
+  if (!qa || answer.toLowerCase() !== qa.answer.toLowerCase()) {
+    showToast('답변이 틀렸어요'); return;
+  }
+  // 정답 → PIN 재설정
+  closePinOverlay();
+  showToast('정답이에요! 새 PIN을 설정해주세요');
+  setTimeout(() => openPinOverlay('set', () => { renderTabSettings(); }, pinCurrentTab), 300);
+}
+
+function savePinQA() {
+  const q = document.getElementById('pin-qa-question').value;
+  const a = document.getElementById('pin-qa-answer').value.trim();
+  if (!q || !a) { showToast('질문과 답변을 모두 입력해주세요'); return; }
+  localStorage.setItem(`pb-pin-qa-${pinCurrentTab}`, JSON.stringify({ question: q, answer: a }));
+  closePinOverlay();
+  showToast('PIN이 설정됐어요 🔒');
+  renderTabSettings();
+}
+
+function skipPinQA() {
+  closePinOverlay();
+  showToast('PIN이 설정됐어요 🔒 (보안 질문 없음)');
+  renderTabSettings();
+}
+
+function setPIN(tabId = '') { pinCurrentTab = tabId; openPinOverlay('set', null, tabId); }
+function changePIN(tabId = '') { pinCurrentTab = tabId; openPinOverlay('set', null, tabId); }
+function removePIN(tabId = '') {
+  const pinKey = tabId ? `pb-pin-${tabId}` : 'pb-ledger-pin';
+  localStorage.removeItem(pinKey);
+  localStorage.removeItem(`pb-pin-qa-${tabId}`);
   showToast('PIN이 해제됐어요 🔓');
   renderTabSettings();
 }
 
-// switchTab 오버라이드: 가계부 탭 진입 시 PIN 확인
+// switchTab 오버라이드: PIN 잠긴 탭 진입 시 확인
 const _origSwitchTab = switchTab;
-// 기존 switchTab 함수 내부에 ledger PIN 체크 삽입
+window.switchTab = function(id) {
+  const pinKey = `pb-pin-${id}`;
+  const hasPIN = localStorage.getItem(pinKey);
+  if (hasPIN) {
+    openPinOverlay('verify', () => _origSwitchTab(id), id);
+  } else {
+    _origSwitchTab(id);
+  }
+};
 
 
 // 탭바 초기 렌더
@@ -2800,6 +3017,94 @@ window.addEventListener('load', () => {
     initKakaoMap();
   }
 });
+
+// ===== CAMERA =====
+let cameraStream = null;
+let cameraFacing = 'environment'; // 'environment'=후면, 'user'=전면
+let cameraPhotos = [];
+let lastPhoto = null;
+
+async function initCamera() {
+  if (cameraStream) return;
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: cameraFacing, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+    const video = document.getElementById('camera-video');
+    video.srcObject = cameraStream;
+    await video.play();
+  } catch(e) {
+    showToast('카메라 권한이 필요해요 📷');
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+    const video = document.getElementById('camera-video');
+    video.srcObject = null;
+  }
+}
+
+async function toggleCameraFacing() {
+  stopCamera();
+  cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+  await initCamera();
+}
+
+function takePhoto() {
+  const video = document.getElementById('camera-video');
+  const canvas = document.getElementById('camera-canvas');
+  if (!video.srcObject) { showToast('카메라가 준비되지 않았어요'); return; }
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+
+  // 전면 카메라는 좌우 반전
+  if (cameraFacing === 'user') {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0);
+
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+  lastPhoto = dataUrl;
+  cameraPhotos.unshift(dataUrl);
+
+  // 플래시 효과
+  const flash = document.getElementById('cam-flash');
+  flash.classList.add('on');
+  setTimeout(() => flash.classList.remove('on'), 100);
+
+  renderCameraGallery();
+  showToast('📷 촬영됐어요!');
+}
+
+function renderCameraGallery() {
+  const el = document.getElementById('camera-gallery');
+  if (!cameraPhotos.length) {
+    el.innerHTML = '<span class="cam-no-photos">촬영한 사진이 없어요</span>';
+    return;
+  }
+  el.innerHTML = cameraPhotos.map((p, i) => `
+    <img class="cam-thumb" src="${p}" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요" />`).join('');
+}
+
+function downloadPhoto(idx) {
+  const url = cameraPhotos[idx];
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pocketbon_${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.jpg`;
+  a.click();
+}
+
+function downloadLastPhoto() {
+  if (!lastPhoto) { showToast('먼저 사진을 찍어주세요'); return; }
+  downloadPhoto(0);
+}
 </script>
 </body>
 </html>
