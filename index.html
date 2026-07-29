@@ -560,7 +560,11 @@
       z-index: 500; gap: 32px;
     }
     .pin-title { font-size: 20px; font-weight: 600; color: var(--text); }
-    .pin-subtitle { font-size: 14px; color: var(--text2); margin-top: -24px; }
+    .pin-subtitle { 
+    font-size: 14px; 
+    color: var(--text2); 
+    margin-top: 4px;  /* -24px → 양수로 변경 */
+    }
     .pin-dots { display: flex; gap: 16px; }
     .pin-dot {
       width: 16px; height: 16px; border-radius: 50%;
