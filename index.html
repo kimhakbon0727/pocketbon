@@ -114,10 +114,40 @@
     .sch-item-title { font-size: 15px; font-weight: 500; }
     .sch-item-time { font-size: 12px; color: var(--text2); margin-top: 2px; }
     .sch-item-del { background: none; border: none; color: var(--text2); font-size: 18px; cursor: pointer; padding: 4px; }
+    .sch-item-edit { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 4px; }
     .sch-modal-close {
       width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
       background: none; color: var(--text2); font-size: 15px; cursor: pointer; margin-top: 4px;
     }
+    .sch-allday-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; color: var(--text); }
+    .sch-allday-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; flex-shrink:0; }
+    .sch-date-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
+    .sch-date-row .sch-input { margin-bottom: 0; flex: 1; font-size: 13px; padding: 10px 10px; }
+    .sch-date-arrow { color: var(--text2); font-size: 14px; flex-shrink: 0; }
+    .sch-section-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; margin-top: 2px; }
+    .sch-edit-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: flex-end; justify-content: center; z-index: 300;
+    }
+    .sch-edit-box {
+      background: var(--surface); border-radius: 24px 24px 0 0;
+      padding: 24px 20px 40px; width: 100%; max-width: 430px;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .sch-edit-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
+    /* 검색 */
+    .search-bar {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border-radius: 12px;
+      padding: 10px 14px; border: 1px solid var(--border); margin-bottom: 12px;
+    }
+    .search-bar input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-size: 15px; font-family: inherit;
+    }
+    .search-bar input::placeholder { color: var(--text2); }
+    .search-bar-icon { color: var(--text2); font-size: 16px; }
+    .search-bar-clear { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 16px; padding: 0; }
     .cal-holiday { font-size: 9px; color: #ff6fa8; text-align: center; line-height: 1.1; max-width: 36px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .cal-day.holiday .cal-day-num { color: #ff6fa8; }
     .cal-day.today.holiday .cal-day-num { color: #fff; }
@@ -859,6 +889,11 @@
       <textarea class="memo-input" id="memo-input" rows="2" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&event.metaKey)addMemo()"></textarea>
       <button class="add-btn" onclick="addMemo()">+</button>
     </div>
+    <div class="search-bar">
+      <span class="search-bar-icon">🔍</span>
+      <input type="text" id="memo-search" placeholder="메모 검색..." oninput="renderMemos()"/>
+      <button class="search-bar-clear" onclick="clearMemoSearch()">✕</button>
+    </div>
     <div class="memo-list" id="memo-list"></div>
   </div>
 
@@ -867,6 +902,11 @@
     <div class="memo-input-row">
       <input type="text" class="memo-input" id="todo-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTodo()" style="height:48px">
       <button class="add-btn" onclick="addTodo()">+</button>
+    </div>
+    <div class="search-bar">
+      <span class="search-bar-icon">🔍</span>
+      <input type="text" id="todo-search" placeholder="할일 검색..." oninput="renderTodos()"/>
+      <button class="search-bar-clear" onclick="clearTodoSearch()">✕</button>
     </div>
     <div class="ledger-filter-row" style="margin-bottom:4px">
       <button class="filter-btn active" id="todo-filter-all"     onclick="setTodoFilter('all')">전체</button>
@@ -933,11 +973,33 @@
 <div class="sch-modal-overlay" id="sch-modal" style="display:none" onclick="if(event.target===this)closeSchModal()">
   <div class="sch-modal">
     <div class="sch-modal-date" id="sch-modal-date"></div>
-    <input class="sch-input" id="sch-title" placeholder="일정 제목" maxlength="30"/>
-    <div class="sch-time-row">
-      <input class="sch-input" id="sch-start" type="time" placeholder="시작"/>
-      <input class="sch-input" id="sch-end" type="time" placeholder="종료"/>
+
+    <input class="sch-input" id="sch-title" placeholder="일정 제목" maxlength="40"/>
+
+    <!-- 날짜 범위 -->
+    <div class="sch-section-label">📅 날짜</div>
+    <div class="sch-date-row">
+      <input class="sch-input" id="sch-date-from" type="date"/>
+      <span class="sch-date-arrow">→</span>
+      <input class="sch-input" id="sch-date-to" type="date"/>
     </div>
+
+    <!-- 종일 체크 -->
+    <div class="sch-allday-row">
+      <input type="checkbox" id="sch-allday" onchange="toggleAlldayCheck()"/>
+      <label for="sch-allday">종일</label>
+    </div>
+
+    <!-- 시간 -->
+    <div id="sch-time-section">
+      <div class="sch-section-label">⏰ 시간</div>
+      <div class="sch-time-row">
+        <input class="sch-input" id="sch-start" type="time"/>
+        <input class="sch-input" id="sch-end" type="time"/>
+      </div>
+    </div>
+
+    <!-- 색상 -->
     <div class="sch-color-row">
       <span class="sch-color-label">색상</span>
       <button class="sch-color-btn selected color1-btn" style="background:#7c6fff" onclick="selectSchColor(1,this)"></button>
@@ -945,9 +1007,44 @@
       <button class="sch-color-btn color3-btn" style="background:#6fdfff" onclick="selectSchColor(3,this)"></button>
       <button class="sch-color-btn color4-btn" style="background:#ffd166" onclick="selectSchColor(4,this)"></button>
     </div>
+
     <button class="sch-add-btn" onclick="addSchedule()">+ 일정 추가</button>
     <div class="sch-list" id="sch-list"></div>
     <button class="sch-modal-close" onclick="closeSchModal()">닫기</button>
+  </div>
+</div>
+
+<!-- 일정 수정 오버레이 -->
+<div class="sch-edit-overlay" id="sch-edit-overlay" style="display:none" onclick="if(event.target===this)closeSchEdit()">
+  <div class="sch-edit-box">
+    <div class="sch-edit-title">✏️ 일정 수정</div>
+    <input class="sch-input" id="sch-edit-title" placeholder="일정 제목" maxlength="40"/>
+    <div class="sch-section-label">📅 날짜</div>
+    <div class="sch-date-row">
+      <input class="sch-input" id="sch-edit-date-from" type="date"/>
+      <span class="sch-date-arrow">→</span>
+      <input class="sch-input" id="sch-edit-date-to" type="date"/>
+    </div>
+    <div class="sch-allday-row">
+      <input type="checkbox" id="sch-edit-allday" onchange="toggleEditAlldayCheck()"/>
+      <label for="sch-edit-allday">종일</label>
+    </div>
+    <div id="sch-edit-time-section">
+      <div class="sch-section-label">⏰ 시간</div>
+      <div class="sch-time-row">
+        <input class="sch-input" id="sch-edit-start" type="time"/>
+        <input class="sch-input" id="sch-edit-end" type="time"/>
+      </div>
+    </div>
+    <div class="sch-color-row">
+      <span class="sch-color-label">색상</span>
+      <button class="sch-color-btn selected sch-edit-c1" style="background:#7c6fff" onclick="selectSchEditColor(1,this)"></button>
+      <button class="sch-color-btn sch-edit-c2" style="background:#ff6fa8" onclick="selectSchEditColor(2,this)"></button>
+      <button class="sch-color-btn sch-edit-c3" style="background:#6fdfff" onclick="selectSchEditColor(3,this)"></button>
+      <button class="sch-color-btn sch-edit-c4" style="background:#ffd166" onclick="selectSchEditColor(4,this)"></button>
+    </div>
+    <button class="sch-add-btn" onclick="saveSchEdit()">저장</button>
+    <button class="sch-modal-close" onclick="closeSchEdit()">취소</button>
   </div>
 </div>
 
@@ -1900,8 +1997,14 @@ function saveMemoEdit(id) {
 
 function renderMemos() {
   const el = document.getElementById('memo-list');
-  if (!memos.length) { el.innerHTML = '<div class="empty-hint"><span>📝</span>메모가 없어요</div>'; return; }
-  el.innerHTML = memos.map(m => `
+  const q = (document.getElementById('memo-search')?.value || '').toLowerCase().trim();
+  let list = [...memos];
+  if (q) list = list.filter(m => m.text.toLowerCase().includes(q));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '📝'}</span>${q ? '검색 결과가 없어요' : '메모가 없어요'}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(m => `
     <div class="memo-item" id="memo-item-${m.id}">
       <div style="flex:1">
         <div class="memo-item-text">${escHtml(m.text)}</div>
@@ -1910,6 +2013,11 @@ function renderMemos() {
       <button class="item-edit" onclick="editMemo(${m.id})">✏️</button>
       <button class="item-del" onclick="deleteMemo(${m.id})">✕</button>
     </div>`).join('');
+}
+
+function clearMemoSearch() {
+  const el = document.getElementById('memo-search');
+  if (el) { el.value = ''; renderMemos(); }
 }
 renderMemos();
 
@@ -1967,8 +2075,13 @@ function setTodoFilter(f) {
 
 function renderTodos() {
   const el = document.getElementById('todo-list');
-  const list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
-  if (!list.length) { el.innerHTML = '<div class="empty-hint"><span>✅</span>할 일이 없어요</div>'; return; }
+  const q = (document.getElementById('todo-search')?.value || '').toLowerCase().trim();
+  let list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
+  if (q) list = list.filter(t => t.text.toLowerCase().includes(q));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '✅'}</span>${q ? '검색 결과가 없어요' : '할 일이 없어요'}</div>`;
+    return;
+  }
   el.innerHTML = list.map(t => `
     <div class="todo-item" id="todo-item-${t.id}">
       <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTodo(${t.id})"></div>
@@ -1976,6 +2089,11 @@ function renderTodos() {
       <button class="item-edit" onclick="editTodo(${t.id})">✏️</button>
       <button class="item-del" onclick="deleteTodo(${t.id})">✕</button>
     </div>`).join('');
+}
+
+function clearTodoSearch() {
+  const el = document.getElementById('todo-search');
+  if (el) { el.value = ''; renderTodos(); }
 }
 renderTodos();
 
@@ -2314,12 +2432,19 @@ function renderCal() {
 function openSchModal(dateKey, day) {
   schSelectedDate = dateKey;
   const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const cacheKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const holidays = holidayCache[cacheKey] || {};
+  const holidayName = holidays[dateKey] || '';
   document.getElementById('sch-modal-date').textContent = `${calYear}년 ${months[calMonth]} ${day}일`;
   document.getElementById('sch-title').value = '';
+  document.getElementById('sch-date-from').value = dateKey;
+  document.getElementById('sch-date-to').value = dateKey;
+  document.getElementById('sch-allday').checked = false;
   document.getElementById('sch-start').value = '';
   document.getElementById('sch-end').value = '';
+  document.getElementById('sch-time-section').style.display = '';
   selectSchColor(1, document.querySelector('.color1-btn'));
-  renderSchList();
+  renderSchList(holidayName);
   document.getElementById('sch-modal').style.display = 'flex';
 }
 
@@ -2328,50 +2453,159 @@ function closeSchModal() {
   schSelectedDate = null;
 }
 
+function toggleAlldayCheck() {
+  const allday = document.getElementById('sch-allday').checked;
+  document.getElementById('sch-time-section').style.display = allday ? 'none' : '';
+}
+
+function toggleEditAlldayCheck() {
+  const allday = document.getElementById('sch-edit-allday').checked;
+  document.getElementById('sch-edit-time-section').style.display = allday ? 'none' : '';
+}
+
 function selectSchColor(num, el) {
   schSelectedColor = num;
   document.querySelectorAll('.sch-color-btn').forEach(b => b.classList.remove('selected'));
   el.classList.add('selected');
 }
 
+let schEditColor = 1;
+function selectSchEditColor(num, el) {
+  schEditColor = num;
+  document.querySelectorAll('.sch-edit-c1,.sch-edit-c2,.sch-edit-c3,.sch-edit-c4').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
 function addSchedule() {
   const title = document.getElementById('sch-title').value.trim();
   if (!title) { showToast('일정 제목을 입력해주세요'); return; }
-  const start = document.getElementById('sch-start').value;
-  const end = document.getElementById('sch-end').value;
-  if (!schedules[schSelectedDate]) schedules[schSelectedDate] = [];
-  schedules[schSelectedDate].push({ id: Date.now(), title, start, end, color: schSelectedColor });
+  const dateFrom = document.getElementById('sch-date-from').value || schSelectedDate;
+  const dateTo = document.getElementById('sch-date-to').value || dateFrom;
+  const allday = document.getElementById('sch-allday').checked;
+  const start = allday ? '' : document.getElementById('sch-start').value;
+  const end = allday ? '' : document.getElementById('sch-end').value;
+
+  const sch = { id: Date.now(), title, dateFrom, dateTo, allday, start, end, color: schSelectedColor };
+
+  // 날짜 범위에 걸친 모든 날짜에 일정 등록
+  const fromD = new Date(dateFrom);
+  const toD = new Date(dateTo);
+  for (let d = new Date(fromD); d <= toD; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    if (!schedules[key]) schedules[key] = [];
+    schedules[key].push({ ...sch });
+  }
+
   saveSchedules();
   document.getElementById('sch-title').value = '';
   document.getElementById('sch-start').value = '';
   document.getElementById('sch-end').value = '';
+  document.getElementById('sch-allday').checked = false;
+  document.getElementById('sch-time-section').style.display = '';
   renderSchList();
   renderCal();
   showToast('일정이 추가됐어요 ✅');
 }
 
 function deleteSchedule(id) {
-  if (!schSelectedDate) return;
-  schedules[schSelectedDate] = (schedules[schSelectedDate] || []).filter(s => s.id !== id);
-  if (!schedules[schSelectedDate].length) delete schedules[schSelectedDate];
+  // 모든 날짜에서 해당 id 제거
+  Object.keys(schedules).forEach(key => {
+    schedules[key] = schedules[key].filter(s => s.id !== id);
+    if (!schedules[key].length) delete schedules[key];
+  });
   saveSchedules();
   renderSchList();
   renderCal();
 }
 
-function renderSchList() {
+let schEditingId = null;
+function openSchEdit(id) {
+  const all = Object.values(schedules).flat();
+  const s = all.find(x => x.id === id);
+  if (!s) return;
+  schEditingId = id;
+  document.getElementById('sch-edit-title').value = s.title;
+  document.getElementById('sch-edit-date-from').value = s.dateFrom || schSelectedDate;
+  document.getElementById('sch-edit-date-to').value = s.dateTo || s.dateFrom || schSelectedDate;
+  document.getElementById('sch-edit-allday').checked = !!s.allday;
+  document.getElementById('sch-edit-start').value = s.start || '';
+  document.getElementById('sch-edit-end').value = s.end || '';
+  document.getElementById('sch-edit-time-section').style.display = s.allday ? 'none' : '';
+  schEditColor = s.color || 1;
+  document.querySelectorAll('.sch-edit-c1,.sch-edit-c2,.sch-edit-c3,.sch-edit-c4').forEach(b => b.classList.remove('selected'));
+  document.querySelector(`.sch-edit-c${schEditColor}`).classList.add('selected');
+  document.getElementById('sch-edit-overlay').style.display = 'flex';
+}
+
+function closeSchEdit() {
+  document.getElementById('sch-edit-overlay').style.display = 'none';
+  schEditingId = null;
+}
+
+function saveSchEdit() {
+  if (!schEditingId) return;
+  const title = document.getElementById('sch-edit-title').value.trim();
+  if (!title) { showToast('제목을 입력해주세요'); return; }
+  const dateFrom = document.getElementById('sch-edit-date-from').value;
+  const dateTo = document.getElementById('sch-edit-date-to').value || dateFrom;
+  const allday = document.getElementById('sch-edit-allday').checked;
+  const start = allday ? '' : document.getElementById('sch-edit-start').value;
+  const end = allday ? '' : document.getElementById('sch-edit-end').value;
+
+  // 기존 항목 모두 제거
+  deleteSchedule(schEditingId);
+
+  // 새 날짜 범위로 다시 등록
+  const fromD = new Date(dateFrom);
+  const toD = new Date(dateTo);
+  const newId = schEditingId; // 같은 id 유지
+  for (let d = new Date(fromD); d <= toD; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    if (!schedules[key]) schedules[key] = [];
+    schedules[key].push({ id: newId, title, dateFrom, dateTo, allday, start, end, color: schEditColor });
+  }
+  saveSchedules();
+  closeSchEdit();
+  renderSchList();
+  renderCal();
+  showToast('일정이 수정됐어요 ✅');
+}
+
+function renderSchList(holidayName = '') {
   const list = document.getElementById('sch-list');
   const items = schedules[schSelectedDate] || [];
-  if (!items.length) { list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:12px;font-size:14px">등록된 일정이 없어요</div>'; return; }
-  list.innerHTML = items.map(s => `
-    <div class="sch-item">
+  let html = '';
+
+  if (holidayName) {
+    html += `<div class="sch-item">
+      <div class="sch-item-color" style="background:#ff6fa8"></div>
+      <div class="sch-item-info">
+        <div class="sch-item-title">🎉 ${holidayName}</div>
+        <div class="sch-item-time">공휴일</div>
+      </div>
+    </div>`;
+  }
+
+  if (!items.length && !holidayName) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:12px;font-size:14px">등록된 일정이 없어요</div>';
+    return;
+  }
+
+  html += items.map(s => {
+    const timeStr = s.allday ? '종일' : (s.start && s.end ? s.start + ' ~ ' + s.end : s.start || s.end || '종일');
+    const dateStr = s.dateFrom && s.dateTo && s.dateFrom !== s.dateTo ? `${s.dateFrom} ~ ${s.dateTo}` : '';
+    return `<div class="sch-item">
       <div class="sch-item-color" style="background:${COLORS[s.color]}"></div>
       <div class="sch-item-info">
         <div class="sch-item-title">${s.title}</div>
-        <div class="sch-item-time">${s.start && s.end ? s.start + ' ~ ' + s.end : s.start || s.end || '종일'}</div>
+        <div class="sch-item-time">${dateStr ? dateStr + ' · ' : ''}${timeStr}</div>
       </div>
+      <button class="sch-item-edit" onclick="openSchEdit(${s.id})">✏️</button>
       <button class="sch-item-del" onclick="deleteSchedule(${s.id})">🗑️</button>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
+  list.innerHTML = html;
 }
 
 // ===== PIN LOCK =====
