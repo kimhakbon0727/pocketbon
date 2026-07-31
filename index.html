@@ -1129,16 +1129,9 @@
   <div id="pin-qa-view" style="display:none">
     <div class="pin-recovery">
       <div class="pin-recovery-title">🔐 보안 질문 설정</div>
-      <div class="pin-recovery-q">PIN을 잊었을 때 사용할 질문과 답변을 등록하세요</div>
-      <select class="pin-recovery-input" id="pin-qa-question" style="cursor:pointer">
-        <option value="">질문 선택</option>
-        <option value="태어난 도시는?">태어난 도시는?</option>
-        <option value="어머니 성함은?">어머니 성함은?</option>
-        <option value="초등학교 이름은?">초등학교 이름은?</option>
-        <option value="첫 번째 반려동물 이름은?">첫 번째 반려동물 이름은?</option>
-        <option value="좋아하는 음식은?">좋아하는 음식은?</option>
-      </select>
-      <input class="pin-recovery-input" id="pin-qa-answer" placeholder="답변 입력" />
+      <div class="pin-recovery-q">PIN을 잊었을 때 사용할 질문과 답변을 직접 입력하세요</div>
+      <input class="pin-recovery-input" id="pin-qa-question" placeholder="질문 직접 입력 (예: 나만의 단어는?)" maxlength="40" />
+      <input class="pin-recovery-input" id="pin-qa-answer" placeholder="답변 입력 (한글/영문 가능)" maxlength="40" />
       <button class="pin-recovery-btn" onclick="savePinQA()">저장</button>
       <div class="pin-back" onclick="skipPinQA()">건너뛰기</div>
     </div>
@@ -1300,6 +1293,7 @@ const ALL_TABS = [
 
 let tabCounts  = JSON.parse(localStorage.getItem('pb-tab-counts')  || '{}');
 let tabEnabled = JSON.parse(localStorage.getItem('pb-tab-enabled') || '{}');
+let tabOrder   = JSON.parse(localStorage.getItem('pb-tab-order')   || '[]'); // 수동 순서
 // 기본: 모두 활성화
 ALL_TABS.forEach(t => { if (tabEnabled[t.id] === undefined) tabEnabled[t.id] = true; });
 // settings는 항상 활성화
@@ -1308,16 +1302,32 @@ tabEnabled['settings'] = true;
 function saveTabPrefs() {
   localStorage.setItem('pb-tab-counts',  JSON.stringify(tabCounts));
   localStorage.setItem('pb-tab-enabled', JSON.stringify(tabEnabled));
+  localStorage.setItem('pb-tab-order',   JSON.stringify(tabOrder));
 }
 
 function getVisibleTabs() {
-  return ALL_TABS
-    .filter(t => tabEnabled[t.id])
-    .sort((a, b) => {
-      if (a.id === 'settings') return 1;
-      if (b.id === 'settings') return -1;
-      return (tabCounts[b.id] || 0) - (tabCounts[a.id] || 0);
+  const enabled = ALL_TABS.filter(t => tabEnabled[t.id]);
+  if (tabOrder.length > 0) {
+    // 수동 순서 적용 (settings는 항상 마지막)
+    const ordered = [];
+    tabOrder.forEach(id => {
+      const t = enabled.find(x => x.id === id);
+      if (t && t.id !== 'settings') ordered.push(t);
     });
+    // 수동 순서에 없는 탭 뒤에 추가
+    enabled.forEach(t => {
+      if (t.id !== 'settings' && !ordered.find(x => x.id === t.id)) ordered.push(t);
+    });
+    const settings = enabled.find(t => t.id === 'settings');
+    if (settings) ordered.push(settings);
+    return ordered;
+  }
+  // 수동 순서 없으면 클릭 수 기준 정렬
+  return enabled.sort((a, b) => {
+    if (a.id === 'settings') return 1;
+    if (b.id === 'settings') return -1;
+    return (tabCounts[b.id] || 0) - (tabCounts[a.id] || 0);
+  });
 }
 
 let currentTab = 'calc';
@@ -1334,8 +1344,40 @@ function renderTabBar() {
 function renderTabSettings() {
   const el = document.getElementById('tab-settings-list');
   if (!el) return;
+  const hasManualOrder = tabOrder.length > 0;
   const tabs = ALL_TABS.filter(t => t.id !== 'settings');
-  el.innerHTML = tabs.map(t => {
+
+  // 순서 설정 섹션
+  const orderSection = `
+    <div class="settings-card" style="margin-bottom:12px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${hasManualOrder ? '12px' : '0'}">
+        <div>
+          <div class="settings-row-label">📌 탭 순서 설정</div>
+          <div class="settings-row-desc">${hasManualOrder ? '수동 순서 적용 중 (클릭 수 정렬 비활성화)' : '설정 안 하면 클릭 수 많은 탭이 앞으로'}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          ${hasManualOrder
+            ? `<button onclick="resetTabOrder()" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">초기화</button>`
+            : `<button onclick="startTabOrder()" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">순서 설정</button>`
+          }
+        </div>
+      </div>
+      ${hasManualOrder ? `
+      <div id="tab-order-list" style="display:flex;flex-direction:column;gap:6px">
+        ${getVisibleTabs().filter(t => t.id !== 'settings').map((t, i) => `
+          <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:10px 12px">
+            <span style="color:var(--text2);font-size:13px;width:20px">${i+1}</span>
+            <div style="flex:1;font-size:14px">${t.label}</div>
+            <div style="display:flex;gap:6px">
+              <button onclick="moveTabOrder('${t.id}', -1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px" ${i===0?'disabled':''}>↑</button>
+              <button onclick="moveTabOrder('${t.id}', 1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px" ${i===getVisibleTabs().filter(t=>t.id!=='settings').length-1?'disabled':''}>↓</button>
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+
+  // 탭 ON/OFF + PIN 섹션
+  const tabList = tabs.map(t => {
     const isOn = tabEnabled[t.id];
     const hasPIN = !!localStorage.getItem(`pb-pin-${t.id}`);
     return `
@@ -1368,7 +1410,7 @@ function renderTabSettings() {
     </div>`;
   }).join('');
 
-  // 설정 탭 자체도 PIN 설정 가능
+  // 설정 탭 PIN
   const settingsHasPIN = !!localStorage.getItem('pb-pin-settings');
   const settingsPinHTML = `
     <div class="settings-row" style="cursor:default;flex-wrap:wrap;gap:0">
@@ -1386,7 +1428,35 @@ function renderTabSettings() {
         </div>
       </div>
     </div>`;
-  el.innerHTML += settingsPinHTML;
+
+  el.innerHTML = orderSection + tabList + settingsPinHTML;
+}
+
+function startTabOrder() {
+  // 현재 보이는 탭 순서로 초기화
+  tabOrder = getVisibleTabs().filter(t => t.id !== 'settings').map(t => t.id);
+  saveTabPrefs();
+  renderTabSettings();
+  renderTabBar();
+}
+
+function resetTabOrder() {
+  tabOrder = [];
+  saveTabPrefs();
+  renderTabSettings();
+  renderTabBar();
+  showToast('순서가 초기화됐어요 (클릭 수 정렬)');
+}
+
+function moveTabOrder(id, dir) {
+  const idx = tabOrder.indexOf(id);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= tabOrder.length) return;
+  [tabOrder[idx], tabOrder[newIdx]] = [tabOrder[newIdx], tabOrder[idx]];
+  saveTabPrefs();
+  renderTabSettings();
+  renderTabBar();
 }
 
 function toggleTab(id) {
