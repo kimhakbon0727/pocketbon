@@ -43,7 +43,7 @@
     .cal-nav-btn { background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; padding: 6px 12px; border-radius: 10px; }
     .cal-nav-btn:active { background: var(--surface2); }
     .cal-month-label { font-size: 18px; font-weight: 600; }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
     .cal-dow { text-align: center; font-size: 11px; color: var(--text2); padding: 6px 0; }
     .cal-dow:first-child { color: #ff6fa8; }
     .cal-dow:last-child { color: #7c6fff; }
@@ -52,7 +52,7 @@
       align-items: center; justify-content: flex-start; padding-top: 6px;
       border-radius: 10px; cursor: pointer; font-size: 14px;
       position: relative; transition: background 0.15s;
-      gap: 2px;
+      gap: 2px; min-width: 0;
     }
     .cal-day:active { background: var(--surface2); }
     .cal-day.empty { cursor: default; }
