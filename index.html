@@ -1085,6 +1085,22 @@
   </div>
 </div>
 
+<!-- LEDGER EDIT MODAL -->
+<div class="sch-edit-overlay" id="ledger-edit-modal" style="display:none" onclick="if(event.target===this)closeLedgerEdit()">
+  <div class="sch-edit-box">
+    <div class="sch-edit-title">✏️ 내역 수정</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="ledit-type-income" class="filter-btn active" onclick="setLedgerEditType('income')" style="flex:1;padding:10px">수입 💚</button>
+      <button id="ledit-type-expense" class="filter-btn" onclick="setLedgerEditType('expense')" style="flex:1;padding:10px">지출 ❤️</button>
+    </div>
+    <input class="sch-input" id="ledit-desc" placeholder="내용" maxlength="40"/>
+    <input class="sch-input" id="ledit-amount" type="number" placeholder="금액" min="1"/>
+    <input class="sch-input" id="ledit-date" type="date"/>
+    <button class="sch-add-btn" onclick="saveLedgerEdit()">저장</button>
+    <button class="sch-modal-close" onclick="closeLedgerEdit()">취소</button>
+  </div>
+</div>
+
 <!-- PIN MODAL -->
 <div class="pin-overlay" id="pin-overlay" style="display:none">
   <!-- 일반 PIN 입력 화면 -->
@@ -2215,6 +2231,48 @@ function deleteLedger(id) {
   saveLedger(); renderLedger();
 }
 
+let ledgerEditId = null;
+let ledgerEditType = 'income';
+
+function openLedgerEdit(id) {
+  const item = ledger.find(l => l.id === id);
+  if (!item) return;
+  ledgerEditId = id;
+  ledgerEditType = item.type;
+  document.getElementById('ledit-desc').value = item.desc;
+  document.getElementById('ledit-amount').value = item.amount;
+  document.getElementById('ledit-date').value = item.date;
+  document.getElementById('ledit-type-income').classList.toggle('active', item.type === 'income');
+  document.getElementById('ledit-type-expense').classList.toggle('active', item.type === 'expense');
+  document.getElementById('ledger-edit-modal').style.display = 'flex';
+}
+
+function closeLedgerEdit() {
+  document.getElementById('ledger-edit-modal').style.display = 'none';
+  ledgerEditId = null;
+}
+
+function setLedgerEditType(t) {
+  ledgerEditType = t;
+  document.getElementById('ledit-type-income').classList.toggle('active', t === 'income');
+  document.getElementById('ledit-type-expense').classList.toggle('active', t === 'expense');
+}
+
+function saveLedgerEdit() {
+  const desc   = document.getElementById('ledit-desc').value.trim();
+  const amount = parseInt(document.getElementById('ledit-amount').value);
+  const date   = document.getElementById('ledit-date').value;
+  if (!desc) { showToast('내용을 입력해주세요'); return; }
+  if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
+  if (!date) { showToast('날짜를 선택해주세요'); return; }
+  const item = ledger.find(l => l.id === ledgerEditId);
+  if (item) { item.type = ledgerEditType; item.desc = desc; item.amount = amount; item.date = date; }
+  saveLedger();
+  closeLedgerEdit();
+  renderLedger();
+  showToast('수정됐어요 ✅');
+}
+
 function renderLedger() {
   const [y, m] = ledgerMonth.split('-').map(Number);
   document.getElementById('month-label').textContent = y + '년 ' + m + '월';
@@ -2241,6 +2299,7 @@ function renderLedger() {
         <div class="ledger-item-date">${l.date}</div>
       </div>
       <div class="ledger-item-amount ${l.type}">${l.type === 'income' ? '+' : '-'}₩${l.amount.toLocaleString()}</div>
+      <button class="item-edit" onclick="openLedgerEdit(${l.id})">✏️</button>
       <button class="item-del" onclick="deleteLedger(${l.id})">✕</button>
     </div>`).join('');
 }
