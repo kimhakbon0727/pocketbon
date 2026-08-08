@@ -636,13 +636,13 @@
     .pin-back { font-size: 13px; color: var(--text2); cursor: pointer; text-align: center; }
 
     /* Camera */
-    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; height: calc(100dvh - 50px); overflow: hidden; display: flex; flex-direction: column; }
-    .camera-viewfinder { position: relative; overflow: hidden; flex: 1; min-height: 0; max-height: calc(100dvh - 50px - 64px - 52px - 44px - 110px); }
+    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; height: calc(100dvh - 50px); overflow: hidden; }
+    .camera-viewfinder { position: relative; overflow: hidden; flex: 1; min-height: 0; }
     #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
     #camera-canvas { display: none; }
     .camera-controls {
       display: flex; align-items: center; justify-content: space-around;
-      padding: 12px 24px 20px; background: #000; flex-shrink: 0; height: 110px; box-sizing: border-box;
+      padding: 12px 24px 16px; background: #000; flex-shrink: 0;
     }
     .cam-btn {
       width: 52px; height: 52px; border-radius: 50%; border: none;
@@ -1102,25 +1102,6 @@
 </div>
 
 <!-- LEDGER EDIT MODAL -->
-<!-- RECURRING EDIT MODAL -->
-<div class="sch-edit-overlay" id="recurring-edit-modal" style="display:none" onclick="if(event.target===this)closeRecurringEdit()">
-  <div class="sch-edit-box">
-    <div class="sch-edit-title">📌 고정 항목 수정</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button id="redit-type-income" class="filter-btn active" onclick="setRecurringEditType('income')" style="flex:1;padding:10px">수입 💚</button>
-      <button id="redit-type-expense" class="filter-btn" onclick="setRecurringEditType('expense')" style="flex:1;padding:10px">지출 ❤️</button>
-    </div>
-    <input class="sch-input" id="redit-desc" placeholder="내용" maxlength="40"/>
-    <input class="sch-input" id="redit-amount" type="text" placeholder="금액" inputmode="numeric" oninput="formatLedgerAmount(this)"/>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <span style="font-size:14px;color:var(--text2);white-space:nowrap">매월</span>
-      <input class="sch-input" id="redit-day" type="number" min="1" max="31" placeholder="날짜 (1~31)" style="margin-bottom:0"/>
-      <span style="font-size:14px;color:var(--text2);white-space:nowrap">일</span>
-    </div>
-    <button class="sch-add-btn" onclick="saveRecurringEdit()">저장</button>
-    <button class="sch-modal-close" onclick="closeRecurringEdit()">취소</button>
-  </div>
-</div>
 <div class="sch-edit-overlay" id="ledger-edit-modal" style="display:none" onclick="if(event.target===this)closeLedgerEdit()">
   <div class="sch-edit-box">
     <div class="sch-edit-title">✏️ 내역 수정</div>
@@ -2298,52 +2279,6 @@ function deleteLedger(id) {
 function deleteRecurring(id) {
   recurringItems = recurringItems.filter(r => r.id !== id);
   saveRecurring(); renderLedger();
-  if (recurringVisible) renderRecurringList();
-}
-
-let recurringEditId = null;
-let recurringEditType = 'income';
-
-function openRecurringEdit(id) {
-  const item = recurringItems.find(r => r.id === id);
-  if (!item) return;
-  recurringEditId = id;
-  recurringEditType = item.type;
-  document.getElementById('redit-desc').value = item.desc;
-  const amountEl = document.getElementById('redit-amount');
-  amountEl.value = item.amount.toLocaleString();
-  amountEl.dataset.raw = item.amount;
-  document.getElementById('redit-day').value = item.day;
-  document.getElementById('redit-type-income').classList.toggle('active', item.type === 'income');
-  document.getElementById('redit-type-expense').classList.toggle('active', item.type === 'expense');
-  document.getElementById('recurring-edit-modal').style.display = 'flex';
-}
-
-function closeRecurringEdit() {
-  document.getElementById('recurring-edit-modal').style.display = 'none';
-  recurringEditId = null;
-}
-
-function setRecurringEditType(t) {
-  recurringEditType = t;
-  document.getElementById('redit-type-income').classList.toggle('active', t === 'income');
-  document.getElementById('redit-type-expense').classList.toggle('active', t === 'expense');
-}
-
-function saveRecurringEdit() {
-  const desc   = document.getElementById('redit-desc').value.trim();
-  const amount = getLedgerAmountRaw(document.getElementById('redit-amount'));
-  const day    = parseInt(document.getElementById('redit-day').value);
-  if (!desc) { showToast('내용을 입력해주세요'); return; }
-  if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
-  if (!day || day < 1 || day > 31) { showToast('날짜를 1~31 사이로 입력해주세요'); return; }
-  const item = recurringItems.find(r => r.id === recurringEditId);
-  if (item) { item.type = recurringEditType; item.desc = desc; item.amount = amount; item.day = day; }
-  saveRecurring();
-  closeRecurringEdit();
-  renderLedger();
-  renderRecurringList();
-  showToast('고정 항목이 수정됐어요 ✅');
 }
 
 let recurringVisible = false;
@@ -2369,7 +2304,6 @@ function renderRecurringList() {
         <div class="ledger-item-date">매월 ${r.day}일</div>
       </div>
       <div class="ledger-item-amount ${r.type}">${r.type === 'income' ? '+' : '-'}₩${r.amount.toLocaleString()}</div>
-      <button class="item-edit" onclick="openRecurringEdit(${r.id})">✏️</button>
       <button class="item-del" onclick="deleteRecurring(${r.id})">✕</button>
     </div>`).join('');
 }
