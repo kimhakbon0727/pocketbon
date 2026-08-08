@@ -636,13 +636,13 @@
     .pin-back { font-size: 13px; color: var(--text2); cursor: pointer; text-align: center; }
 
     /* Camera */
-    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
-    .camera-viewfinder { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    #camera-video { width: 100%; height: 100%; object-fit: cover; }
+    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; height: calc(100dvh - 50px); overflow: hidden; }
+    .camera-viewfinder { position: relative; overflow: hidden; flex: 1; min-height: 0; }
+    #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
     #camera-canvas { display: none; }
     .camera-controls {
       display: flex; align-items: center; justify-content: space-around;
-      padding: 20px 24px 36px; background: #000;
+      padding: 12px 24px 16px; background: #000; flex-shrink: 0;
     }
     .cam-btn {
       width: 52px; height: 52px; border-radius: 50%; border: none;
@@ -661,7 +661,7 @@
     .cam-shutter-inner { width: 54px; height: 54px; border-radius: 50%; background: #fff; transition: border-radius 0.15s, width 0.15s, height 0.15s, background 0.15s; }
     .camera-gallery {
       display: flex; gap: 3px; padding: 3px; background: #000;
-      overflow-x: auto; min-height: 72px; align-items: center;
+      overflow-x: auto; height: 64px; align-items: center; flex-shrink: 0;
     }
     .cam-thumb {
       width: 68px; height: 68px; object-fit: cover; border-radius: 6px;
@@ -944,8 +944,12 @@
       <button class="ledger-type-btn expense"       id="ltype-expense" onclick="setLedgerType('expense')">❤️ 지출</button>
     </div>
     <input type="text"   class="ledger-input" id="ledger-desc"   placeholder="내용 (예: 점심)">
-    <input type="number" class="ledger-input" id="ledger-amount" placeholder="금액 (원)" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+    <input type="text"   class="ledger-input" id="ledger-amount" placeholder="금액 (원)" inputmode="numeric" oninput="formatLedgerAmount(this)">
     <input type="date"   class="ledger-input" id="ledger-date">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="checkbox" id="ledger-recurring" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="ledger-recurring" style="font-size:14px;color:var(--text2);cursor:pointer">📌 매월 고정 항목으로 등록</label>
+    </div>
     <button class="ledger-add-btn" onclick="addLedger()">추가</button>
   </div>
 
@@ -954,6 +958,18 @@
     <button class="filter-btn active" id="lfilter-all"     onclick="setLedgerFilter('all')">전체</button>
     <button class="filter-btn"        id="lfilter-income"  onclick="setLedgerFilter('income')">수입</button>
     <button class="filter-btn"        id="lfilter-expense" onclick="setLedgerFilter('expense')">지출</button>
+  </div>
+
+  <!-- 고정 항목 -->
+  <div id="recurring-section" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:13px;color:var(--text2);">📌 고정 항목</div>
+      <button onclick="toggleRecurringSection()" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer">접기</button>
+    </div>
+    <div id="recurring-list"></div>
+  </div>
+  <div style="margin-bottom:4px">
+    <button onclick="toggleRecurringSection()" id="recurring-toggle-btn" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;cursor:pointer">📌 고정 항목 보기</button>
   </div>
 
   <div class="ledger-list" id="ledger-list"></div>
@@ -1094,7 +1110,7 @@
       <button id="ledit-type-expense" class="filter-btn" onclick="setLedgerEditType('expense')" style="flex:1;padding:10px">지출 ❤️</button>
     </div>
     <input class="sch-input" id="ledit-desc" placeholder="내용" maxlength="40"/>
-    <input class="sch-input" id="ledit-amount" type="number" placeholder="금액" min="1"/>
+    <input class="sch-input" id="ledit-amount" type="text" placeholder="금액" inputmode="numeric" oninput="formatLedgerAmount(this)"/>
     <input class="sch-input" id="ledit-date" type="date"/>
     <button class="sch-add-btn" onclick="saveLedgerEdit()">저장</button>
     <button class="sch-modal-close" onclick="closeLedgerEdit()">취소</button>
@@ -2191,7 +2207,21 @@ let ledgerMonth = new Date().toISOString().slice(0, 7);
 
 function saveLedger() { localStorage.setItem('pocketbon-ledger', JSON.stringify(ledger)); }
 
+let recurringItems = JSON.parse(localStorage.getItem('pocketbon-recurring') || '[]');
+function saveRecurring() { localStorage.setItem('pocketbon-recurring', JSON.stringify(recurringItems)); }
+
 document.getElementById('ledger-date').value = new Date().toISOString().slice(0,10);
+
+// 콤마 포맷
+function formatLedgerAmount(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  el.value = raw ? parseInt(raw).toLocaleString() : '';
+  el.dataset.raw = raw;
+}
+
+function getLedgerAmountRaw(el) {
+  return parseInt((el.dataset.raw || el.value.replace(/[^0-9]/g, '')) || '0');
+}
 
 function setLedgerType(t) {
   ledgerType = t;
@@ -2214,21 +2244,68 @@ function changeMonth(dir) {
 
 function addLedger() {
   const desc   = document.getElementById('ledger-desc').value.trim();
-  const amount = parseInt(document.getElementById('ledger-amount').value);
+  const amount = getLedgerAmountRaw(document.getElementById('ledger-amount'));
   const date   = document.getElementById('ledger-date').value;
+  const isRecurring = document.getElementById('ledger-recurring').checked;
   if (!desc) { showToast('💡 내용을 입력해주세요'); return; }
   if (!amount || amount <= 0) { showToast('💡 금액을 입력해주세요'); return; }
   if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
-  ledger.unshift({ id: Date.now(), type: ledgerType, desc, amount, date });
-  saveLedger(); renderLedger();
+
+  const item = { id: Date.now(), type: ledgerType, desc, amount, date };
+
+  if (isRecurring) {
+    // 날짜에서 일(day)만 추출
+    const day = parseInt(date.split('-')[2]);
+    recurringItems.push({ id: item.id, type: ledgerType, desc, amount, day });
+    saveRecurring();
+    showToast('📌 고정 항목으로 등록됐어요!');
+  } else {
+    ledger.unshift(item);
+    saveLedger();
+    showToast(ledgerType === 'income' ? '💚 수입 추가됨' : '❤️ 지출 추가됨');
+  }
+
+  renderLedger();
   document.getElementById('ledger-desc').value = '';
   document.getElementById('ledger-amount').value = '';
-  showToast(ledgerType === 'income' ? '💚 수입 추가됨' : '❤️ 지출 추가됨');
+  document.getElementById('ledger-recurring').checked = false;
 }
 
 function deleteLedger(id) {
   ledger = ledger.filter(l => l.id !== id);
   saveLedger(); renderLedger();
+}
+
+function deleteRecurring(id) {
+  recurringItems = recurringItems.filter(r => r.id !== id);
+  saveRecurring(); renderLedger();
+}
+
+let recurringVisible = false;
+function toggleRecurringSection() {
+  recurringVisible = !recurringVisible;
+  document.getElementById('recurring-section').style.display = recurringVisible ? '' : 'none';
+  document.getElementById('recurring-toggle-btn').textContent = recurringVisible ? '' : '📌 고정 항목 보기';
+  document.getElementById('recurring-toggle-btn').style.display = recurringVisible ? 'none' : '';
+  if (recurringVisible) renderRecurringList();
+}
+
+function renderRecurringList() {
+  const el = document.getElementById('recurring-list');
+  if (!recurringItems.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:10px">등록된 고정 항목이 없어요</div>';
+    return;
+  }
+  el.innerHTML = recurringItems.map(r => `
+    <div class="ledger-item" style="margin-bottom:6px">
+      <div class="ledger-item-dot ${r.type}"></div>
+      <div class="ledger-item-info">
+        <div class="ledger-item-desc">📌 ${escHtml(r.desc)}</div>
+        <div class="ledger-item-date">매월 ${r.day}일</div>
+      </div>
+      <div class="ledger-item-amount ${r.type}">${r.type === 'income' ? '+' : '-'}₩${r.amount.toLocaleString()}</div>
+      <button class="item-del" onclick="deleteRecurring(${r.id})">✕</button>
+    </div>`).join('');
 }
 
 let ledgerEditId = null;
@@ -2240,7 +2317,9 @@ function openLedgerEdit(id) {
   ledgerEditId = id;
   ledgerEditType = item.type;
   document.getElementById('ledit-desc').value = item.desc;
-  document.getElementById('ledit-amount').value = item.amount;
+  const amountEl = document.getElementById('ledit-amount');
+  amountEl.value = item.amount.toLocaleString();
+  amountEl.dataset.raw = item.amount;
   document.getElementById('ledit-date').value = item.date;
   document.getElementById('ledit-type-income').classList.toggle('active', item.type === 'income');
   document.getElementById('ledit-type-expense').classList.toggle('active', item.type === 'expense');
@@ -2260,7 +2339,7 @@ function setLedgerEditType(t) {
 
 function saveLedgerEdit() {
   const desc   = document.getElementById('ledit-desc').value.trim();
-  const amount = parseInt(document.getElementById('ledit-amount').value);
+  const amount = getLedgerAmountRaw(document.getElementById('ledit-amount'));
   const date   = document.getElementById('ledit-date').value;
   if (!desc) { showToast('내용을 입력해주세요'); return; }
   if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
@@ -2277,9 +2356,18 @@ function renderLedger() {
   const [y, m] = ledgerMonth.split('-').map(Number);
   document.getElementById('month-label').textContent = y + '년 ' + m + '월';
 
+  // 고정 항목 → 이번 달 가상 데이터 생성
+  const paddedM = String(m).padStart(2,'0');
+  const recurringThisMonth = recurringItems.map(r => {
+    const day = String(r.day).padStart(2,'0');
+    return { ...r, date: `${y}-${paddedM}-${day}`, isRecurring: true };
+  });
+
   const monthData = ledger.filter(l => l.date.startsWith(ledgerMonth));
-  const income  = monthData.filter(l => l.type === 'income').reduce((s, l) => s + l.amount, 0);
-  const expense = monthData.filter(l => l.type === 'expense').reduce((s, l) => s + l.amount, 0);
+  const allData = [...monthData, ...recurringThisMonth];
+
+  const income  = allData.filter(l => l.type === 'income').reduce((s, l) => s + l.amount, 0);
+  const expense = allData.filter(l => l.type === 'expense').reduce((s, l) => s + l.amount, 0);
   const balance = income - expense;
 
   document.getElementById('ledger-income-total').textContent  = '₩' + income.toLocaleString();
@@ -2288,19 +2376,26 @@ function renderLedger() {
   balEl.textContent = (balance >= 0 ? '+' : '') + '₩' + balance.toLocaleString();
   balEl.className = 'ledger-balance ' + (balance >= 0 ? 'plus' : 'minus');
 
-  const filtered = monthData.filter(l => ledgerFilter === 'all' ? true : l.type === ledgerFilter);
+  // 날짜 내림차순 정렬
+  const sorted = allData
+    .filter(l => ledgerFilter === 'all' ? true : l.type === ledgerFilter)
+    .sort((a, b) => b.date.localeCompare(a.date));
+
   const el = document.getElementById('ledger-list');
-  if (!filtered.length) { el.innerHTML = '<div class="empty-hint"><span>💰</span>이번 달 내역이 없어요</div>'; return; }
-  el.innerHTML = filtered.map(l => `
+  if (!sorted.length) { el.innerHTML = '<div class="empty-hint"><span>💰</span>이번 달 내역이 없어요</div>'; return; }
+  el.innerHTML = sorted.map(l => `
     <div class="ledger-item">
       <div class="ledger-item-dot ${l.type}"></div>
       <div class="ledger-item-info">
-        <div class="ledger-item-desc">${escHtml(l.desc)}</div>
+        <div class="ledger-item-desc">${l.isRecurring ? '📌 ' : ''}${escHtml(l.desc)}</div>
         <div class="ledger-item-date">${l.date}</div>
       </div>
       <div class="ledger-item-amount ${l.type}">${l.type === 'income' ? '+' : '-'}₩${l.amount.toLocaleString()}</div>
-      <button class="item-edit" onclick="openLedgerEdit(${l.id})">✏️</button>
-      <button class="item-del" onclick="deleteLedger(${l.id})">✕</button>
+      ${l.isRecurring
+        ? `<button class="item-del" onclick="deleteRecurring(${l.id})">✕</button>`
+        : `<button class="item-edit" onclick="openLedgerEdit(${l.id})">✏️</button>
+           <button class="item-del" onclick="deleteLedger(${l.id})">✕</button>`
+      }
     </div>`).join('');
 }
 renderLedger();
