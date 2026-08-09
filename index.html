@@ -462,6 +462,10 @@
       background: var(--surface); border-radius: 14px; padding: 14px 16px;
       border: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-start;
     }
+    .memo-item.pinned {
+      border-color: var(--accent); background: rgba(124,111,255,0.06);
+    }
+    .memo-pin-badge { font-size: 12px; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
     .memo-item-text { flex: 1; font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
     .memo-item-date { font-size: 11px; color: var(--text2); margin-top: 4px; }
     .item-del { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 2px; flex-shrink: 0; }
@@ -889,6 +893,10 @@
       <textarea class="memo-input" id="memo-input" rows="2" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&event.metaKey)addMemo()"></textarea>
       <button class="add-btn" onclick="addMemo()">+</button>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
+      <input type="checkbox" id="memo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <label for="memo-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
+    </div>
     <div class="search-bar">
       <span class="search-bar-icon">🔍</span>
       <input type="text" id="memo-search" placeholder="메모 검색..." oninput="renderMemos()"/>
@@ -902,6 +910,10 @@
     <div class="memo-input-row">
       <input type="text" class="memo-input" id="todo-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTodo()" style="height:48px">
       <button class="add-btn" onclick="addTodo()">+</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
+      <input type="checkbox" id="todo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <label for="todo-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
     </div>
     <div class="search-bar">
       <span class="search-bar-icon">🔍</span>
@@ -2064,9 +2076,11 @@ function switchMemoTab(which) {
 function addMemo() {
   const val = document.getElementById('memo-input').value.trim();
   if (!val) return;
-  memos.unshift({ id: Date.now(), text: val, date: new Date().toISOString() });
+  const pinned = document.getElementById('memo-pinned').checked;
+  memos.unshift({ id: Date.now(), text: val, date: new Date().toISOString(), pinned });
   saveMemos(); renderMemos();
   document.getElementById('memo-input').value = '';
+  document.getElementById('memo-pinned').checked = false;
 }
 
 function deleteMemo(id) {
@@ -2089,6 +2103,11 @@ function editMemo(id) {
   document.getElementById(`memo-edit-${id}`).focus();
 }
 
+function toggleMemoPinned(id) {
+  const m = memos.find(m => m.id === id);
+  if (m) { m.pinned = !m.pinned; saveMemos(); renderMemos(); }
+}
+
 function saveMemoEdit(id) {
   const val = document.getElementById(`memo-edit-${id}`).value.trim();
   if (!val) return;
@@ -2102,16 +2121,20 @@ function renderMemos() {
   const q = (document.getElementById('memo-search')?.value || '').toLowerCase().trim();
   let list = [...memos];
   if (q) list = list.filter(m => m.text.toLowerCase().includes(q));
+  // 고정 항목 상단 정렬
+  list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
   if (!list.length) {
     el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '📝'}</span>${q ? '검색 결과가 없어요' : '메모가 없어요'}</div>`;
     return;
   }
   el.innerHTML = list.map(m => `
-    <div class="memo-item" id="memo-item-${m.id}">
+    <div class="memo-item ${m.pinned ? 'pinned' : ''}" id="memo-item-${m.id}">
+      ${m.pinned ? '<span class="memo-pin-badge">📌</span>' : ''}
       <div style="flex:1">
         <div class="memo-item-text">${escHtml(m.text)}</div>
         <div class="memo-item-date">${fmtDate(m.date)}</div>
       </div>
+      <button class="item-edit" onclick="toggleMemoPinned(${m.id})" title="${m.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${m.pinned ? '📍' : '📌'}</button>
       <button class="item-edit" onclick="editMemo(${m.id})">✏️</button>
       <button class="item-del" onclick="deleteMemo(${m.id})">✕</button>
     </div>`).join('');
@@ -2131,9 +2154,11 @@ function saveTodos() { localStorage.setItem('pocketbon-todos', JSON.stringify(to
 function addTodo() {
   const val = document.getElementById('todo-input').value.trim();
   if (!val) return;
-  todos.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString() });
+  const pinned = document.getElementById('todo-pinned').checked;
+  todos.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString(), pinned });
   saveTodos(); renderTodos();
   document.getElementById('todo-input').value = '';
+  document.getElementById('todo-pinned').checked = false;
 }
 
 function toggleTodo(id) {
@@ -2169,6 +2194,11 @@ function saveTodoEdit(id) {
   saveTodos(); renderTodos();
 }
 
+function toggleTodoPinned(id) {
+  const t = todos.find(t => t.id === id);
+  if (t) { t.pinned = !t.pinned; saveTodos(); renderTodos(); }
+}
+
 function setTodoFilter(f) {
   todoFilter = f;
   ['all','active','done'].forEach(x => document.getElementById('todo-filter-'+x).classList.toggle('active', x === f));
@@ -2180,14 +2210,17 @@ function renderTodos() {
   const q = (document.getElementById('todo-search')?.value || '').toLowerCase().trim();
   let list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
   if (q) list = list.filter(t => t.text.toLowerCase().includes(q));
+  // 고정 항목 상단 정렬
+  list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
   if (!list.length) {
     el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '✅'}</span>${q ? '검색 결과가 없어요' : '할 일이 없어요'}</div>`;
     return;
   }
   el.innerHTML = list.map(t => `
-    <div class="todo-item" id="todo-item-${t.id}">
+    <div class="todo-item" id="todo-item-${t.id}" style="${t.pinned ? 'border:1px solid var(--accent);background:rgba(124,111,255,0.06);border-radius:14px;' : ''}">
       <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTodo(${t.id})"></div>
-      <div class="todo-text ${t.done ? 'done' : ''}" style="flex:1">${escHtml(t.text)}</div>
+      <div class="todo-text ${t.done ? 'done' : ''}" style="flex:1">${t.pinned ? '📌 ' : ''}${escHtml(t.text)}</div>
+      <button class="item-edit" onclick="toggleTodoPinned(${t.id})" title="${t.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${t.pinned ? '📍' : '📌'}</button>
       <button class="item-edit" onclick="editTodo(${t.id})">✏️</button>
       <button class="item-del" onclick="deleteTodo(${t.id})">✕</button>
     </div>`).join('');
