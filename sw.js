@@ -1,5 +1,5 @@
 // PocketBon Service Worker - 안드로이드 백그라운드 알람
-const CACHE_NAME = 'pocketbon-v3';
+const CACHE_NAME = 'pocketbon-v4';
 const CHECK_INTERVAL_MS = 30000; // 30초마다 알람 체크
 
 // ===== 설치 / 활성화 =====
