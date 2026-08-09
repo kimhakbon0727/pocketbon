@@ -2445,7 +2445,9 @@ const BACKUP_KEYS = [
   'pocketbon-alarms',
   'pocketbon-memos',
   'pocketbon-todos',
-  'pocketbon-ledger'
+  'pocketbon-ledger',
+  'pocketbon-schedules',
+  'pocketbon-recurring'
 ];
 
 function showToast(msg, duration = 2500) {
@@ -2493,10 +2495,12 @@ function restoreData(e) {
       const d = backup.data;
       const date = new Date(backup.date).toLocaleString('ko-KR');
       const lines = ['<strong>백업 날짜:</strong> ' + date];
-      if (d['pocketbon-alarms'])  lines.push('<strong>알람:</strong> ' + d['pocketbon-alarms'].length + '개');
-      if (d['pocketbon-memos'])   lines.push('<strong>메모:</strong> ' + d['pocketbon-memos'].length + '개');
-      if (d['pocketbon-todos'])   lines.push('<strong>할일:</strong> ' + d['pocketbon-todos'].length + '개');
-      if (d['pocketbon-ledger'])  lines.push('<strong>가계부:</strong> ' + d['pocketbon-ledger'].length + '건');
+      if (d['pocketbon-alarms'])    lines.push('<strong>알람:</strong> ' + d['pocketbon-alarms'].length + '개');
+      if (d['pocketbon-memos'])     lines.push('<strong>메모:</strong> ' + d['pocketbon-memos'].length + '개');
+      if (d['pocketbon-todos'])     lines.push('<strong>할일:</strong> ' + d['pocketbon-todos'].length + '개');
+      if (d['pocketbon-ledger'])    lines.push('<strong>가계부:</strong> ' + d['pocketbon-ledger'].length + '건');
+      if (d['pocketbon-schedules']) lines.push('<strong>일정:</strong> ' + Object.keys(d['pocketbon-schedules']).length + '일');
+      if (d['pocketbon-recurring']) lines.push('<strong>고정 항목:</strong> ' + d['pocketbon-recurring'].length + '개');
       document.getElementById('restore-preview').innerHTML = lines.join('<br>');
       document.getElementById('restore-modal').style.display = 'flex';
     } catch(err) {
