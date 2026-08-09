@@ -640,78 +640,143 @@
     .pin-back { font-size: 13px; color: var(--text2); cursor: pointer; text-align: center; }
 
     /* Camera */
-    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; height: calc(100dvh - 50px); overflow: hidden; }
-    .camera-viewfinder { position: relative; overflow: hidden; flex: 1; min-height: 0; }
-    #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #camera-canvas { display: none; }
-    .camera-controls {
-      display: flex; align-items: center; justify-content: space-around;
-      padding: 12px 24px 16px; background: #000; flex-shrink: 0;
-    }
-    .cam-btn {
-      width: 52px; height: 52px; border-radius: 50%; border: none;
-      background: rgba(255,255,255,0.15); color: #fff; font-size: 22px;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, transform 0.08s;
-    }
-    .cam-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
-    .cam-shutter {
-      width: 72px; height: 72px; border-radius: 50%;
-      border: 4px solid #fff; background: rgba(255,255,255,0.2);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: transform 0.08s, background 0.1s;
-    }
-    .cam-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.5); }
-    .cam-shutter-inner { width: 54px; height: 54px; border-radius: 50%; background: #fff; transition: border-radius 0.15s, width 0.15s, height 0.15s, background 0.15s; }
-    .camera-gallery {
-      display: flex; gap: 3px; padding: 3px; background: #000;
-      overflow-x: auto; height: 64px; align-items: center; flex-shrink: 0;
-    }
-    .cam-thumb {
-      width: 68px; height: 68px; object-fit: cover; border-radius: 6px;
-      flex-shrink: 0; cursor: pointer; border: 2px solid transparent;
-      transition: border-color 0.15s;
-    }
-    .cam-thumb:active { border-color: var(--accent); }
-    .cam-no-photos { color: rgba(255,255,255,0.3); font-size: 13px; padding: 0 12px; }
-    .cam-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.05s; }
-    .cam-flash.on { opacity: 0.8; }
+   /* ===== Camera 수정된 CSS ===== */
 
-    /* Camera mode switch + recording */
-    .cam-mode-row {
-      display: flex; justify-content: center; gap: 24px;
-      padding: 10px 0; background: #000;
-    }
-    .cam-mode-btn {
-      background: none; border: none; color: rgba(255,255,255,0.5);
-      font-size: 14px; padding: 6px 4px; cursor: pointer;
-      border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
-    }
-    .cam-mode-btn.active { color: #ffd166; border-bottom-color: #ffd166; }
+/* 1. 카메라 전체 스크린 높이를 화면 크기에 딱 맞추고 flex 디스플레이로 설정 */
+.camera-screen {
+  padding: 0 !important;
+  gap: 0 !important;
+  background: #000;
+  height: 100%;             /* 부모 스크린 크기 맞춤 */
+  max-height: 100dvh;       /* 모바일 동적 뷰포트 높이 제한 */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;         /* 외부 스크롤 발생 방지 */
+}
 
-    .cam-rec-timer {
-      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.5); color: #fff; font-size: 13px;
-      padding: 6px 14px; border-radius: 20px; z-index: 5;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .cam-rec-dot {
-      width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d;
-      animation: recPulse 1s infinite;
-    }
-    @keyframes recPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+/* 2. 뷰파인더 영역이 남은 여백을 유연하게 차지하도록 설정 */
+.camera-viewfinder {
+  position: relative;
+  overflow: hidden;
+  flex: 1;                  /* 컨트롤 바 제외 남은 공간 차지 */
+  min-height: 0;            /* flex 자식이 커지는 것 방지 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
 
-    .cam-shutter.recording { border-color: #ff4d4d; }
-    .cam-shutter.recording .cam-shutter-inner {
-      border-radius: 10px; width: 30px; height: 30px; background: #ff4d4d;
-    }
+#camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;        /* 비율 유지하며 영역 채우기 */
+  display: block;
+}
 
-    .cam-thumb-wrap { position: relative; flex-shrink: 0; }
-    .cam-thumb-vid-badge {
-      position: absolute; bottom: 2px; right: 2px;
-      background: rgba(0,0,0,0.6); color: #fff; font-size: 9px;
-      padding: 1px 4px; border-radius: 4px;
-    }
+#camera-canvas { display: none; }
+
+/* 3. 모드 전환 버튼 (사진 / 동영상) 레이아웃 */
+.cam-mode-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 6px 0;           /* 여백 축소 */
+  background: #000;
+  flex-shrink: 0;
+}
+
+.cam-mode-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+  padding: 4px 4px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.cam-mode-btn.active {
+  color: #ffd166;
+  border-bottom-color: #ffd166;
+}
+
+/* 4. 갤러리 썸네일 영역 높이 조절 */
+.camera-gallery {
+  display: flex;
+  gap: 3px;
+  padding: 3px 8px;
+  background: #000;
+  overflow-x: auto;
+  height: 54px;            /* 높이 소폭 축소로 셔터 버튼 공간 확보 */
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cam-thumb {
+  width: 48px;             /* 썸네일 크기 최적화 */
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.cam-thumb:active { border-color: var(--accent); }
+.cam-no-photos { color: rgba(255,255,255,0.3); font-size: 13px; padding: 0 12px; }
+.cam-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.05s; }
+.cam-flash.on { opacity: 0.8; }
+
+/* 5. 하단 셔터 및 카메라 컨트롤 영역 패딩 및 높이 고정 */
+.camera-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 24px 16px;   /* 하단 여백 및 내보내기 버튼 여백 최소화 */
+  background: #000;
+  flex-shrink: 0;          /* 절대로 줄어들거나 밀리지 않음 */
+}
+
+.cam-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.08s;
+}
+
+.cam-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
+
+.cam-shutter {
+  width: 64px;             /* 셔터 버튼 크기 한 화면에 쏙 들어오게 조정 */
+  height: 64px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: rgba(255,255,255,0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.08s, background 0.1s;
+}
+
+.cam-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.5); }
+.cam-shutter-inner {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  transition: border-radius 0.15s, width 0.15s, height 0.15s, background 0.15s;
+}
 
     /* Backup toast */
     .toast {
