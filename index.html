@@ -681,8 +681,18 @@
     /* Camera mode switch + recording */
     .cam-mode-row {
       display: flex; justify-content: center; gap: 24px;
-      padding: 10px 0; background: #000;
+      padding: 8px 0; background: #000;
     }
+    .cam-zoom-row {
+      display: flex; justify-content: center; gap: 10px;
+      padding: 6px 0; background: #000; flex-shrink: 0;
+    }
+    .cam-zoom-btn {
+      background: rgba(255,255,255,0.15); border: none; color: #fff;
+      font-size: 13px; font-weight: 500; padding: 5px 12px;
+      border-radius: 20px; cursor: pointer; transition: background 0.15s;
+    }
+    .cam-zoom-btn.active { background: rgba(255,220,100,0.9); color: #000; }
     .cam-mode-btn {
       background: none; border: none; color: rgba(255,255,255,0.5);
       font-size: 14px; padding: 6px 4px; cursor: pointer;
@@ -1192,6 +1202,12 @@
     <div class="cam-rec-timer" id="cam-rec-timer" style="display:none">
       <span class="cam-rec-dot"></span><span id="cam-rec-time">00:00</span>
     </div>
+  </div>
+  <div class="cam-zoom-row" id="cam-zoom-row">
+    <button class="cam-zoom-btn active" id="zoom-05" onclick="setCameraZoom(0.5)">0.5×</button>
+    <button class="cam-zoom-btn" id="zoom-1" onclick="setCameraZoom(1)">1×</button>
+    <button class="cam-zoom-btn" id="zoom-2" onclick="setCameraZoom(2)">2×</button>
+    <button class="cam-zoom-btn" id="zoom-3" onclick="setCameraZoom(3)">3×</button>
   </div>
   <div class="cam-mode-row">
     <button class="cam-mode-btn active" id="cam-mode-photo" onclick="setCameraMode('photo')">사진</button>
@@ -3429,29 +3445,74 @@ window.addEventListener('load', () => {
 
 // ===== CAMERA (사진 + 동영상) =====
 let cameraStream = null;
-let cameraFacing = 'environment'; // 'environment'=후면, 'user'=전면
-let cameraPhotos = []; // { type: 'photo'|'video', url, blob? }
+let cameraFacing = 'environment';
+let cameraPhotos = [];
 let lastPhoto = null;
-let cameraMode = 'photo'; // 'photo' | 'video'
+let cameraMode = 'photo';
 let mediaRecorder = null;
 let recordedChunks = [];
 let isRecording = false;
 let recTimerInterval = null;
 let recSeconds = 0;
+let cameraZoom = 1; // 현재 배율
+let supportedZoom = [1]; // 지원 배율 목록
 
 async function initCamera() {
   if (cameraStream) return;
   try {
     cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: cameraFacing, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      video: { facingMode: cameraFacing, width: { ideal: 4096 }, height: { ideal: 3072 } },
       audio: cameraMode === 'video'
     });
     const video = document.getElementById('camera-video');
     video.srcObject = cameraStream;
     await video.play();
+
+    // 줌 지원 여부 확인
+    const track = cameraStream.getVideoTracks()[0];
+    const caps = track.getCapabilities?.() || {};
+    if (caps.zoom) {
+      // 하드웨어 줌 지원
+      supportedZoom = [0.5, 1, 2, 3];
+    } else {
+      // 소프트웨어 줌만 가능
+      supportedZoom = [1, 2, 3];
+    }
+    updateZoomButtons();
+    applyCameraZoom(cameraZoom);
   } catch(e) {
     showToast('카메라/마이크 권한이 필요해요 📷');
   }
+}
+
+function updateZoomButtons() {
+  const btns = { 0.5: 'zoom-05', 1: 'zoom-1', 2: 'zoom-2', 3: 'zoom-3' };
+  Object.entries(btns).forEach(([z, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = supportedZoom.includes(parseFloat(z)) ? '' : 'none';
+    el.classList.toggle('active', parseFloat(z) === cameraZoom);
+  });
+}
+
+async function applyCameraZoom(zoom) {
+  if (!cameraStream) return;
+  const track = cameraStream.getVideoTracks()[0];
+  const caps = track.getCapabilities?.() || {};
+  if (caps.zoom) {
+    // 하드웨어 줌
+    const min = caps.zoom.min || 1;
+    const max = caps.zoom.max || 1;
+    const z = Math.min(Math.max(zoom, min), max);
+    await track.applyConstraints({ advanced: [{ zoom: z }] });
+  }
+  // 소프트웨어 줌은 takePhoto 시 canvas 크롭으로 처리
+}
+
+async function setCameraZoom(zoom) {
+  cameraZoom = zoom;
+  updateZoomButtons();
+  await applyCameraZoom(zoom);
 }
 
 function stopCamera() {
@@ -3466,6 +3527,7 @@ function stopCamera() {
 async function toggleCameraFacing() {
   stopCamera();
   cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+  cameraZoom = 1;
   await initCamera();
 }
 
@@ -3474,7 +3536,6 @@ function setCameraMode(mode) {
   cameraMode = mode;
   document.getElementById('cam-mode-photo').classList.toggle('active', mode === 'photo');
   document.getElementById('cam-mode-video').classList.toggle('active', mode === 'video');
-  // 오디오 트랙 유무가 달라지므로 스트림 재시작
   stopCamera();
   initCamera();
 }
@@ -3493,17 +3554,36 @@ function takePhoto() {
   const canvas = document.getElementById('camera-canvas');
   if (!video.srcObject) { showToast('카메라가 준비되지 않았어요'); return; }
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+
+  // 소프트웨어 줌: 배율에 맞게 중앙 크롭
+  const track = cameraStream?.getVideoTracks()[0];
+  const caps = track?.getCapabilities?.() || {};
+  const useSwZoom = !caps.zoom && cameraZoom !== 1;
+
+  let sx = 0, sy = 0, sw = vw, sh = vh;
+  if (useSwZoom && cameraZoom > 1) {
+    sw = Math.round(vw / cameraZoom);
+    sh = Math.round(vh / cameraZoom);
+    sx = Math.round((vw - sw) / 2);
+    sy = Math.round((vh - sh) / 2);
+  }
+
+  canvas.width = sw;
+  canvas.height = sh;
   const ctx = canvas.getContext('2d');
 
   if (cameraFacing === 'user') {
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  } else {
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
   }
-  ctx.drawImage(video, 0, 0);
 
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
   lastPhoto = { type: 'photo', url: dataUrl };
   cameraPhotos.unshift(lastPhoto);
 
