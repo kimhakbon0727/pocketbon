@@ -1225,10 +1225,11 @@
     </div>
   </div>
   <div class="cam-zoom-row" id="cam-zoom-row">
-    <button class="cam-zoom-btn" id="zoom-05" onclick="setCameraZoom(0.5)">0.5×</button>
     <button class="cam-zoom-btn active" id="zoom-1" onclick="setCameraZoom(1)">1×</button>
     <button class="cam-zoom-btn" id="zoom-2" onclick="setCameraZoom(2)">2×</button>
     <button class="cam-zoom-btn" id="zoom-3" onclick="setCameraZoom(3)">3×</button>
+    <button class="cam-zoom-btn" id="zoom-4" onclick="setCameraZoom(4)">4×</button>
+    <button class="cam-zoom-btn" id="zoom-5" onclick="setCameraZoom(5)">5×</button>
   </div>
   <div class="cam-mode-row">
     <button class="cam-mode-btn active" id="cam-mode-photo" onclick="setCameraMode('photo')">사진</button>
@@ -3508,11 +3509,10 @@ async function initCamera() {
 }
 
 function updateZoomButtons() {
-  const btns = { 0.5: 'zoom-05', 1: 'zoom-1', 2: 'zoom-2', 3: 'zoom-3' };
+  const btns = { 1: 'zoom-1', 2: 'zoom-2', 3: 'zoom-3', 4: 'zoom-4', 5: 'zoom-5' };
   Object.entries(btns).forEach(([z, id]) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.style.display = supportedZoom.includes(parseFloat(z)) ? '' : 'none';
     el.classList.toggle('active', parseFloat(z) === cameraZoom);
   });
 }
