@@ -1,0 +1,3732 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f0f1a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PocketBon" />
+  <title>PocketBon</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f1a; --surface: #1a1a2e; --surface2: #252540;
+      --accent: #7c6fff; --accent2: #ff6fa8;
+      --text: #f0f0ff; --text2: #9090b0;
+      --border: rgba(255,255,255,0.08); --radius: 16px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100dvh; display: flex; flex-direction: column;
+      max-width: 430px; margin: 0 auto; overflow-x: hidden;
+    }
+    .tab-bar {
+      display: flex; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 8px; position: sticky; top: 0; z-index: 10;
+    }
+    .tab {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 12px 4px;
+      color: var(--text2); cursor: pointer;
+      border: none; background: none;
+      border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
+    }
+    .tab svg { width: 24px; height: 24px; }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Calendar */
+    .cal-header { display: flex; align-items: center; justify-content: space-between; }
+    .cal-nav-btn { background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; padding: 6px 12px; border-radius: 10px; }
+    .cal-nav-btn:active { background: var(--surface2); }
+    .cal-month-label { font-size: 18px; font-weight: 600; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+    .cal-dow { text-align: center; font-size: 11px; color: var(--text2); padding: 6px 0; }
+    .cal-dow:first-child { color: #ff6fa8; }
+    .cal-dow:last-child { color: #7c6fff; }
+    .cal-day {
+      aspect-ratio: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: flex-start; padding-top: 6px;
+      border-radius: 10px; cursor: pointer; font-size: 14px;
+      position: relative; transition: background 0.15s;
+      gap: 2px; min-width: 0;
+    }
+    .cal-day:active { background: var(--surface2); }
+    .cal-day.empty { cursor: default; }
+    .cal-day.today .cal-day-num {
+      background: var(--accent); color: #fff;
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cal-day.sun .cal-day-num { color: #ff6fa8; }
+    .cal-day.sat .cal-day-num { color: #7c6fff; }
+    .cal-day.today.sun .cal-day-num, .cal-day.today.sat .cal-day-num { color: #fff; }
+    .cal-day-dots { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; max-width: 28px; }
+    .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; }
+    .cal-dot.color1 { background: #7c6fff; }
+    .cal-dot.color2 { background: #ff6fa8; }
+    .cal-dot.color3 { background: #6fdfff; }
+    .cal-dot.color4 { background: #ffd166; }
+
+    /* Schedule modal */
+    .sch-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: flex-end; justify-content: center;
+      z-index: 200;
+    }
+    .sch-modal {
+      background: var(--surface); border-radius: 24px 24px 0 0;
+      padding: 24px 20px 40px; width: 100%; max-width: 430px;
+      max-height: 80vh; overflow-y: auto;
+    }
+    .sch-modal-date { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
+    .sch-input {
+      width: 100%; padding: 12px 16px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none; margin-bottom: 10px;
+      font-family: inherit;
+    }
+    .sch-input:focus { border-color: var(--accent); }
+    .sch-time-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .sch-time-row .sch-input { margin-bottom: 0; }
+    .sch-color-row { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; }
+    .sch-color-label { font-size: 13px; color: var(--text2); }
+    .sch-color-btn {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer; transition: transform 0.1s;
+    }
+    .sch-color-btn.selected { border-color: #fff; transform: scale(1.15); }
+    .sch-add-btn {
+      width: 100%; padding: 14px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 16px; cursor: pointer; margin-bottom: 16px;
+    }
+    .sch-list { display: flex; flex-direction: column; gap: 8px; }
+    .sch-item {
+      background: var(--surface2); border-radius: 12px; padding: 12px 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sch-item-color { width: 8px; height: 36px; border-radius: 4px; flex-shrink: 0; }
+    .sch-item-info { flex: 1; }
+    .sch-item-title { font-size: 15px; font-weight: 500; }
+    .sch-item-time { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .sch-item-del { background: none; border: none; color: var(--text2); font-size: 18px; cursor: pointer; padding: 4px; }
+    .sch-item-edit { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 4px; }
+    .sch-modal-close {
+      width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
+      background: none; color: var(--text2); font-size: 15px; cursor: pointer; margin-top: 4px;
+    }
+    .sch-allday-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; color: var(--text); }
+    .sch-allday-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; flex-shrink:0; }
+    .sch-date-row { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
+    .sch-date-row .sch-input { margin-bottom: 0; flex: 1; font-size: 13px; padding: 10px 10px; }
+    .sch-date-arrow { color: var(--text2); font-size: 14px; flex-shrink: 0; }
+    .sch-section-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; margin-top: 2px; }
+    .sch-edit-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: flex-end; justify-content: center; z-index: 300;
+    }
+    .sch-edit-box {
+      background: var(--surface); border-radius: 24px 24px 0 0;
+      padding: 24px 20px 40px; width: 100%; max-width: 430px;
+      max-height: 85vh; overflow-y: auto;
+    }
+    .sch-edit-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--accent); }
+    /* 검색 */
+    .search-bar {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border-radius: 12px;
+      padding: 10px 14px; border: 1px solid var(--border); margin-bottom: 12px;
+    }
+    .search-bar input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-size: 15px; font-family: inherit;
+    }
+    .search-bar input::placeholder { color: var(--text2); }
+    .search-bar-icon { color: var(--text2); font-size: 16px; }
+    .search-bar-clear { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 16px; padding: 0; }
+    .cal-holiday { font-size: 9px; color: #ff6fa8; text-align: center; line-height: 1.1; max-width: 36px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .cal-day.holiday .cal-day-num { color: #ff6fa8; }
+    .cal-day.today.holiday .cal-day-num { color: #fff; }
+
+    /* Map */
+    .map-screen { display: none; flex: 1; flex-direction: column; padding: 0; overflow: hidden; }
+    .map-screen.active { display: flex; }
+    .map-top { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 5; }
+    .map-input-row { display: flex; gap: 8px; align-items: center; }
+    .map-input-wrap { flex: 1; position: relative; }
+    .map-input {
+      width: 100%; padding: 10px 36px 10px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 14px; outline: none; font-family: inherit;
+    }
+    .map-input:focus { border-color: var(--accent); }
+    .map-input::placeholder { color: var(--text2); }
+    .map-input-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 16px; cursor: pointer; }
+    .map-mode-row { display: flex; gap: 6px; }
+    .map-mode-btn {
+      flex: 1; padding: 8px 4px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); font-size: 13px; cursor: pointer;
+      transition: all 0.15s; text-align: center;
+    }
+    .map-mode-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .map-search-btn {
+      padding: 10px 16px; border-radius: 12px; border: none;
+      background: var(--accent); color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap;
+    }
+    #kakao-map { flex: 1; width: 100%; }
+    .map-result {
+      position: absolute; bottom: 0; left: 0; right: 0; max-width: 430px; margin: 0 auto;
+      background: var(--surface); border-radius: 20px 20px 0 0;
+      padding: 16px 20px 32px; border-top: 1px solid var(--border);
+      z-index: 10; max-height: 45vh; overflow-y: auto;
+      transform: translateY(100%); transition: transform 0.3s;
+    }
+    .map-result.show { transform: translateY(0); }
+    .map-result-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 14px; }
+    .map-result-summary { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+    .map-result-stat { text-align: center; }
+    .map-result-stat-val { font-size: 22px; font-weight: 600; color: var(--accent); }
+    .map-result-stat-label { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .map-steps { display: flex; flex-direction: column; gap: 0; }
+    .map-step { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .map-step:last-child { border-bottom: none; }
+    .map-step-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+    .map-step-text { font-size: 14px; color: var(--text); flex: 1; line-height: 1.4; }
+    .map-step-dist { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .map-loading {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(15,15,26,0.85); border-radius: 14px;
+      padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+      font-size: 14px; color: var(--text); z-index: 20;
+      backdrop-filter: blur(6px); border: 1px solid var(--border);
+      pointer-events: none; white-space: nowrap;
+    }
+    .map-loading-spinner {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      animation: spin 0.7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .map-my-loc-btn {
+      position: absolute; right: 16px; z-index: 5;
+      width: 42px; height: 42px; border-radius: 50%; border: none;
+      background: var(--surface); color: var(--accent); font-size: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .screen { display: none; flex: 1; padding: 20px 16px 100px; overflow-x: hidden; }
+    .map-screen { padding: 0 !important; gap: 0 !important; }
+    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    .screen.active { display: flex; flex-direction: column; gap: 16px; }
+
+    /* Calculator */
+    .calc-display {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 20px 24px; border: 1px solid var(--border);
+      min-height: 120px; display: flex; flex-direction: column;
+      justify-content: flex-end; align-items: flex-end;
+    }
+    .calc-expr { font-size: 16px; color: var(--text2); min-height: 22px; word-break: break-all; }
+    .calc-result { font-size: 52px; font-weight: 300; letter-spacing: -2px; word-break: break-all; line-height: 1.1; }
+    .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .btn {
+      height: 72px; border-radius: 14px; font-size: 20px; font-weight: 400;
+      border: 1px solid var(--border); cursor: pointer;
+      transition: transform 0.08s, opacity 0.1s;
+      background: var(--surface); color: var(--text);
+    }
+    .btn:active { transform: scale(0.93); opacity: 0.75; }
+    .btn.op { background: var(--surface2); color: var(--accent); }
+    .btn.eq { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; font-size: 24px; }
+    .btn.clear { color: var(--accent2); }
+    .btn.zero { grid-column: span 2; border-radius: 36px; text-align: left; padding-left: 28px; }
+
+    /* Weather */
+    .search-row { display: flex; gap: 8px; }
+    .search-row input {
+      flex: 1; padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-size: 16px; outline: none;
+    }
+    .search-row input:focus { border-color: var(--accent); }
+    .search-row input::placeholder { color: var(--text2); }
+    .search-btn {
+      width: 52px; height: 52px; border-radius: 14px; border: none;
+      background: var(--accent); color: #fff; font-size: 20px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .weather-card { background: var(--surface); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); }
+    .weather-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .weather-city { font-size: 20px; font-weight: 600; }
+    .weather-date { font-size: 13px; color: var(--text2); margin-top: 3px; }
+    .weather-icon-big { font-size: 56px; }
+    .weather-temp-big { font-size: 72px; font-weight: 200; letter-spacing: -3px; line-height: 1; margin: 8px 0 4px; }
+    .weather-desc { font-size: 16px; color: var(--text2); }
+    .weather-divider { height: 1px; background: var(--border); margin: 20px 0; }
+    .weather-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .weather-detail { background: var(--surface2); border-radius: 12px; padding: 14px; }
+    .weather-detail-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+    .weather-detail-val { font-size: 20px; font-weight: 500; }
+    .weather-hint { text-align: center; color: var(--text2); font-size: 15px; padding: 40px 0; }
+    .weather-hint span { display: block; font-size: 40px; margin-bottom: 12px; }
+    .weather-loading { text-align: center; padding: 40px 0; color: var(--text2); }
+    .weather-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3); border-radius: 14px; padding: 16px; color: #ff8080; font-size: 14px; text-align: center; }
+
+    /* Alarm */
+    .alarm-add {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px;
+    }
+    .alarm-add-title { font-size: 15px; font-weight: 500; color: var(--text2); }
+    .alarm-time-row { display: flex; gap: 10px; align-items: center; }
+    .alarm-time-input {
+      flex: 1; padding: 14px 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 28px; font-weight: 300;
+      outline: none; text-align: center; letter-spacing: 2px;
+    }
+    .alarm-time-input:focus { border-color: var(--accent); }
+    .alarm-label-input {
+      padding: 12px 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none; width: 100%;
+    }
+    .alarm-label-input:focus { border-color: var(--accent); }
+    .alarm-label-input::placeholder { color: var(--text2); }
+    .alarm-add-btn {
+      padding: 14px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 16px; cursor: pointer;
+      transition: opacity 0.1s;
+    }
+    .alarm-add-btn:active { opacity: 0.8; }
+
+    .alarm-list { display: flex; flex-direction: column; gap: 10px; }
+    .alarm-item {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 18px 20px; border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+    }
+    .alarm-item.inactive { opacity: 0.45; }
+    .alarm-item-time { font-size: 36px; font-weight: 300; letter-spacing: -1px; flex: 1; }
+    .alarm-item-label { font-size: 13px; color: var(--text2); margin-top: 2px; }
+    .alarm-toggle {
+      width: 50px; height: 28px; border-radius: 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+      position: relative; cursor: pointer; transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .alarm-toggle.on { background: var(--accent); border-color: var(--accent); }
+    .alarm-toggle::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; transition: left 0.2s;
+    }
+    .alarm-toggle.on::after { left: 25px; }
+    .alarm-delete {
+      background: none; border: none; color: var(--text2);
+      font-size: 18px; cursor: pointer; padding: 4px;
+    }
+    .alarm-empty { text-align: center; color: var(--text2); padding: 30px 0; font-size: 15px; }
+    .alarm-empty span { display: block; font-size: 36px; margin-bottom: 10px; }
+    .alarm-permission {
+
+      background: rgba(124,111,255,0.1); border: 1px solid rgba(124,111,255,0.3);
+      border-radius: 14px; padding: 14px 16px; font-size: 14px;
+      color: var(--accent); display: flex; align-items: center; gap: 10px;
+    }
+    .alarm-permission button {
+      margin-left: auto; padding: 8px 14px; border-radius: 10px;
+      border: none; background: var(--accent); color: #fff; font-size: 13px; cursor: pointer;
+    }
+
+    /* Ringing modal */
+    .alarm-ring {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; flex-direction: column; gap: 20px;
+    }
+    .alarm-ring-inner {
+      background: var(--surface); border-radius: 24px;
+      padding: 40px 32px; text-align: center; border: 1px solid var(--accent);
+      box-shadow: 0 0 60px rgba(124,111,255,0.3);
+    }
+    .alarm-ring-emoji { font-size: 60px; animation: ring 0.5s infinite alternate; }
+    @keyframes ring { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
+    .alarm-ring-time { font-size: 56px; font-weight: 200; letter-spacing: -2px; margin: 12px 0 4px; }
+    .alarm-ring-label { font-size: 18px; color: var(--text2); margin-bottom: 28px; }
+    .alarm-ring-stop {
+      padding: 16px 48px; border-radius: 50px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 18px; cursor: pointer;
+    }
+    /* Timer / Stopwatch */
+    .ts-tab-bar {
+      display: flex; background: var(--surface2); border-radius: 14px; padding: 4px; gap: 4px;
+    }
+    .ts-tab {
+      flex: 1; padding: 10px; border-radius: 10px; border: none;
+      background: none; color: var(--text2); font-size: 15px; cursor: pointer; transition: all 0.2s;
+    }
+    .ts-tab.active { background: var(--accent); color: #fff; }
+    .ts-panel { display: none; flex-direction: column; align-items: center; gap: 20px; }
+    .ts-panel.active { display: flex; }
+    .ts-display {
+      font-size: 72px; font-weight: 200; letter-spacing: -3px; text-align: center;
+      font-variant-numeric: tabular-nums; line-height: 1; padding: 20px 0 10px;
+    }
+    .ts-display.running { color: var(--accent); }
+    .ts-ms { font-size: 36px; color: var(--text2); }
+    .ts-btn-row { display: flex; gap: 14px; justify-content: center; }
+    .ts-btn {
+      width: 80px; height: 80px; border-radius: 50%; border: none;
+      font-size: 15px; cursor: pointer; font-weight: 500;
+      transition: transform 0.1s, opacity 0.1s;
+    }
+    .ts-btn:active { transform: scale(0.92); opacity: 0.8; }
+    .ts-btn.start { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .ts-btn.stop  { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); }
+    .ts-btn.reset { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+    .ts-btn.lap   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+    /* Timer input */
+    .timer-input-row { display: flex; align-items: center; gap: 6px; }
+    .timer-input-unit { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .timer-input-unit span { font-size: 12px; color: var(--text2); }
+    .timer-digit {
+      width: 80px; height: 70px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 32px; font-weight: 300;
+      text-align: center; outline: none; font-variant-numeric: tabular-nums;
+    }
+    .timer-digit:focus { border-color: var(--accent); }
+    .timer-colon { font-size: 32px; color: var(--text2); margin-bottom: 20px; }
+    .timer-progress {
+      width: 100%; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden;
+    }
+    .timer-progress-bar {
+      height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.5s linear; border-radius: 2px;
+    }
+
+    /* Lap list */
+    .lap-list { width: 100%; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .lap-item {
+      display: flex; justify-content: space-between; padding: 10px 14px;
+      background: var(--surface); border-radius: 10px; font-size: 15px;
+      border: 1px solid var(--border);
+    }
+    .lap-item .lap-num { color: var(--text2); }
+    .lap-item .lap-best { color: #6fff9e; }
+    .lap-item .lap-worst { color: #ff8080; }
+
+    .install-banner {
+      position: fixed; bottom: 80px; left: 16px; right: 16px;
+      background: var(--surface2); border: 1px solid var(--accent);
+      border-radius: 16px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 14px; z-index: 100;
+      box-shadow: 0 8px 32px rgba(124,111,255,0.2);
+    }
+    .install-banner button { margin-left: auto; padding: 8px 16px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-size: 13px; cursor: pointer; }
+    .install-banner .close-btn { background: none; color: var(--text2); padding: 4px; font-size: 18px; margin-left: 0; }
+
+    /* Memo + Todo */
+    .memo-tabs { display: flex; background: var(--surface2); border-radius: 14px; padding: 4px; gap: 4px; }
+    .memo-tab { flex: 1; padding: 10px; border-radius: 10px; border: none; background: none; color: var(--text2); font-size: 15px; cursor: pointer; transition: all 0.2s; }
+    .memo-tab.active { background: var(--accent); color: #fff; }
+    .memo-panel { display: none; flex-direction: column; gap: 12px; }
+    .memo-panel.active { display: flex; }
+
+    .memo-input-row { display: flex; gap: 8px; }
+    .memo-input {
+      flex: 1; padding: 13px 16px; border-radius: 14px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-size: 15px; outline: none; resize: none;
+      font-family: inherit;
+    }
+    .memo-input:focus { border-color: var(--accent); }
+    .memo-input::placeholder { color: var(--text2); }
+    .add-btn {
+      width: 48px; height: 48px; border-radius: 14px; border: none;
+      background: var(--accent); color: #fff; font-size: 22px;
+      cursor: pointer; flex-shrink: 0; align-self: flex-start;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .memo-list { display: flex; flex-direction: column; gap: 8px; }
+    .memo-item {
+      background: var(--surface); border-radius: 14px; padding: 14px 16px;
+      border: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-start;
+    }
+    .memo-item.pinned {
+      border-color: var(--accent); background: rgba(124,111,255,0.06);
+    }
+    .memo-pin-badge { font-size: 12px; color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+    .memo-item-text { flex: 1; font-size: 15px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    .memo-item-date { font-size: 11px; color: var(--text2); margin-top: 4px; }
+    .item-del { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 2px; flex-shrink: 0; }
+    .item-edit { background: none; border: none; color: var(--text2); font-size: 16px; cursor: pointer; padding: 2px; flex-shrink: 0; }
+    .empty-hint { text-align: center; color: var(--text2); padding: 30px 0; font-size: 15px; }
+    .empty-hint span { display: block; font-size: 36px; margin-bottom: 8px; }
+    .memo-edit-area {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--accent); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none;
+      font-family: inherit; line-height: 1.5; resize: none;
+      box-sizing: border-box;
+    }
+    .memo-edit-btns { display: flex; gap: 8px; margin-top: 8px; }
+    .memo-edit-save {
+      flex: 1; padding: 8px; border-radius: 10px; border: none;
+      background: var(--accent); color: #fff; font-size: 14px; cursor: pointer;
+    }
+    .memo-edit-cancel {
+      flex: 1; padding: 8px; border-radius: 10px;
+      border: 1px solid var(--border); background: none;
+      color: var(--text2); font-size: 14px; cursor: pointer;
+    }
+
+    .todo-item {
+      background: var(--surface); border-radius: 14px; padding: 14px 16px;
+      border: 1px solid var(--border); display: flex; gap: 12px; align-items: center;
+    }
+    .todo-check {
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--accent);
+      flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s; background: none;
+    }
+    .todo-check.done { background: var(--accent); }
+    .todo-check.done::after { content: '✓'; color: #fff; font-size: 13px; }
+    .todo-text { flex: 1; font-size: 15px; }
+    .todo-text.done { text-decoration: line-through; color: var(--text2); }
+
+    /* Ledger */
+    .ledger-summary {
+      background: var(--surface); border-radius: var(--radius); padding: 20px;
+      border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px;
+    }
+    .ledger-balance { font-size: 36px; font-weight: 200; letter-spacing: -1px; text-align: center; padding: 4px 0; }
+    .ledger-balance.plus { color: #6fff9e; }
+    .ledger-balance.minus { color: #ff8080; }
+    .ledger-row { display: flex; justify-content: space-between; font-size: 14px; }
+    .ledger-income { color: #6fff9e; }
+    .ledger-expense { color: #ff8080; }
+
+    .ledger-form {
+      background: var(--surface); border-radius: var(--radius); padding: 16px;
+      border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px;
+    }
+    .ledger-type-row { display: flex; gap: 8px; }
+    .ledger-type-btn {
+      flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); font-size: 14px; cursor: pointer; transition: all 0.2s;
+    }
+    .ledger-type-btn.income.active  { background: rgba(111,255,158,0.15); color: #6fff9e; border-color: #6fff9e; }
+    .ledger-type-btn.expense.active { background: rgba(255,128,128,0.15); color: #ff8080; border-color: #ff8080; }
+    .ledger-fields { display: flex; gap: 8px; }
+    .ledger-input {
+      width: 100%; min-width: 0; box-sizing: border-box;
+      padding: 12px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none; font-family: inherit;
+    }
+    .ledger-input:focus { border-color: var(--accent); }
+    .ledger-input::placeholder { color: var(--text2); }
+    .ledger-add-btn {
+      width: 100%; padding: 13px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 15px; cursor: pointer; font-weight: 500;
+    }
+    .ledger-filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text2); font-size: 13px; cursor: pointer;
+    }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .ledger-list { display: flex; flex-direction: column; gap: 8px; }
+    .ledger-item {
+      background: var(--surface); border-radius: 14px; padding: 14px 16px;
+      border: 1px solid var(--border); display: flex; align-items: center; gap: 10px;
+      overflow: hidden; min-width: 0;
+    }
+    .ledger-item-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .ledger-item-dot.income  { background: #6fff9e; }
+    .ledger-item-dot.expense { background: #ff8080; }
+    .ledger-item-info { flex: 1; min-width: 0; overflow: hidden; }
+    .ledger-item-desc { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ledger-item-date { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .ledger-item-amount { font-size: 15px; font-weight: 500; flex-shrink: 0; text-align: right; white-space: nowrap; }
+    .ledger-item-amount.income  { color: #6fff9e; }
+    .ledger-item-amount.expense { color: #ff8080; }
+
+    .month-nav { display: flex; align-items: center; justify-content: space-between; padding: 0 4px; }
+    .month-nav-btn { background: none; border: none; color: var(--text2); font-size: 22px; cursor: pointer; padding: 4px 10px; }
+    .month-nav-label { font-size: 17px; font-weight: 500; }
+
+    /* Settings */
+    .settings-section { display: flex; flex-direction: column; gap: 10px; }
+    .settings-title { font-size: 13px; color: var(--text2); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 0 4px; }
+    .settings-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+    .settings-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 18px; border-bottom: 1px solid var(--border); cursor: pointer;
+      transition: background 0.15s;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:active { background: var(--surface2); }
+    .settings-row-icon { font-size: 22px; width: 28px; text-align: center; flex-shrink: 0; }
+    .settings-row-info { flex: 1; }
+    .settings-row-label { font-size: 15px; font-weight: 500; }
+    .settings-row-desc { font-size: 13px; color: var(--text2); margin-top: 2px; }
+    .settings-row-arrow { color: var(--text2); font-size: 18px; }
+    .settings-row.danger .settings-row-label { color: #ff8080; }
+    .settings-row.danger .settings-row-icon { filter: hue-rotate(180deg); }
+
+    /* PIN Modal */
+    .pin-overlay {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500; gap: 32px;
+    }
+    .pin-title { font-size: 20px; font-weight: 600; color: var(--text); }
+    .pin-subtitle {
+      font-size: 14px;
+      color: var(--text2);
+      margin-top: 4px;
+    }
+    .pin-dots { display: flex; gap: 16px; }
+    .pin-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--text2); background: transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .pin-dot.filled { background: var(--accent); border-color: var(--accent); }
+    .pin-dot.error { background: #ff6fa8; border-color: #ff6fa8; }
+    .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 280px; }
+    .pin-key {
+      height: 72px; border-radius: 50%; border: none;
+      background: var(--surface); color: var(--text);
+      font-size: 24px; font-weight: 300; cursor: pointer;
+      transition: background 0.1s, transform 0.08s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pin-key:active { background: var(--surface2); transform: scale(0.93); }
+    .pin-key.del { font-size: 18px; }
+    .pin-key.empty { background: transparent; cursor: default; }
+    .pin-error-msg { font-size: 14px; color: #ff6fa8; min-height: 20px; }
+    .pin-forgot { font-size: 13px; color: var(--accent); cursor: pointer; margin-top: 8px; text-decoration: underline; }
+
+    /* PIN 복구 */
+    .pin-recovery { display: flex; flex-direction: column; gap: 12px; width: 280px; }
+    .pin-recovery-title { font-size: 17px; font-weight: 600; text-align: center; }
+    .pin-recovery-q { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 4px; }
+    .pin-recovery-input {
+      width: 100%; padding: 12px 16px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 15px; outline: none; font-family: inherit;
+      box-sizing: border-box;
+    }
+    .pin-recovery-input:focus { border-color: var(--accent); }
+    .pin-recovery-btn {
+      width: 100%; padding: 13px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff; font-size: 15px; cursor: pointer;
+    }
+    .pin-back { font-size: 13px; color: var(--text2); cursor: pointer; text-align: center; }
+
+    /* Camera */
+    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    .camera-screen.active { height: calc(100dvh - 50px); overflow: hidden; display: flex !important; flex-direction: column; }
+    .camera-screen.active .camera-viewfinder { position: relative; overflow: hidden; flex-shrink: 1; flex-grow: 1; min-height: 0; max-height: calc(100dvh - 50px - 44px - 64px - 100px); }
+    #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #camera-canvas { display: none; }
+    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    .camera-screen.active {
+      height: calc(100dvh - 50px); overflow: hidden;
+      display: flex !important; flex-direction: column;
+    }
+    .camera-screen.active .camera-viewfinder {
+      position: relative; overflow: hidden;
+      flex: 1; min-height: 0;
+    }
+    #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #camera-canvas { display: none; }
+    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    .camera-screen.active {
+      position: fixed; top: 50px; left: 0; right: 0; bottom: 0;
+      overflow: hidden; display: flex !important; flex-direction: column;
+      max-width: 430px; margin: 0 auto;
+    }
+    .camera-screen.active .camera-viewfinder {
+      position: relative; overflow: hidden; flex: 1; min-height: 0;
+    }
+    #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #camera-canvas { display: none; }
+    .camera-controls {
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 6px 24px 8px; background: #000; flex-shrink: 0; height: 80px; box-sizing: border-box;
+    }
+    .cam-btn {
+      width: 46px; height: 46px; border-radius: 50%; border: none;
+      background: rgba(255,255,255,0.15); color: #fff; font-size: 20px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, transform 0.08s;
+    }
+    .cam-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
+    .cam-shutter {
+      width: 64px; height: 64px; border-radius: 50%;
+      border: 4px solid #fff; background: rgba(255,255,255,0.2);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.08s, background 0.1s; flex-shrink: 0;
+    }
+    .cam-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.5); }
+    .cam-shutter-inner { width: 48px; height: 48px; border-radius: 50%; background: #fff; transition: border-radius 0.15s, width 0.15s, height 0.15s, background 0.15s; }
+    .camera-gallery {
+      display: flex; gap: 3px; padding: 2px 4px; background: #000;
+      overflow-x: auto; height: 48px; align-items: center; flex-shrink: 0;
+    }
+    .cam-thumb {
+      width: 44px; height: 44px; object-fit: cover; border-radius: 5px;
+      flex-shrink: 0; cursor: pointer; border: 2px solid transparent;
+      transition: border-color 0.15s;
+    }
+    .cam-thumb:active { border-color: var(--accent); }
+    .cam-no-photos { color: rgba(255,255,255,0.3); font-size: 11px; padding: 0 10px; }
+    .cam-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.05s; }
+    .cam-flash.on { opacity: 0.8; }
+
+    .cam-zoom-row {
+      display: flex; justify-content: center; gap: 8px;
+      padding: 3px 0; background: #000; flex-shrink: 0; height: 28px; align-items: center;
+    }
+    .cam-zoom-btn {
+      background: rgba(255,255,255,0.12); border: none; color: rgba(255,255,255,0.7);
+      font-size: 11px; font-weight: 500; padding: 3px 9px;
+      border-radius: 12px; cursor: pointer; transition: background 0.15s;
+    }
+    .cam-zoom-btn.active { background: rgba(255,220,100,0.9); color: #000; }
+    .cam-mode-row {
+      display: flex; justify-content: center; gap: 20px;
+      padding: 3px 0; background: #000; flex-shrink: 0; height: 26px; align-items: center;
+    }
+    .cam-mode-btn {
+      background: none; border: none; color: rgba(255,255,255,0.5);
+      font-size: 12px; padding: 2px 4px; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+    }
+    .cam-mode-btn.active { color: #ffd166; border-bottom-color: #ffd166; }
+    .cam-rec-timer {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.5); color: #fff; font-size: 13px;
+      padding: 6px 14px; border-radius: 20px; z-index: 5;
+      display: flex; align-items: center; gap: 6px;
+    }
+    }
+    .cam-rec-dot {
+      width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d;
+      animation: recPulse 1s infinite;
+    }
+    @keyframes recPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .cam-shutter.recording { border-color: #ff4d4d; }
+    .cam-shutter.recording .cam-shutter-inner {
+      border-radius: 10px; width: 30px; height: 30px; background: #ff4d4d;
+    }
+
+    .cam-thumb-wrap { position: relative; flex-shrink: 0; }
+    .cam-thumb-vid-badge {
+      position: absolute; bottom: 2px; right: 2px;
+      background: rgba(0,0,0,0.6); color: #fff; font-size: 9px;
+      padding: 1px 4px; border-radius: 4px;
+    }
+
+    /* Backup toast */
+    .toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+      background: var(--surface2); border: 1px solid var(--accent);
+      border-radius: 50px; padding: 12px 22px; font-size: 14px;
+      z-index: 200; white-space: nowrap; opacity: 0;
+      transition: opacity 0.3s; pointer-events: none;
+      box-shadow: 0 4px 20px rgba(124,111,255,0.25);
+    }
+    .toast.show { opacity: 1; }
+
+    /* Restore modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300; padding: 20px;
+    }
+    .modal-box {
+      background: var(--surface); border-radius: 20px;
+      padding: 28px 24px; width: 100%; max-width: 360px;
+      border: 1px solid var(--border);
+    }
+    .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .modal-desc { font-size: 14px; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
+    .modal-btn-row { display: flex; gap: 10px; }
+    .modal-btn {
+      flex: 1; padding: 13px; border-radius: 12px; border: none;
+      font-size: 15px; cursor: pointer; font-weight: 500; transition: opacity 0.1s;
+    }
+    .modal-btn:active { opacity: 0.8; }
+    .modal-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+    .modal-btn.secondary { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+    .modal-btn.danger-btn { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); }
+    .backup-info { background: var(--surface2); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; }
+    .backup-info strong { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<div class="tab-bar" id="tab-bar"></div>
+
+<!-- CALCULATOR -->
+<div class="screen active" id="calc">
+  <div class="calc-display">
+    <div class="calc-expr" id="expr"></div>
+    <div class="calc-result" id="result">0</div>
+  </div>
+  <div class="calc-grid">
+    <button class="btn clear" onclick="calcClear()">C</button>
+    <button class="btn op" onclick="calcSign()">+/-</button>
+    <button class="btn op" onclick="calcPercent()">%</button>
+    <button class="btn op" onclick="calcOp('/')">÷</button>
+    <button class="btn" onclick="calcNum('7')">7</button>
+    <button class="btn" onclick="calcNum('8')">8</button>
+    <button class="btn" onclick="calcNum('9')">9</button>
+    <button class="btn op" onclick="calcOp('*')">×</button>
+    <button class="btn" onclick="calcNum('4')">4</button>
+    <button class="btn" onclick="calcNum('5')">5</button>
+    <button class="btn" onclick="calcNum('6')">6</button>
+    <button class="btn op" onclick="calcOp('-')">−</button>
+    <button class="btn" onclick="calcNum('1')">1</button>
+    <button class="btn" onclick="calcNum('2')">2</button>
+    <button class="btn" onclick="calcNum('3')">3</button>
+    <button class="btn op" onclick="calcOp('+')">+</button>
+    <button class="btn zero" onclick="calcNum('0')">0</button>
+    <button class="btn" onclick="calcDot()">.</button>
+    <button class="btn eq" onclick="calcEqual()">=</button>
+  </div>
+</div>
+
+<!-- WEATHER -->
+<div class="screen" id="weather">
+  <div class="search-row">
+    <input type="text" id="city-input" placeholder="도시 이름 입력 (예: Seoul)" onkeydown="if(event.key==='Enter')fetchWeather()" />
+    <button class="search-btn" onclick="fetchWeather()">🔍</button>
+  </div>
+  <div id="weather-result">
+    <div class="weather-hint">
+      <span>🌤️</span>
+      도시 이름을 입력하고<br>날씨를 확인하세요
+    </div>
+  </div>
+</div>
+
+<!-- ALARM -->
+<div class="screen" id="alarm">
+  <div id="notif-banner" class="alarm-permission" style="display:none">
+    <span>🔔 알람 알림 권한이 필요해요</span>
+    <button onclick="requestNotifPerm()">허용</button>
+  </div>
+
+  <div class="alarm-add">
+    <div class="alarm-add-title">새 알람</div>
+    <input type="time" id="alarm-time" class="alarm-time-input" />
+    <input type="text" id="alarm-label" class="alarm-label-input" placeholder="알람 이름 (선택)" maxlength="20" />
+    <button class="alarm-add-btn" onclick="addAlarm()">+ 알람 추가</button>
+  </div>
+
+  <div class="alarm-list" id="alarm-list">
+    <div class="alarm-empty"><span>⏰</span>알람이 없어요</div>
+  </div>
+</div>
+
+<!-- Ringing modal -->
+<div class="alarm-ring" id="alarm-ring" style="display:none">
+  <div class="alarm-ring-inner">
+    <div class="alarm-ring-emoji">⏰</div>
+    <div class="alarm-ring-time" id="ring-time"></div>
+    <div class="alarm-ring-label" id="ring-label"></div>
+    <button class="alarm-ring-stop" onclick="stopAlarm()">알람 끄기</button>
+  </div>
+</div>
+
+<!-- TIMER / STOPWATCH -->
+<div class="screen" id="timer">
+  <div class="ts-tab-bar">
+    <button class="ts-tab active" id="ts-tab-timer" onclick="switchTsTab('timer')">⏱ 타이머</button>
+    <button class="ts-tab" id="ts-tab-sw" onclick="switchTsTab('sw')">🏃 스톱워치</button>
+  </div>
+
+  <!-- 타이머 패널 -->
+  <div class="ts-panel active" id="ts-timer">
+    <div class="timer-input-row" id="timer-input-area">
+      <div class="timer-input-unit">
+        <input type="number" class="timer-digit" id="t-hh" min="0" max="23" value="0" placeholder="0">
+        <span>시간</span>
+      </div>
+      <div class="timer-colon">:</div>
+      <div class="timer-input-unit">
+        <input type="number" class="timer-digit" id="t-mm" min="0" max="59" value="0" placeholder="0">
+        <span>분</span>
+      </div>
+      <div class="timer-colon">:</div>
+      <div class="timer-input-unit">
+        <input type="number" class="timer-digit" id="t-ss" min="0" max="59" value="0" placeholder="0">
+        <span>초</span>
+      </div>
+    </div>
+    <div class="ts-display" id="timer-display" style="display:none">00:00:00</div>
+    <div class="timer-progress" id="timer-progress-wrap" style="width:90%;display:none">
+      <div class="timer-progress-bar" id="timer-progress-bar" style="width:100%"></div>
+    </div>
+    <div class="ts-btn-row">
+      <button class="ts-btn reset" id="timer-reset-btn" onclick="timerReset()">리셋</button>
+      <button class="ts-btn start" id="timer-start-btn" onclick="timerStartStop()">시작</button>
+    </div>
+  </div>
+
+  <!-- 스톱워치 패널 -->
+  <div class="ts-panel" id="ts-sw">
+    <div class="ts-display" id="sw-display">00:00<span class="ts-ms">.00</span></div>
+    <div class="ts-btn-row">
+      <button class="ts-btn reset" id="sw-reset-btn" onclick="swReset()">리셋</button>
+      <button class="ts-btn start" id="sw-start-btn" onclick="swStartStop()">시작</button>
+      <button class="ts-btn lap" id="sw-lap-btn" onclick="swLap()" disabled>랩</button>
+    </div>
+    <div class="lap-list" id="lap-list"></div>
+  </div>
+</div>
+
+<div class="install-banner" id="install-banner" style="display:none">
+  <span>📱</span>
+  <span>홈 화면에 추가하면 앱처럼 사용!</span>
+  <button onclick="installPWA()">설치</button>
+  <button class="close-btn" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
+</div>
+
+<!-- MEMO + TODO -->
+<div class="screen" id="memo">
+  <div class="memo-tabs">
+    <button class="memo-tab active" id="mtab-memo" onclick="switchMemoTab('memo')">📝 메모</button>
+    <button class="memo-tab" id="mtab-todo" onclick="switchMemoTab('todo')">✅ 할일</button>
+  </div>
+
+  <!-- 메모 패널 -->
+  <div class="memo-panel active" id="mpanel-memo">
+    <div class="memo-input-row">
+      <textarea class="memo-input" id="memo-input" rows="2" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&event.metaKey)addMemo()"></textarea>
+      <button class="add-btn" onclick="addMemo()">+</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
+      <input type="checkbox" id="memo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <label for="memo-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
+    </div>
+    <div class="search-bar">
+      <span class="search-bar-icon">🔍</span>
+      <input type="text" id="memo-search" placeholder="메모 검색..." oninput="renderMemos()"/>
+      <button class="search-bar-clear" onclick="clearMemoSearch()">✕</button>
+    </div>
+    <div class="memo-list" id="memo-list"></div>
+  </div>
+
+  <!-- 할일 패널 -->
+  <div class="memo-panel" id="mpanel-todo">
+    <div class="memo-input-row">
+      <input type="text" class="memo-input" id="todo-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTodo()" style="height:48px">
+      <button class="add-btn" onclick="addTodo()">+</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
+      <input type="checkbox" id="todo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <label for="todo-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
+    </div>
+    <div class="search-bar">
+      <span class="search-bar-icon">🔍</span>
+      <input type="text" id="todo-search" placeholder="할일 검색..." oninput="renderTodos()"/>
+      <button class="search-bar-clear" onclick="clearTodoSearch()">✕</button>
+    </div>
+    <div class="ledger-filter-row" style="margin-bottom:4px">
+      <button class="filter-btn active" id="todo-filter-all"     onclick="setTodoFilter('all')">전체</button>
+      <button class="filter-btn"        id="todo-filter-active"  onclick="setTodoFilter('active')">미완료</button>
+      <button class="filter-btn"        id="todo-filter-done"    onclick="setTodoFilter('done')">완료</button>
+    </div>
+    <div class="memo-list" id="todo-list"></div>
+  </div>
+</div>
+
+<!-- LEDGER -->
+<div class="screen" id="ledger">
+  <!-- 월 네비게이션 -->
+  <div class="month-nav">
+    <button class="month-nav-btn" onclick="changeMonth(-1)">‹</button>
+    <div class="month-nav-label" id="month-label"></div>
+    <button class="month-nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+
+  <!-- 요약 -->
+  <div class="ledger-summary">
+    <div class="ledger-balance" id="ledger-balance">₩0</div>
+    <div class="ledger-row">
+      <span>💚 수입</span><span class="ledger-income" id="ledger-income-total">₩0</span>
+    </div>
+    <div class="ledger-row">
+      <span>❤️ 지출</span><span class="ledger-expense" id="ledger-expense-total">₩0</span>
+    </div>
+  </div>
+
+  <!-- 입력 폼 -->
+  <div class="ledger-form">
+    <div class="ledger-type-row">
+      <button class="ledger-type-btn income active" id="ltype-income"  onclick="setLedgerType('income')">💚 수입</button>
+      <button class="ledger-type-btn expense"       id="ltype-expense" onclick="setLedgerType('expense')">❤️ 지출</button>
+    </div>
+    <input type="text"   class="ledger-input" id="ledger-desc"   placeholder="내용 (예: 점심)">
+    <input type="text"   class="ledger-input" id="ledger-amount" placeholder="금액 (원)" inputmode="numeric" oninput="formatLedgerAmount(this)">
+    <input type="date"   class="ledger-input" id="ledger-date">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="checkbox" id="ledger-recurring" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="ledger-recurring" style="font-size:14px;color:var(--text2);cursor:pointer">📌 매월 고정 항목으로 등록</label>
+    </div>
+    <button class="ledger-add-btn" onclick="addLedger()">추가</button>
+  </div>
+
+  <!-- 필터 -->
+  <div class="ledger-filter-row">
+    <button class="filter-btn active" id="lfilter-all"     onclick="setLedgerFilter('all')">전체</button>
+    <button class="filter-btn"        id="lfilter-income"  onclick="setLedgerFilter('income')">수입</button>
+    <button class="filter-btn"        id="lfilter-expense" onclick="setLedgerFilter('expense')">지출</button>
+  </div>
+
+  <!-- 고정 항목 -->
+  <div id="recurring-section" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:13px;color:var(--text2);">📌 고정 항목</div>
+      <button onclick="toggleRecurringSection()" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer">접기</button>
+    </div>
+    <div id="recurring-list"></div>
+  </div>
+  <div style="margin-bottom:4px">
+    <button onclick="toggleRecurringSection()" id="recurring-toggle-btn" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;cursor:pointer">📌 고정 항목 보기</button>
+  </div>
+
+  <div class="ledger-list" id="ledger-list"></div>
+</div>
+
+<!-- CALENDAR -->
+<div class="screen" id="calendar">
+  <div class="cal-header">
+    <button class="cal-nav-btn" onclick="calChangeMonth(-1)">‹</button>
+    <div class="cal-month-label" id="cal-month-label"></div>
+    <button class="cal-nav-btn" onclick="calChangeMonth(1)">›</button>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+</div>
+
+<!-- SCHEDULE MODAL -->
+<div class="sch-modal-overlay" id="sch-modal" style="display:none" onclick="if(event.target===this)closeSchModal()">
+  <div class="sch-modal">
+    <div class="sch-modal-date" id="sch-modal-date"></div>
+
+    <input class="sch-input" id="sch-title" placeholder="일정 제목" maxlength="40"/>
+
+    <!-- 날짜 범위 -->
+    <div class="sch-section-label">📅 날짜</div>
+    <div class="sch-date-row">
+      <input class="sch-input" id="sch-date-from" type="date"/>
+      <span class="sch-date-arrow">→</span>
+      <input class="sch-input" id="sch-date-to" type="date"/>
+    </div>
+
+    <!-- 종일 체크 -->
+    <div class="sch-allday-row">
+      <input type="checkbox" id="sch-allday" onchange="toggleAlldayCheck()"/>
+      <label for="sch-allday">종일</label>
+    </div>
+
+    <!-- 시간 -->
+    <div id="sch-time-section">
+      <div class="sch-section-label">⏰ 시간</div>
+      <div class="sch-time-row">
+        <input class="sch-input" id="sch-start" type="time"/>
+        <input class="sch-input" id="sch-end" type="time"/>
+      </div>
+    </div>
+
+    <!-- 색상 -->
+    <div class="sch-color-row">
+      <span class="sch-color-label">색상</span>
+      <button class="sch-color-btn selected color1-btn" style="background:#7c6fff" onclick="selectSchColor(1,this)"></button>
+      <button class="sch-color-btn color2-btn" style="background:#ff6fa8" onclick="selectSchColor(2,this)"></button>
+      <button class="sch-color-btn color3-btn" style="background:#6fdfff" onclick="selectSchColor(3,this)"></button>
+      <button class="sch-color-btn color4-btn" style="background:#ffd166" onclick="selectSchColor(4,this)"></button>
+    </div>
+
+    <button class="sch-add-btn" onclick="addSchedule()">+ 일정 추가</button>
+    <div class="sch-list" id="sch-list"></div>
+    <button class="sch-modal-close" onclick="closeSchModal()">닫기</button>
+  </div>
+</div>
+
+<!-- 일정 수정 오버레이 -->
+<div class="sch-edit-overlay" id="sch-edit-overlay" style="display:none" onclick="if(event.target===this)closeSchEdit()">
+  <div class="sch-edit-box">
+    <div class="sch-edit-title">✏️ 일정 수정</div>
+    <input class="sch-input" id="sch-edit-title" placeholder="일정 제목" maxlength="40"/>
+    <div class="sch-section-label">📅 날짜</div>
+    <div class="sch-date-row">
+      <input class="sch-input" id="sch-edit-date-from" type="date"/>
+      <span class="sch-date-arrow">→</span>
+      <input class="sch-input" id="sch-edit-date-to" type="date"/>
+    </div>
+    <div class="sch-allday-row">
+      <input type="checkbox" id="sch-edit-allday" onchange="toggleEditAlldayCheck()"/>
+      <label for="sch-edit-allday">종일</label>
+    </div>
+    <div id="sch-edit-time-section">
+      <div class="sch-section-label">⏰ 시간</div>
+      <div class="sch-time-row">
+        <input class="sch-input" id="sch-edit-start" type="time"/>
+        <input class="sch-input" id="sch-edit-end" type="time"/>
+      </div>
+    </div>
+    <div class="sch-color-row">
+      <span class="sch-color-label">색상</span>
+      <button class="sch-color-btn selected sch-edit-c1" style="background:#7c6fff" onclick="selectSchEditColor(1,this)"></button>
+      <button class="sch-color-btn sch-edit-c2" style="background:#ff6fa8" onclick="selectSchEditColor(2,this)"></button>
+      <button class="sch-color-btn sch-edit-c3" style="background:#6fdfff" onclick="selectSchEditColor(3,this)"></button>
+      <button class="sch-color-btn sch-edit-c4" style="background:#ffd166" onclick="selectSchEditColor(4,this)"></button>
+    </div>
+    <button class="sch-add-btn" onclick="saveSchEdit()">저장</button>
+    <button class="sch-modal-close" onclick="closeSchEdit()">취소</button>
+  </div>
+</div>
+
+<!-- MAP -->
+<div class="screen map-screen" id="map">
+  <div class="map-top">
+    <div class="map-input-row">
+      <div class="map-input-wrap">
+        <input class="map-input" id="map-from" placeholder="출발지 (비우면 현재 위치)" />
+        <span class="map-input-icon" onclick="useMyLocation('from')">📍</span>
+      </div>
+    </div>
+    <div class="map-input-row">
+      <div class="map-input-wrap">
+        <input class="map-input" id="map-to" placeholder="도착지 입력" onkeydown="if(event.key==='Enter')searchRoute()" />
+        <span class="map-input-icon" onclick="document.getElementById('map-to').value=''">✕</span>
+      </div>
+      <button class="map-search-btn" onclick="searchRoute()">탐색</button>
+    </div>
+    <div class="map-mode-row">
+      <button class="map-mode-btn active" id="mode-walk" onclick="setMapMode('walk')">🚶 도보</button>
+      <button class="map-mode-btn" id="mode-car" onclick="setMapMode('car')">🚗 자동차</button>
+      <button class="map-mode-btn" id="mode-transit" onclick="setMapMode('transit')">🚌 대중교통</button>
+    </div>
+  </div>
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;">
+    <div id="kakao-map" style="flex:1;"></div>
+    <div class="map-loading" id="map-loading" style="display:none">
+      <div class="map-loading-spinner"></div>
+      <span>경로 탐색 중...</span>
+    </div>
+    <button class="map-my-loc-btn" id="my-loc-btn" style="bottom:200px;" onclick="moveToMyLocation()">📍</button>
+    <div class="map-result" id="map-result">
+      <div class="map-result-handle"></div>
+      <div class="map-result-summary" id="map-result-summary"></div>
+      <div class="map-steps" id="map-steps"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LEDGER EDIT MODAL -->
+<div class="sch-edit-overlay" id="ledger-edit-modal" style="display:none" onclick="if(event.target===this)closeLedgerEdit()">
+  <div class="sch-edit-box">
+    <div class="sch-edit-title">✏️ 내역 수정</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="ledit-type-income" class="filter-btn active" onclick="setLedgerEditType('income')" style="flex:1;padding:10px">수입 💚</button>
+      <button id="ledit-type-expense" class="filter-btn" onclick="setLedgerEditType('expense')" style="flex:1;padding:10px">지출 ❤️</button>
+    </div>
+    <input class="sch-input" id="ledit-desc" placeholder="내용" maxlength="40"/>
+    <input class="sch-input" id="ledit-amount" type="text" placeholder="금액" inputmode="numeric" oninput="formatLedgerAmount(this)"/>
+    <input class="sch-input" id="ledit-date" type="date"/>
+    <button class="sch-add-btn" onclick="saveLedgerEdit()">저장</button>
+    <button class="sch-modal-close" onclick="closeLedgerEdit()">취소</button>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div class="pin-overlay" id="pin-overlay" style="display:none">
+  <!-- 일반 PIN 입력 화면 -->
+  <div id="pin-main-view">
+    <div class="pin-title" id="pin-title">잠금</div>
+    <div class="pin-subtitle" id="pin-subtitle">6자리 PIN을 입력하세요</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+      <div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="pin-error-msg" id="pin-error"></div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinInput('1')">1</button>
+      <button class="pin-key" onclick="pinInput('2')">2</button>
+      <button class="pin-key" onclick="pinInput('3')">3</button>
+      <button class="pin-key" onclick="pinInput('4')">4</button>
+      <button class="pin-key" onclick="pinInput('5')">5</button>
+      <button class="pin-key" onclick="pinInput('6')">6</button>
+      <button class="pin-key" onclick="pinInput('7')">7</button>
+      <button class="pin-key" onclick="pinInput('8')">8</button>
+      <button class="pin-key" onclick="pinInput('9')">9</button>
+      <button class="pin-key empty"></button>
+      <button class="pin-key" onclick="pinInput('0')">0</button>
+      <button class="pin-key del" onclick="pinDelete()">⌫</button>
+    </div>
+    <div class="pin-forgot" id="pin-forgot" onclick="showPinRecovery()" style="display:none">비밀번호를 잊으셨나요?</div>
+  </div>
+
+  <!-- 비밀번호 복구 화면 -->
+  <div id="pin-recovery-view" style="display:none">
+    <div class="pin-recovery">
+      <div class="pin-recovery-title">🔑 비밀번호 찾기</div>
+      <div class="pin-recovery-q" id="pin-recovery-question"></div>
+      <input class="pin-recovery-input" id="pin-recovery-answer" placeholder="답변을 입력하세요" />
+      <button class="pin-recovery-btn" onclick="checkPinRecovery()">확인</button>
+      <div class="pin-back" onclick="hidePinRecovery()">← 돌아가기</div>
+    </div>
+  </div>
+
+  <!-- PIN 설정 시 질문/답변 등록 -->
+  <div id="pin-qa-view" style="display:none">
+    <div class="pin-recovery">
+      <div class="pin-recovery-title">🔐 보안 질문 설정</div>
+      <div class="pin-recovery-q">PIN을 잊었을 때 사용할 질문과 답변을 직접 입력하세요</div>
+      <input class="pin-recovery-input" id="pin-qa-question" placeholder="질문 직접 입력 (예: 나만의 단어는?)" maxlength="40" />
+      <input class="pin-recovery-input" id="pin-qa-answer" placeholder="답변 입력 (한글/영문 가능)" maxlength="40" />
+      <button class="pin-recovery-btn" onclick="savePinQA()">저장</button>
+      <div class="pin-back" onclick="skipPinQA()">건너뛰기</div>
+    </div>
+  </div>
+</div>
+
+<!-- CAMERA -->
+<div class="screen camera-screen" id="camera">
+  <div class="camera-viewfinder">
+    <video id="camera-video" autoplay playsinline muted></video>
+    <canvas id="camera-canvas"></canvas>
+    <div class="cam-flash" id="cam-flash"></div>
+    <div class="cam-rec-timer" id="cam-rec-timer" style="display:none">
+      <span class="cam-rec-dot"></span><span id="cam-rec-time">00:00</span>
+    </div>
+  </div>
+  <div class="cam-zoom-row" id="cam-zoom-row">
+    <button class="cam-zoom-btn active" id="zoom-1" onclick="setCameraZoom(1)">1×</button>
+    <button class="cam-zoom-btn" id="zoom-2" onclick="setCameraZoom(2)">2×</button>
+    <button class="cam-zoom-btn" id="zoom-3" onclick="setCameraZoom(3)">3×</button>
+    <button class="cam-zoom-btn" id="zoom-4" onclick="setCameraZoom(4)">4×</button>
+    <button class="cam-zoom-btn" id="zoom-5" onclick="setCameraZoom(5)">5×</button>
+  </div>
+  <div class="cam-mode-row">
+    <button class="cam-mode-btn active" id="cam-mode-photo" onclick="setCameraMode('photo')">사진</button>
+    <button class="cam-mode-btn" id="cam-mode-video" onclick="setCameraMode('video')">동영상</button>
+  </div>
+  <div class="camera-gallery" id="camera-gallery">
+    <span class="cam-no-photos">촬영한 사진/영상이 없어요</span>
+  </div>
+  <div class="camera-controls">
+    <button class="cam-btn" onclick="toggleCameraFacing()" title="전/후면 전환">🔄</button>
+    <div class="cam-shutter" id="cam-shutter" onclick="handleShutter()">
+      <div class="cam-shutter-inner" id="cam-shutter-inner"></div>
+    </div>
+    <button class="cam-btn" onclick="downloadLastPhoto()" title="저장">💾</button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="settings">
+  <div class="settings-section">
+    <div class="settings-title">🗂️ 탭 관리</div>
+    <div class="settings-card" id="tab-settings-list"></div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">📦 백업 / 복원</div>
+    <div class="settings-card">
+      <div class="settings-row" onclick="backupData()">
+        <div class="settings-row-icon">💾</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">백업 파일 저장</div>
+          <div class="settings-row-desc">모든 데이터를 JSON 파일로 내보내기</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <div class="settings-row" onclick="document.getElementById('restore-input').click()">
+        <div class="settings-row-icon">📂</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">백업 파일 불러오기</div>
+          <div class="settings-row-desc">저장한 JSON 파일로 데이터 복원</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+      <input type="file" id="restore-input" accept=".json" style="display:none" onchange="restoreData(event)">
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">ℹ️ 저장 정보</div>
+    <div class="settings-card">
+      <div class="settings-row" onclick="showStorageInfo()">
+        <div class="settings-row-icon">📊</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">저장된 데이터 현황</div>
+          <div class="settings-row-desc" id="storage-summary">확인하려면 탭하세요</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">⚠️ 위험 구역</div>
+    <div class="settings-card">
+      <div class="settings-row danger" onclick="confirmClearAll()">
+        <div class="settings-row-icon">🗑️</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">모든 데이터 삭제</div>
+          <div class="settings-row-desc">복구 불가 — 백업 후 진행하세요</div>
+        </div>
+        <div class="settings-row-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">💡 안내</div>
+    <div class="settings-card">
+      <div class="settings-row" style="cursor:default">
+        <div class="settings-row-icon">🔒</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">프라이버시 보호</div>
+          <div class="settings-row-desc">모든 데이터는 이 기기에만 저장됩니다. 서버 전송 없음.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Restore confirm modal -->
+<div class="modal-overlay" id="restore-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">📂 백업 불러오기</div>
+    <div class="backup-info" id="restore-preview"></div>
+    <div class="modal-desc">현재 데이터에 <strong>덮어씌웁니다.</strong><br>계속하시겠어요?</div>
+    <div class="modal-btn-row">
+      <button class="modal-btn secondary" onclick="closeModal('restore-modal')">취소</button>
+      <button class="modal-btn primary" onclick="doRestore()">복원하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clear all confirm modal -->
+<div class="modal-overlay" id="clear-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">🗑️ 모든 데이터 삭제</div>
+    <div class="modal-desc">저장된 모든 데이터가 <strong style="color:#ff8080">영구 삭제</strong>됩니다.<br>백업 없이 삭제하면 복구할 수 없어요.</div>
+    <div class="modal-btn-row">
+      <button class="modal-btn secondary" onclick="closeModal('clear-modal')">취소</button>
+      <button class="modal-btn danger-btn" onclick="doClearAll()">전체 삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- Storage info modal -->
+<div class="modal-overlay" id="storage-modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">📊 저장된 데이터 현황</div>
+    <div class="backup-info" id="storage-detail"></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn secondary" style="flex:none;width:100%" onclick="closeModal('storage-modal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Tab =====
+// ===== Tab Management =====
+const ALL_TABS = [
+  { id: 'calc',     label: '계산기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="10" y2="11"/><line x1="14" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="16" y2="15"/><line x1="8" y1="19" x2="10" y2="19"/><line x1="14" y1="19" x2="16" y2="19"/></svg>` },
+  { id: 'weather',  label: '날씨',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 10a6 6 0 10-11.4 2.6A4 4 0 106 20h12a4 4 0 000-8z"/></svg>` },
+  { id: 'alarm',    label: '알람',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M4 4l2 2M20 4l-2 2M9 3h6M12 3v2"/></svg>` },
+  { id: 'timer',    label: '타이머', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M9 3h6M12 3v2"/></svg>` },
+  { id: 'memo',     label: '메모',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>` },
+  { id: 'ledger',   label: '가계부', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h2M10 15h4"/></svg>` },
+  { id: 'calendar', label: '달력',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>` },
+  { id: 'map',      label: '길찾기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>` },
+  { id: 'camera',   label: '카메라', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
+  { id: 'settings', label: '설정',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` },
+];
+
+let tabCounts  = JSON.parse(localStorage.getItem('pb-tab-counts')  || '{}');
+let tabEnabled = JSON.parse(localStorage.getItem('pb-tab-enabled') || '{}');
+let tabOrder   = JSON.parse(localStorage.getItem('pb-tab-order')   || '[]'); // 수동 순서
+// 기본: 모두 활성화
+ALL_TABS.forEach(t => { if (tabEnabled[t.id] === undefined) tabEnabled[t.id] = true; });
+// settings는 항상 활성화
+tabEnabled['settings'] = true;
+
+function saveTabPrefs() {
+  localStorage.setItem('pb-tab-counts',  JSON.stringify(tabCounts));
+  localStorage.setItem('pb-tab-enabled', JSON.stringify(tabEnabled));
+  localStorage.setItem('pb-tab-order',   JSON.stringify(tabOrder));
+}
+
+function getVisibleTabs() {
+  const enabled = ALL_TABS.filter(t => tabEnabled[t.id]);
+  if (tabOrder.length > 0) {
+    // 수동 순서 적용 (settings는 항상 마지막)
+    const ordered = [];
+    tabOrder.forEach(id => {
+      const t = enabled.find(x => x.id === id);
+      if (t && t.id !== 'settings') ordered.push(t);
+    });
+    // 수동 순서에 없는 탭 뒤에 추가
+    enabled.forEach(t => {
+      if (t.id !== 'settings' && !ordered.find(x => x.id === t.id)) ordered.push(t);
+    });
+    const settings = enabled.find(t => t.id === 'settings');
+    if (settings) ordered.push(settings);
+    return ordered;
+  }
+  // 수동 순서 없으면 클릭 수 기준 정렬
+  return enabled.sort((a, b) => {
+    if (a.id === 'settings') return 1;
+    if (b.id === 'settings') return -1;
+    return (tabCounts[b.id] || 0) - (tabCounts[a.id] || 0);
+  });
+}
+
+let currentTab = 'calc';
+
+function renderTabBar() {
+  const bar = document.getElementById('tab-bar');
+  const visible = getVisibleTabs();
+  bar.innerHTML = visible.map(t => `
+    <button class="tab ${t.id === currentTab ? 'active' : ''}" onclick="switchTab('${t.id}')">
+      ${t.svg}
+    </button>`).join('');
+}
+
+function renderTabSettings() {
+  const el = document.getElementById('tab-settings-list');
+  if (!el) return;
+  const hasManualOrder = tabOrder.length > 0;
+  const tabs = ALL_TABS.filter(t => t.id !== 'settings');
+
+  // 순서 설정 섹션
+  const orderSection = `
+    <div class="settings-card" style="margin-bottom:12px;padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${hasManualOrder ? '12px' : '0'}">
+        <div>
+          <div class="settings-row-label">📌 탭 순서 설정</div>
+          <div class="settings-row-desc">${hasManualOrder ? '수동 순서 적용 중 (클릭 수 정렬 비활성화)' : '설정 안 하면 클릭 수 많은 탭이 앞으로'}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          ${hasManualOrder
+            ? `<button onclick="resetTabOrder()" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">초기화</button>`
+            : `<button onclick="startTabOrder()" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">순서 설정</button>`
+          }
+        </div>
+      </div>
+      ${hasManualOrder ? `
+      <div id="tab-order-list" style="display:flex;flex-direction:column;gap:6px">
+        ${getVisibleTabs().filter(t => t.id !== 'settings').map((t, i) => `
+          <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:10px;padding:10px 12px">
+            <span style="color:var(--text2);font-size:13px;width:20px">${i+1}</span>
+            <div style="flex:1;font-size:14px">${t.label}</div>
+            <div style="display:flex;gap:6px">
+              <button onclick="moveTabOrder('${t.id}', -1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px" ${i===0?'disabled':''}>↑</button>
+              <button onclick="moveTabOrder('${t.id}', 1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:14px" ${i===getVisibleTabs().filter(t=>t.id!=='settings').length-1?'disabled':''}>↓</button>
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
+    </div>`;
+
+  // 탭 ON/OFF + PIN 섹션
+  const tabList = tabs.map(t => {
+    const isOn = tabEnabled[t.id];
+    const hasPIN = !!localStorage.getItem(`pb-pin-${t.id}`);
+    return `
+    <div class="settings-row" style="cursor:default;flex-wrap:wrap;gap:0">
+      <div style="display:flex;align-items:center;gap:12px;width:100%;padding:4px 0">
+        <div class="settings-row-icon">${t.svg.replace('width="1.5"','width="1.5" width="22" height="22"')}</div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">${t.label}</div>
+          <div class="settings-row-desc">클릭 수: ${tabCounts[t.id] || 0}회</div>
+        </div>
+        <div onclick="toggleTab('${t.id}')" style="cursor:pointer;flex-shrink:0">
+          <div style="width:46px;height:26px;border-radius:13px;background:${isOn ? 'var(--accent)' : 'var(--surface2)'};border:1px solid var(--border);position:relative;transition:background 0.2s">
+            <div style="position:absolute;top:3px;${isOn ? 'left:23px' : 'left:3px'};width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
+          </div>
+        </div>
+      </div>
+      ${isOn ? `
+      <div style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 0 4px 36px;border-top:1px solid var(--border);margin-top:4px">
+        <div class="settings-row-info">
+          <div class="settings-row-label" style="font-size:14px">🔒 PIN 잠금</div>
+          <div class="settings-row-desc">${hasPIN ? 'PIN이 설정되어 있어요' : '탭 진입 시 PIN 입력'}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${hasPIN ?
+            `<button onclick="changePIN('${t.id}')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer">변경</button>
+            <button onclick="removePIN('${t.id}')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">해제</button>` :
+            `<button onclick="setPIN('${t.id}')" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">설정</button>`}
+        </div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+
+  // 설정 탭 PIN
+  const settingsHasPIN = !!localStorage.getItem('pb-pin-settings');
+  const settingsPinHTML = `
+    <div class="settings-row" style="cursor:default;flex-wrap:wrap;gap:0">
+      <div style="display:flex;align-items:center;gap:12px;width:100%;padding:4px 0">
+        <div class="settings-row-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">설정</div>
+          <div class="settings-row-desc">${settingsHasPIN ? 'PIN이 설정되어 있어요' : '설정 탭 진입 시 PIN 입력'}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${settingsHasPIN ?
+            `<button onclick="changePIN('settings')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer">변경</button>
+            <button onclick="removePIN('settings')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">해제</button>` :
+            `<button onclick="setPIN('settings')" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">설정</button>`}
+        </div>
+      </div>
+    </div>`;
+
+  el.innerHTML = orderSection + tabList + settingsPinHTML;
+}
+
+function startTabOrder() {
+  // 현재 보이는 탭 순서로 초기화
+  tabOrder = getVisibleTabs().filter(t => t.id !== 'settings').map(t => t.id);
+  saveTabPrefs();
+  renderTabSettings();
+  renderTabBar();
+}
+
+function resetTabOrder() {
+  tabOrder = [];
+  saveTabPrefs();
+  renderTabSettings();
+  renderTabBar();
+  showToast('순서가 초기화됐어요 (클릭 수 정렬)');
+}
+
+function moveTabOrder(id, dir) {
+  const idx = tabOrder.indexOf(id);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= tabOrder.length) return;
+  [tabOrder[idx], tabOrder[newIdx]] = [tabOrder[newIdx], tabOrder[idx]];
+  saveTabPrefs();
+  renderTabSettings();
+  renderTabBar();
+}
+
+function toggleTab(id) {
+  // 마지막 하나 남은 탭은 끄기 불가
+  const enabledCount = ALL_TABS.filter(t => t.id !== 'settings' && tabEnabled[t.id]).length;
+  if (tabEnabled[id] && enabledCount <= 1) { showToast('최소 1개는 활성화해야 해요'); return; }
+  tabEnabled[id] = !tabEnabled[id];
+  saveTabPrefs();
+  // 현재 탭이 비활성화되면 첫 번째 활성 탭으로 이동
+  if (!tabEnabled[currentTab]) {
+    const first = getVisibleTabs()[0];
+    if (first) switchTab(first.id);
+  } else {
+    renderTabBar();
+  }
+  renderTabSettings();
+}
+
+function switchTab(id) {
+  // 가계부 PIN 체크
+  if (id === 'ledger' && localStorage.getItem('pb-ledger-pin')) {
+    openPinOverlay('verify', () => {
+      // PIN 확인 후 실제 탭 전환
+      if (id !== 'settings') { tabCounts[id] = (tabCounts[id] || 0) + 1; saveTabPrefs(); }
+      currentTab = id;
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      renderTabBar();
+    });
+    return;
+  }
+  // 클릭 수 증가 (설정 제외)
+  if (id !== 'settings') {
+    tabCounts[id] = (tabCounts[id] || 0) + 1;
+    saveTabPrefs();
+  }
+  currentTab = id;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  renderTabBar();
+  if (id === 'settings') renderTabSettings();
+  if (id === 'calendar') renderCal();
+  if (id === 'map') {
+    const tryInit = () => {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+        initKakaoMap();
+      } else {
+        setTimeout(tryInit, 300);
+      }
+    };
+    tryInit();
+  }
+  if (id === 'camera') initCamera();
+  else stopCamera();
+}
+
+// ===== Calculator =====
+let state = { raw: '0', display: '0', expr: '', op: null, prev: null, prevRaw: null, reset: false };
+
+// 숫자에 콤마 추가 (소수점 있을 때도 처리)
+function addComma(str) {
+  if (str === 'Error') return str;
+  const neg = str.startsWith('-');
+  const s = neg ? str.slice(1) : str;
+  const [int, dec] = s.split('.');
+  const formatted = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return (neg ? '-' : '') + formatted + (dec !== undefined ? '.' + dec : '');
+}
+
+function updateCalc() {
+  document.getElementById('result').textContent = addComma(state.display);
+  document.getElementById('expr').textContent = state.expr;
+}
+function calcNum(n) {
+  if (state.reset) { state.raw = n; state.reset = false; }
+  else state.raw = state.raw === '0' ? n : state.raw + n;
+  state.display = state.raw;
+  updateCalc();
+}
+function calcDot() {
+  if (state.reset) { state.raw = '0.'; state.display = '0.'; state.reset = false; return updateCalc(); }
+  if (!state.raw.includes('.')) { state.raw += '.'; state.display = state.raw; }
+  updateCalc();
+}
+function calcOp(op) {
+  const cur = parseFloat(state.raw);
+  if (state.op && !state.reset) {
+    const res = compute(state.prev, cur, state.op);
+    state.display = fmt(res); state.raw = state.display; state.prev = res; state.prevRaw = state.display;
+  } else { state.prev = cur; state.prevRaw = state.raw; }
+  state.op = op;
+  state.expr = addComma(state.prevRaw || state.raw) + ' ' + sym(op);
+  state.reset = true; updateCalc();
+}
+function calcEqual() {
+  if (!state.op) return;
+  const cur = parseFloat(state.raw);
+  const res = compute(state.prev, cur, state.op);
+  const resStr = fmt(res);
+  state.expr = addComma(state.prevRaw) + ' ' + sym(state.op) + ' ' + addComma(state.raw) + ' =';
+  state.display = resStr; state.raw = resStr;
+  state.op = null; state.prev = null; state.prevRaw = null; state.reset = true; updateCalc();
+}
+function compute(a, b, op) {
+  if (op === '+') return a + b;
+  if (op === '-') return a - b;
+  if (op === '*') return a * b;
+  if (op === '/') return b !== 0 ? a / b : 0;
+}
+function fmt(n) { return !isFinite(n) ? 'Error' : parseFloat(n.toPrecision(10)).toString(); }
+function sym(op) { return op === '*' ? '×' : op === '/' ? '÷' : op; }
+function calcClear() { state = { raw: '0', display: '0', expr: '', op: null, prev: null, prevRaw: null, reset: false }; updateCalc(); }
+function calcSign() { state.raw = fmt(parseFloat(state.raw) * -1); state.display = state.raw; updateCalc(); }
+function calcPercent() { state.raw = fmt(parseFloat(state.raw) / 100); state.display = state.raw; updateCalc(); }
+
+// ===== Weather =====
+const wmoMap = {0:'Clear',1:'Clear',2:'Clouds',3:'Clouds',51:'Drizzle',53:'Drizzle',55:'Drizzle',61:'Rain',63:'Rain',65:'Rain',71:'Snow',73:'Snow',75:'Snow',80:'Rain',81:'Rain',82:'Rain',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
+const descMap = {Clear:'맑음',Clouds:'흐림',Drizzle:'이슬비',Rain:'비',Snow:'눈',Thunderstorm:'천둥번개',Mist:'안개'};
+const wIcons = {Clear:'☀️',Clouds:'☁️',Rain:'🌧️',Drizzle:'🌦️',Thunderstorm:'⛈️',Snow:'❄️',Mist:'🌫️'};
+
+async function fetchWeather() {
+  const city = document.getElementById('city-input').value.trim();
+  if (!city) return;
+  const el = document.getElementById('weather-result');
+  el.innerHTML = '<div class="weather-loading">⏳ 불러오는 중...</div>';
+  try {
+    const geoRes = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=ko');
+    const geoData = await geoRes.json();
+    if (!geoData.results || !geoData.results.length) throw new Error('도시를 찾을 수 없어요');
+    const { latitude, longitude, name, country } = geoData.results[0];
+    const wRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto');
+    const wData = await wRes.json();
+    const c = wData.current;
+    const condition = wmoMap[c.weather_code] || 'Clouds';
+    const icon = wIcons[condition] || '🌤️';
+    const desc = descMap[condition] || '흐림';
+    const dateStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+    el.innerHTML = `<div class="weather-card">
+      <div class="weather-header">
+        <div><div class="weather-city">📍 ${name}, ${country}</div><div class="weather-date">${dateStr}</div></div>
+        <div class="weather-icon-big">${icon}</div>
+      </div>
+      <div class="weather-temp-big">${Math.round(c.temperature_2m)}°</div>
+      <div class="weather-desc">${desc}</div>
+      <div class="weather-divider"></div>
+      <div class="weather-details">
+        <div class="weather-detail"><div class="weather-detail-label">체감온도</div><div class="weather-detail-val">${Math.round(c.apparent_temperature)}°C</div></div>
+        <div class="weather-detail"><div class="weather-detail-label">습도</div><div class="weather-detail-val">${c.relative_humidity_2m}%</div></div>
+        <div class="weather-detail"><div class="weather-detail-label">풍속</div><div class="weather-detail-val">${Math.round(c.wind_speed_10m)} km/h</div></div>
+        <div class="weather-detail"><div class="weather-detail-label">날씨</div><div class="weather-detail-val">${icon} ${desc}</div></div>
+      </div>
+    </div>`;
+  } catch(e) {
+    el.innerHTML = '<div class="weather-error">⚠️ ' + (e.message || '오류 발생') + '<br><small>영어로 입력해보세요 (예: Seoul, Tokyo)</small></div>';
+  }
+}
+
+// ===== Alarm (FCM 백그라운드 알람) =====
+let alarms = JSON.parse(localStorage.getItem('pocketbon-alarms') || '[]');
+let alarmTimers = {};
+let ringAudio = null;
+
+// Firebase 초기화
+const firebaseConfig = {
+  apiKey: "AIzaSyArEEaF-fK6ZPq7mjVdQgDWqCn_zDchsKQ",
+  authDomain: "pocketbon.firebaseapp.com",
+  projectId: "pocketbon",
+  storageBucket: "pocketbon.firebasestorage.app",
+  messagingSenderId: "317305023515",
+  appId: "1:317305023515:web:79fa812518da5d2d665cbe",
+};
+const VAPID_KEY = "BOqR8WAmyR81A-qYpu6fpRBx9hf-Nc1uxet4t8F_Pf52ssoy9IWp2FOx5JiQNkZvgSk4do5JCDDebAfz-74QN7g";
+
+let firebaseApp, firebaseMessaging;
+
+async function initFirebase() {
+  if (firebaseApp) return;
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+    firebaseApp = initializeApp(firebaseConfig);
+    firebaseMessaging = getMessaging(firebaseApp);
+
+    // 앱 포그라운드 상태에서 FCM 메시지 수신 → 알람 UI 표시
+    onMessage(firebaseMessaging, payload => {
+      const data = payload.data || {};
+      if (data.type === 'ALARM') {
+        const alarm = { id: data.alarmId, time: data.alarmTime, label: data.alarmLabel };
+        ringAlarm(alarm);
+      }
+    });
+  } catch(e) { console.error('Firebase init error:', e); }
+}
+
+async function getFCMToken() {
+  await initFirebase();
+  if (!firebaseMessaging) return null;
+  try {
+    const { getToken } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+    const token = await getToken(firebaseMessaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+    });
+    return token;
+  } catch(e) { console.error('getToken error:', e); return null; }
+}
+
+function saveAlarms() { localStorage.setItem('pocketbon-alarms', JSON.stringify(alarms)); }
+
+async function requestNotifPerm() {
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    document.getElementById('notif-banner').style.display = 'none';
+    await registerFCMToken();
+  } else {
+    showToast('❌ 알림 권한이 거부됐어요. 브라우저 설정에서 허용해주세요.');
+  }
+}
+
+async function registerFCMToken() {
+  const token = await getFCMToken();
+  if (!token) { console.warn('FCM token 없음'); return; }
+  // 서버에 토큰 등록
+  await fetch('/api/register-token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token })
+  });
+  localStorage.setItem('pocketbon-fcm-token', token);
+}
+
+function checkNotifPerm() {
+  if ('Notification' in window && Notification.permission !== 'granted') {
+    document.getElementById('notif-banner').style.display = 'flex';
+  } else if (Notification.permission === 'granted') {
+    // 이미 허용된 경우 토큰 자동 등록
+    registerFCMToken();
+  }
+}
+
+window.addAlarm = async function() {
+  const timeInput = document.getElementById('alarm-time').value;
+  const labelInput = document.getElementById('alarm-label').value || '알람';
+
+  if (!timeInput) {
+    alert('시간을 선택해 주세요.');
+    return;
+  }
+
+  const alarmData = {
+    id: Date.now(),
+    time: timeInput,
+    label: labelInput
+  };
+
+  try {
+    const res = await fetch('/api/schedule-alarm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(alarmData)
+    });
+
+    if (!res.ok) {
+      throw new Error('서버 백그라운드 큐 등록 실패');
+    }
+
+    alarms.push({
+      id: alarmData.id,
+      time: alarmData.time,
+      label: alarmData.label,
+      enabled: true
+    });
+    localStorage.setItem('pb_alarms', JSON.stringify(alarms));
+
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SYNC_ALARMS',
+        alarms: alarms
+      });
+    }
+
+    document.getElementById('alarm-label').value = '';
+    renderAlarms();
+
+    if (typeof showToast === 'function') {
+      showToast('⏰ 백그라운드 알람이 설정되었습니다!');
+    } else {
+      alert('⏰ 백그라운드 알람이 설정되었습니다!');
+    }
+
+  } catch (err) {
+    console.error('알람 설정 실패:', err);
+    alert('⚠️ 알람 설정됐지만 백그라운드 알람 오류가 발생했습니다.');
+  }
+};
+
+// 포그라운드용 타이머
+function scheduleAlarmForeground(alarm) {
+  if (!alarm.active) return;
+  if (alarmTimers[alarm.id]) clearTimeout(alarmTimers[alarm.id]);
+  const [h, m] = alarm.time.split(':').map(Number);
+  const now = new Date();
+  const target = new Date();
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  alarmTimers[alarm.id] = setTimeout(() => ringAlarm(alarm), target - now);
+}
+
+function ringAlarm(alarm) {
+  document.getElementById('ring-time').textContent = alarm.time;
+  document.getElementById('ring-label').textContent = alarm.label;
+  document.getElementById('alarm-ring').style.display = 'flex';
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep() {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880; osc.type = 'sine';
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
+    }
+    ringAudio = setInterval(beep, 600);
+  } catch(e) {}
+  scheduleAlarmForeground(alarm);
+}
+
+function stopAlarm() {
+  document.getElementById('alarm-ring').style.display = 'none';
+  if (ringAudio) { clearInterval(ringAudio); ringAudio = null; }
+}
+
+async function toggleAlarm(id) {
+  const alarm = alarms.find(a => a.id === id);
+  if (!alarm) return;
+  alarm.active = !alarm.active;
+  saveAlarms();
+  if (alarm.active) {
+    scheduleAlarmForeground(alarm);
+    await fetch('/api/schedule-alarm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: alarm.id, time: alarm.time, label: alarm.label })
+    }).catch(() => {});
+  } else {
+    clearTimeout(alarmTimers[id]);
+    delete alarmTimers[id];
+    await fetch('/api/delete-alarm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    }).catch(() => {});
+  }
+  renderAlarms();
+}
+
+async function deleteAlarm(id) {
+  clearTimeout(alarmTimers[id]);
+  delete alarmTimers[id];
+  alarms = alarms.filter(a => a.id !== id);
+  saveAlarms();
+  await fetch('/api/delete-alarm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id })
+  }).catch(() => {});
+  renderAlarms();
+}
+
+function renderAlarms() {
+  const el = document.getElementById('alarm-list');
+  if (!alarms.length) { el.innerHTML = '<div class="alarm-empty"><span>⏰</span>알람이 없어요</div>'; return; }
+  el.innerHTML = alarms.map(a => `
+    <div class="alarm-item ${a.active ? '' : 'inactive'}">
+      <div>
+        <div class="alarm-item-time">${a.time}</div>
+        <div class="alarm-item-label">${a.label}</div>
+      </div>
+      <div class="alarm-toggle ${a.active ? 'on' : ''}" onclick="toggleAlarm(${a.id})"></div>
+      <button class="alarm-delete" onclick="deleteAlarm(${a.id})">🗑️</button>
+    </div>`).join('');
+}
+
+// Init alarms
+checkNotifPerm();
+renderAlarms();
+alarms.forEach(a => scheduleAlarmForeground(a));
+initFirebase();
+
+// Set default time
+const defTime = new Date(Date.now() + 60000);
+document.getElementById('alarm-time').value = defTime.getHours().toString().padStart(2,'0') + ':' + defTime.getMinutes().toString().padStart(2,'0');
+
+// ===== Timer / Stopwatch =====
+function switchTsTab(which) {
+  document.querySelectorAll('.ts-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ts-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('ts-tab-' + which).classList.add('active');
+  document.getElementById('ts-' + which).classList.add('active');
+}
+
+// --- Timer ---
+let timerTotal = 0, timerRemain = 0, timerRunning = false, timerInterval = null;
+
+function timerStartStop() {
+  if (!timerRunning) {
+    if (timerRemain === 0) {
+      const hh = parseInt(document.getElementById('t-hh').value) || 0;
+      const mm = parseInt(document.getElementById('t-mm').value) || 0;
+      const ss = parseInt(document.getElementById('t-ss').value) || 0;
+      timerTotal = hh * 3600 + mm * 60 + ss;
+      timerRemain = timerTotal;
+      if (timerRemain === 0) { alert('시간을 입력해주세요'); return; }
+      document.getElementById('timer-input-area').style.display = 'none';
+      document.getElementById('timer-display').style.display = 'block';
+      document.getElementById('timer-progress-wrap').style.display = 'block';
+    }
+    timerRunning = true;
+    document.getElementById('timer-start-btn').textContent = '일시정지';
+    document.getElementById('timer-start-btn').className = 'ts-btn stop';
+    timerInterval = setInterval(() => {
+      timerRemain--;
+      timerUpdateDisplay();
+      if (timerRemain <= 0) { timerDone(); }
+    }, 1000);
+  } else {
+    timerRunning = false;
+    clearInterval(timerInterval);
+    document.getElementById('timer-start-btn').textContent = '계속';
+    document.getElementById('timer-start-btn').className = 'ts-btn start';
+  }
+}
+
+function timerUpdateDisplay() {
+  const h = Math.floor(timerRemain / 3600);
+  const m = Math.floor((timerRemain % 3600) / 60);
+  const s = timerRemain % 60;
+  const txt = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+  document.getElementById('timer-display').textContent = txt;
+  const pct = timerTotal > 0 ? (timerRemain / timerTotal * 100) : 0;
+  document.getElementById('timer-progress-bar').style.width = pct + '%';
+}
+
+function timerDone() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  timerRemain = 0;
+  timerUpdateDisplay();
+  document.getElementById('timer-start-btn').textContent = '시작';
+  document.getElementById('timer-start-btn').className = 'ts-btn start';
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.35, 0.7].forEach(t => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.frequency.value = 660; osc.type = 'sine';
+      g.gain.setValueAtTime(0.5, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.3);
+    });
+  } catch(e) {}
+  document.getElementById('timer-display').style.color = 'var(--accent2)';
+  setTimeout(() => { document.getElementById('timer-display').style.color = ''; }, 1500);
+}
+
+function timerReset() {
+  timerRunning = false;
+  clearInterval(timerInterval);
+  timerRemain = 0; timerTotal = 0;
+  document.getElementById('timer-input-area').style.display = 'flex';
+  document.getElementById('timer-display').style.display = 'none';
+  document.getElementById('timer-progress-wrap').style.display = 'none';
+  document.getElementById('timer-start-btn').textContent = '시작';
+  document.getElementById('timer-start-btn').className = 'ts-btn start';
+  document.getElementById('t-hh').value = 0;
+  document.getElementById('t-mm').value = 0;
+  document.getElementById('t-ss').value = 0;
+}
+
+// --- Stopwatch ---
+let swRunning = false, swStart = 0, swElapsed = 0, swInterval = null;
+let swLaps = [];
+
+function swStartStop() {
+  if (!swRunning) {
+    swRunning = true;
+    swStart = Date.now() - swElapsed;
+    swInterval = setInterval(swTick, 30);
+    document.getElementById('sw-start-btn').textContent = '정지';
+    document.getElementById('sw-start-btn').className = 'ts-btn stop';
+    document.getElementById('sw-lap-btn').disabled = false;
+    document.getElementById('sw-display').classList.add('running');
+  } else {
+    swRunning = false;
+    swElapsed = Date.now() - swStart;
+    clearInterval(swInterval);
+    document.getElementById('sw-start-btn').textContent = '계속';
+    document.getElementById('sw-start-btn').className = 'ts-btn start';
+    document.getElementById('sw-display').classList.remove('running');
+  }
+}
+
+function swTick() {
+  swElapsed = Date.now() - swStart;
+  swUpdateDisplay();
+}
+
+function swUpdateDisplay() {
+  const ms = swElapsed % 1000;
+  const s  = Math.floor(swElapsed / 1000) % 60;
+  const m  = Math.floor(swElapsed / 60000) % 60;
+  const h  = Math.floor(swElapsed / 3600000);
+  const timeStr = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+  document.getElementById('sw-display').innerHTML = timeStr + '<span class="ts-ms">.' + pad(Math.floor(ms/10)) + '</span>';
+}
+
+function swLap() {
+  if (!swRunning) return;
+  const lapTime = swElapsed;
+  const prev = swLaps.length ? swLaps[swLaps.length-1].cumul : 0;
+  swLaps.push({ n: swLaps.length+1, split: lapTime - prev, cumul: lapTime });
+  swRenderLaps();
+}
+
+function swRenderLaps() {
+  if (!swLaps.length) { document.getElementById('lap-list').innerHTML = ''; return; }
+  const splits = swLaps.map(l => l.split);
+  const best = Math.min(...splits), worst = Math.max(...splits);
+  document.getElementById('lap-list').innerHTML = [...swLaps].reverse().map(l => {
+    let cls = '';
+    if (swLaps.length > 1 && l.split === best)  cls = 'lap-best';
+    if (swLaps.length > 1 && l.split === worst) cls = 'lap-worst';
+    return `<div class="lap-item">
+      <span class="lap-num">랩 ${l.n}</span>
+      <span class="${cls}">${fmtMs(l.split)}</span>
+      <span style="color:var(--text2)">${fmtMs(l.cumul)}</span>
+    </div>`;
+  }).join('');
+}
+
+function swReset() {
+  swRunning = false;
+  clearInterval(swInterval);
+  swElapsed = 0; swStart = 0; swLaps = [];
+  swUpdateDisplay();
+  document.getElementById('sw-start-btn').textContent = '시작';
+  document.getElementById('sw-start-btn').className = 'ts-btn start';
+  document.getElementById('sw-lap-btn').disabled = true;
+  document.getElementById('sw-display').classList.remove('running');
+  document.getElementById('lap-list').innerHTML = '';
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+function fmtMs(ms) {
+  const s = Math.floor(ms/1000)%60, m = Math.floor(ms/60000)%60, h = Math.floor(ms/3600000);
+  const cs = Math.floor((ms%1000)/10);
+  return (h>0?pad(h)+':':'') + pad(m)+':'+pad(s)+'.'+pad(cs);
+}
+
+// ===== Memo =====
+let memos = JSON.parse(localStorage.getItem('pocketbon-memos') || '[]');
+function saveMemos() { localStorage.setItem('pocketbon-memos', JSON.stringify(memos)); }
+
+function switchMemoTab(which) {
+  document.querySelectorAll('.memo-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.memo-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('mtab-' + which).classList.add('active');
+  document.getElementById('mpanel-' + which).classList.add('active');
+}
+
+function addMemo() {
+  const val = document.getElementById('memo-input').value.trim();
+  if (!val) return;
+  const pinned = document.getElementById('memo-pinned').checked;
+  memos.unshift({ id: Date.now(), text: val, date: new Date().toISOString(), pinned });
+  saveMemos(); renderMemos();
+  document.getElementById('memo-input').value = '';
+  document.getElementById('memo-pinned').checked = false;
+}
+
+function deleteMemo(id) {
+  memos = memos.filter(m => m.id !== id);
+  saveMemos(); renderMemos();
+}
+
+function editMemo(id) {
+  const memo = memos.find(m => m.id === id);
+  if (!memo) return;
+  const el = document.getElementById(`memo-item-${id}`);
+  el.innerHTML = `
+    <div style="flex:1">
+      <textarea class="memo-edit-area" id="memo-edit-${id}" rows="3">${escHtml(memo.text)}</textarea>
+      <div class="memo-edit-btns">
+        <button class="memo-edit-save" onclick="saveMemoEdit(${id})">저장</button>
+        <button class="memo-edit-cancel" onclick="renderMemos()">취소</button>
+      </div>
+    </div>`;
+  document.getElementById(`memo-edit-${id}`).focus();
+}
+
+function toggleMemoPinned(id) {
+  const m = memos.find(m => m.id === id);
+  if (m) { m.pinned = !m.pinned; saveMemos(); renderMemos(); }
+}
+
+function saveMemoEdit(id) {
+  const val = document.getElementById(`memo-edit-${id}`).value.trim();
+  if (!val) return;
+  const memo = memos.find(m => m.id === id);
+  if (memo) { memo.text = val; memo.date = new Date().toISOString(); }
+  saveMemos(); renderMemos();
+}
+
+function renderMemos() {
+  const el = document.getElementById('memo-list');
+  const q = (document.getElementById('memo-search')?.value || '').toLowerCase().trim();
+  let list = [...memos];
+  if (q) list = list.filter(m => m.text.toLowerCase().includes(q));
+  // 고정 항목 상단 정렬
+  list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '📝'}</span>${q ? '검색 결과가 없어요' : '메모가 없어요'}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(m => `
+    <div class="memo-item ${m.pinned ? 'pinned' : ''}" id="memo-item-${m.id}">
+      ${m.pinned ? '<span class="memo-pin-badge">📌</span>' : ''}
+      <div style="flex:1">
+        <div class="memo-item-text">${escHtml(m.text)}</div>
+        <div class="memo-item-date">${fmtDate(m.date)}</div>
+      </div>
+      <button class="item-edit" onclick="toggleMemoPinned(${m.id})" title="${m.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${m.pinned ? '📍' : '📌'}</button>
+      <button class="item-edit" onclick="editMemo(${m.id})">✏️</button>
+      <button class="item-del" onclick="deleteMemo(${m.id})">✕</button>
+    </div>`).join('');
+}
+
+function clearMemoSearch() {
+  const el = document.getElementById('memo-search');
+  if (el) { el.value = ''; renderMemos(); }
+}
+renderMemos();
+
+// ===== Todo =====
+let todos = JSON.parse(localStorage.getItem('pocketbon-todos') || '[]');
+let todoFilter = 'all';
+function saveTodos() { localStorage.setItem('pocketbon-todos', JSON.stringify(todos)); }
+
+function addTodo() {
+  const val = document.getElementById('todo-input').value.trim();
+  if (!val) return;
+  const pinned = document.getElementById('todo-pinned').checked;
+  todos.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString(), pinned });
+  saveTodos(); renderTodos();
+  document.getElementById('todo-input').value = '';
+  document.getElementById('todo-pinned').checked = false;
+}
+
+function toggleTodo(id) {
+  const t = todos.find(t => t.id === id);
+  if (t) { t.done = !t.done; saveTodos(); renderTodos(); }
+}
+
+function deleteTodo(id) {
+  todos = todos.filter(t => t.id !== id);
+  saveTodos(); renderTodos();
+}
+
+function editTodo(id) {
+  const todo = todos.find(t => t.id === id);
+  if (!todo) return;
+  const el = document.getElementById(`todo-item-${id}`);
+  el.innerHTML = `
+    <div style="flex:1">
+      <input class="memo-edit-area" id="todo-edit-${id}" value="${escHtml(todo.text)}" style="height:42px;resize:none" />
+      <div class="memo-edit-btns">
+        <button class="memo-edit-save" onclick="saveTodoEdit(${id})">저장</button>
+        <button class="memo-edit-cancel" onclick="renderTodos()">취소</button>
+      </div>
+    </div>`;
+  document.getElementById(`todo-edit-${id}`).focus();
+}
+
+function saveTodoEdit(id) {
+  const val = document.getElementById(`todo-edit-${id}`).value.trim();
+  if (!val) return;
+  const todo = todos.find(t => t.id === id);
+  if (todo) todo.text = val;
+  saveTodos(); renderTodos();
+}
+
+function toggleTodoPinned(id) {
+  const t = todos.find(t => t.id === id);
+  if (t) { t.pinned = !t.pinned; saveTodos(); renderTodos(); }
+}
+
+function setTodoFilter(f) {
+  todoFilter = f;
+  ['all','active','done'].forEach(x => document.getElementById('todo-filter-'+x).classList.toggle('active', x === f));
+  renderTodos();
+}
+
+function renderTodos() {
+  const el = document.getElementById('todo-list');
+  const q = (document.getElementById('todo-search')?.value || '').toLowerCase().trim();
+  let list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
+  if (q) list = list.filter(t => t.text.toLowerCase().includes(q));
+  // 고정 항목 상단 정렬
+  list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '✅'}</span>${q ? '검색 결과가 없어요' : '할 일이 없어요'}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(t => `
+    <div class="todo-item" id="todo-item-${t.id}" style="${t.pinned ? 'border:1px solid var(--accent);background:rgba(124,111,255,0.06);border-radius:14px;' : ''}">
+      <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTodo(${t.id})"></div>
+      <div class="todo-text ${t.done ? 'done' : ''}" style="flex:1">${t.pinned ? '📌 ' : ''}${escHtml(t.text)}</div>
+      <button class="item-edit" onclick="toggleTodoPinned(${t.id})" title="${t.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${t.pinned ? '📍' : '📌'}</button>
+      <button class="item-edit" onclick="editTodo(${t.id})">✏️</button>
+      <button class="item-del" onclick="deleteTodo(${t.id})">✕</button>
+    </div>`).join('');
+}
+
+function clearTodoSearch() {
+  const el = document.getElementById('todo-search');
+  if (el) { el.value = ''; renderTodos(); }
+}
+renderTodos();
+
+// ===== Ledger =====
+let ledger = JSON.parse(localStorage.getItem('pocketbon-ledger') || '[]');
+let ledgerType = 'income';
+let ledgerFilter = 'all';
+let ledgerMonth = new Date().toISOString().slice(0, 7);
+
+function saveLedger() { localStorage.setItem('pocketbon-ledger', JSON.stringify(ledger)); }
+
+let recurringItems = JSON.parse(localStorage.getItem('pocketbon-recurring') || '[]');
+function saveRecurring() { localStorage.setItem('pocketbon-recurring', JSON.stringify(recurringItems)); }
+
+document.getElementById('ledger-date').value = new Date().toISOString().slice(0,10);
+
+// 콤마 포맷
+function formatLedgerAmount(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  el.value = raw ? parseInt(raw).toLocaleString() : '';
+  el.dataset.raw = raw;
+}
+
+function getLedgerAmountRaw(el) {
+  return parseInt((el.dataset.raw || el.value.replace(/[^0-9]/g, '')) || '0');
+}
+
+function setLedgerType(t) {
+  ledgerType = t;
+  document.getElementById('ltype-income').classList.toggle('active', t === 'income');
+  document.getElementById('ltype-expense').classList.toggle('active', t === 'expense');
+}
+
+function setLedgerFilter(f) {
+  ledgerFilter = f;
+  ['all','income','expense'].forEach(x => document.getElementById('lfilter-'+x).classList.toggle('active', x === f));
+  renderLedger();
+}
+
+function changeMonth(dir) {
+  const [y, m] = ledgerMonth.split('-').map(Number);
+  const d = new Date(y, m - 1 + dir, 1);
+  ledgerMonth = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  renderLedger();
+}
+
+function addLedger() {
+  const desc   = document.getElementById('ledger-desc').value.trim();
+  const amount = getLedgerAmountRaw(document.getElementById('ledger-amount'));
+  const date   = document.getElementById('ledger-date').value;
+  const isRecurring = document.getElementById('ledger-recurring').checked;
+  if (!desc) { showToast('💡 내용을 입력해주세요'); return; }
+  if (!amount || amount <= 0) { showToast('💡 금액을 입력해주세요'); return; }
+  if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
+
+  const item = { id: Date.now(), type: ledgerType, desc, amount, date };
+
+  if (isRecurring) {
+    // 날짜에서 일(day)만 추출
+    const day = parseInt(date.split('-')[2]);
+    recurringItems.push({ id: item.id, type: ledgerType, desc, amount, day });
+    saveRecurring();
+    showToast('📌 고정 항목으로 등록됐어요!');
+  } else {
+    ledger.unshift(item);
+    saveLedger();
+    showToast(ledgerType === 'income' ? '💚 수입 추가됨' : '❤️ 지출 추가됨');
+  }
+
+  renderLedger();
+  document.getElementById('ledger-desc').value = '';
+  document.getElementById('ledger-amount').value = '';
+  document.getElementById('ledger-recurring').checked = false;
+}
+
+function deleteLedger(id) {
+  ledger = ledger.filter(l => l.id !== id);
+  saveLedger(); renderLedger();
+}
+
+function deleteRecurring(id) {
+  recurringItems = recurringItems.filter(r => r.id !== id);
+  saveRecurring(); renderLedger();
+}
+
+let recurringVisible = false;
+function toggleRecurringSection() {
+  recurringVisible = !recurringVisible;
+  document.getElementById('recurring-section').style.display = recurringVisible ? '' : 'none';
+  document.getElementById('recurring-toggle-btn').textContent = recurringVisible ? '' : '📌 고정 항목 보기';
+  document.getElementById('recurring-toggle-btn').style.display = recurringVisible ? 'none' : '';
+  if (recurringVisible) renderRecurringList();
+}
+
+function renderRecurringList() {
+  const el = document.getElementById('recurring-list');
+  if (!recurringItems.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text2);font-size:13px;padding:10px">등록된 고정 항목이 없어요</div>';
+    return;
+  }
+  el.innerHTML = recurringItems.map(r => `
+    <div class="ledger-item" style="margin-bottom:6px">
+      <div class="ledger-item-dot ${r.type}"></div>
+      <div class="ledger-item-info">
+        <div class="ledger-item-desc">📌 ${escHtml(r.desc)}</div>
+        <div class="ledger-item-date">매월 ${r.day}일</div>
+      </div>
+      <div class="ledger-item-amount ${r.type}">${r.type === 'income' ? '+' : '-'}₩${r.amount.toLocaleString()}</div>
+      <button class="item-del" onclick="deleteRecurring(${r.id})">✕</button>
+    </div>`).join('');
+}
+
+let ledgerEditId = null;
+let ledgerEditType = 'income';
+
+function openLedgerEdit(id) {
+  const item = ledger.find(l => l.id === id);
+  if (!item) return;
+  ledgerEditId = id;
+  ledgerEditType = item.type;
+  document.getElementById('ledit-desc').value = item.desc;
+  const amountEl = document.getElementById('ledit-amount');
+  amountEl.value = item.amount.toLocaleString();
+  amountEl.dataset.raw = item.amount;
+  document.getElementById('ledit-date').value = item.date;
+  document.getElementById('ledit-type-income').classList.toggle('active', item.type === 'income');
+  document.getElementById('ledit-type-expense').classList.toggle('active', item.type === 'expense');
+  document.getElementById('ledger-edit-modal').style.display = 'flex';
+}
+
+function closeLedgerEdit() {
+  document.getElementById('ledger-edit-modal').style.display = 'none';
+  ledgerEditId = null;
+}
+
+function setLedgerEditType(t) {
+  ledgerEditType = t;
+  document.getElementById('ledit-type-income').classList.toggle('active', t === 'income');
+  document.getElementById('ledit-type-expense').classList.toggle('active', t === 'expense');
+}
+
+function saveLedgerEdit() {
+  const desc   = document.getElementById('ledit-desc').value.trim();
+  const amount = getLedgerAmountRaw(document.getElementById('ledit-amount'));
+  const date   = document.getElementById('ledit-date').value;
+  if (!desc) { showToast('내용을 입력해주세요'); return; }
+  if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
+  if (!date) { showToast('날짜를 선택해주세요'); return; }
+  const item = ledger.find(l => l.id === ledgerEditId);
+  if (item) { item.type = ledgerEditType; item.desc = desc; item.amount = amount; item.date = date; }
+  saveLedger();
+  closeLedgerEdit();
+  renderLedger();
+  showToast('수정됐어요 ✅');
+}
+
+function renderLedger() {
+  const [y, m] = ledgerMonth.split('-').map(Number);
+  document.getElementById('month-label').textContent = y + '년 ' + m + '월';
+
+  // 고정 항목 → 이번 달 가상 데이터 생성
+  const paddedM = String(m).padStart(2,'0');
+  const recurringThisMonth = recurringItems.map(r => {
+    const day = String(r.day).padStart(2,'0');
+    return { ...r, date: `${y}-${paddedM}-${day}`, isRecurring: true };
+  });
+
+  const monthData = ledger.filter(l => l.date.startsWith(ledgerMonth));
+  const allData = [...monthData, ...recurringThisMonth];
+
+  const income  = allData.filter(l => l.type === 'income').reduce((s, l) => s + l.amount, 0);
+  const expense = allData.filter(l => l.type === 'expense').reduce((s, l) => s + l.amount, 0);
+  const balance = income - expense;
+
+  document.getElementById('ledger-income-total').textContent  = '₩' + income.toLocaleString();
+  document.getElementById('ledger-expense-total').textContent = '₩' + expense.toLocaleString();
+  const balEl = document.getElementById('ledger-balance');
+  balEl.textContent = (balance >= 0 ? '+' : '') + '₩' + balance.toLocaleString();
+  balEl.className = 'ledger-balance ' + (balance >= 0 ? 'plus' : 'minus');
+
+  // 날짜 내림차순 정렬
+  const sorted = allData
+    .filter(l => ledgerFilter === 'all' ? true : l.type === ledgerFilter)
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const el = document.getElementById('ledger-list');
+  if (!sorted.length) { el.innerHTML = '<div class="empty-hint"><span>💰</span>이번 달 내역이 없어요</div>'; return; }
+  el.innerHTML = sorted.map(l => `
+    <div class="ledger-item">
+      <div class="ledger-item-dot ${l.type}"></div>
+      <div class="ledger-item-info">
+        <div class="ledger-item-desc">${l.isRecurring ? '📌 ' : ''}${escHtml(l.desc)}</div>
+        <div class="ledger-item-date">${l.date}</div>
+      </div>
+      <div class="ledger-item-amount ${l.type}">${l.type === 'income' ? '+' : '-'}₩${l.amount.toLocaleString()}</div>
+      ${l.isRecurring
+        ? `<button class="item-del" onclick="deleteRecurring(${l.id})">✕</button>`
+        : `<button class="item-edit" onclick="openLedgerEdit(${l.id})">✏️</button>
+           <button class="item-del" onclick="deleteLedger(${l.id})">✕</button>`
+      }
+    </div>`).join('');
+}
+renderLedger();
+
+// 공통 유틸
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+// ===== Backup / Restore =====
+const BACKUP_KEYS = [
+  'pocketbon-alarms',
+  'pocketbon-memos',
+  'pocketbon-todos',
+  'pocketbon-ledger',
+  'pocketbon-schedules',
+  'pocketbon-recurring'
+];
+
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+function backupData() {
+  const backup = { version: 1, date: new Date().toISOString(), data: {} };
+  let hasData = false;
+  BACKUP_KEYS.forEach(k => {
+    const v = localStorage.getItem(k);
+    if (v) { backup.data[k] = JSON.parse(v); hasData = true; }
+  });
+  if (!hasData) { showToast('💡 저장된 데이터가 없어요'); return; }
+
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','');
+  a.href = url; a.download = 'pocketbon-backup-' + dateStr + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 백업 파일이 저장됐어요!');
+}
+
+let pendingRestoreData = null;
+
+function restoreData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const backup = JSON.parse(ev.target.result);
+      if (!backup.version || !backup.data) throw new Error('올바른 백업 파일이 아니에요');
+      pendingRestoreData = backup;
+
+      const d = backup.data;
+      const date = new Date(backup.date).toLocaleString('ko-KR');
+      const lines = ['<strong>백업 날짜:</strong> ' + date];
+      if (d['pocketbon-alarms'])    lines.push('<strong>알람:</strong> ' + d['pocketbon-alarms'].length + '개');
+      if (d['pocketbon-memos'])     lines.push('<strong>메모:</strong> ' + d['pocketbon-memos'].length + '개');
+      if (d['pocketbon-todos'])     lines.push('<strong>할일:</strong> ' + d['pocketbon-todos'].length + '개');
+      if (d['pocketbon-ledger'])    lines.push('<strong>가계부:</strong> ' + d['pocketbon-ledger'].length + '건');
+      if (d['pocketbon-schedules']) lines.push('<strong>일정:</strong> ' + Object.keys(d['pocketbon-schedules']).length + '일');
+      if (d['pocketbon-recurring']) lines.push('<strong>고정 항목:</strong> ' + d['pocketbon-recurring'].length + '개');
+      document.getElementById('restore-preview').innerHTML = lines.join('<br>');
+      document.getElementById('restore-modal').style.display = 'flex';
+    } catch(err) {
+      showToast('❌ ' + err.message);
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function doRestore() {
+  if (!pendingRestoreData) return;
+  const d = pendingRestoreData.data;
+  BACKUP_KEYS.forEach(k => {
+    if (d[k] !== undefined) localStorage.setItem(k, JSON.stringify(d[k]));
+  });
+  pendingRestoreData = null;
+  closeModal('restore-modal');
+  showToast('✅ 복원 완료! 앱을 새로고침해요', 2000);
+  setTimeout(() => window.location.reload(), 2000);
+}
+
+function showStorageInfo() {
+  const lines = [];
+  let totalBytes = 0;
+  const labels = {
+    'pocketbon-alarms': '⏰ 알람',
+    'pocketbon-memos':  '📝 메모',
+    'pocketbon-todos':  '✅ 할일',
+    'pocketbon-ledger': '💰 가계부'
+  };
+  BACKUP_KEYS.forEach(k => {
+    const v = localStorage.getItem(k);
+    if (v) {
+      const bytes = new Blob([v]).size;
+      totalBytes += bytes;
+      const arr = JSON.parse(v);
+      lines.push('<strong>' + labels[k] + ':</strong> ' + arr.length + '개 (' + (bytes/1024).toFixed(1) + ' KB)');
+    } else {
+      lines.push('<strong>' + labels[k] + ':</strong> 없음');
+    }
+  });
+  lines.push('<br><strong>총 용량:</strong> ' + (totalBytes/1024).toFixed(1) + ' KB');
+
+  document.getElementById('storage-summary').textContent =
+    BACKUP_KEYS.map(k => localStorage.getItem(k)).filter(Boolean).length + '개 항목 저장 중';
+
+  document.getElementById('storage-detail').innerHTML = lines.join('<br>');
+  document.getElementById('storage-modal').style.display = 'flex';
+}
+
+function confirmClearAll() {
+  document.getElementById('clear-modal').style.display = 'flex';
+}
+
+function doClearAll() {
+  BACKUP_KEYS.forEach(k => localStorage.removeItem(k));
+  closeModal('clear-modal');
+  showToast('🗑️ 모든 데이터가 삭제됐어요');
+  showStorageInfo();
+}
+
+// ===== PWA =====
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+async function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner').style.display = 'none';
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      if (newWorker) {
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('새 버전 발견! 자동으로 페이지를 갱신합니다.');
+            window.location.reload();
+          }
+        });
+      }
+    });
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
+  });
+}
+
+// ===== CALENDAR =====
+const COLORS = { 1: '#7c6fff', 2: '#ff6fa8', 3: '#6fdfff', 4: '#ffd166' };
+let calYear, calMonth, schSelectedDate = null, schSelectedColor = 1;
+let schedules = JSON.parse(localStorage.getItem('pocketbon-schedules') || '{}');
+let holidayCache = {};
+
+const HOLIDAY_API_KEY = '807d4208dd631095100d8449ffc74c0f1afd2eb811858b5787c27183aa7628ae';
+
+function saveSchedules() { localStorage.setItem('pocketbon-schedules', JSON.stringify(schedules)); }
+
+function calInit() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCal();
+  fetchHolidays(calYear, calMonth + 1);
+}
+
+function calChangeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCal();
+  fetchHolidays(calYear, calMonth + 1);
+}
+
+async function fetchHolidays(year, month) {
+  const cacheKey = `${year}-${String(month).padStart(2,'0')}`;
+  if (holidayCache[cacheKey]) return;
+
+  try {
+    const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?serviceKey=${HOLIDAY_API_KEY}&solYear=${year}&solMonth=${String(month).padStart(2,'0')}&_type=json&numOfRows=20`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data?.response?.body?.items?.item;
+    const map = {};
+    if (items) {
+      const list = Array.isArray(items) ? items : [items];
+      list.forEach(h => {
+        const s = String(h.locdate);
+        const dateKey = `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+        map[dateKey] = h.dateName;
+      });
+    }
+    holidayCache[cacheKey] = map;
+    renderCal();
+  } catch(e) {
+    holidayCache[cacheKey] = {};
+  }
+}
+
+function renderCal() {
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('cal-month-label').textContent = calYear + '년 ' + months[calMonth];
+
+  const grid = document.getElementById('cal-grid');
+  const dows = ['일','월','화','수','목','금','토'];
+  const today = new Date();
+  const cacheKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const holidays = holidayCache[cacheKey] || {};
+
+  let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty"></div>`;
+
+  for (let d = 1; d <= lastDate; d++) {
+    const dateKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === d;
+    const dow = (firstDay + d - 1) % 7;
+    const isHoliday = !!holidays[dateKey];
+    const holidayName = holidays[dateKey] || '';
+    const dowClass = (dow === 0 || isHoliday) ? 'sun' : dow === 6 ? 'sat' : '';
+    const holidayClass = isHoliday ? 'holiday' : '';
+    const todayClass = isToday ? 'today' : '';
+    const daySchedules = schedules[dateKey] || [];
+    const dots = daySchedules.slice(0, 3).map(s => `<div class="cal-dot color${s.color}"></div>`).join('');
+
+    html += `<div class="cal-day ${dowClass} ${holidayClass} ${todayClass}" onclick="openSchModal('${dateKey}', ${d})">
+      <div class="cal-day-num">${d}</div>
+      ${isHoliday ? `<div class="cal-holiday">${holidayName}</div>` : ''}
+      <div class="cal-day-dots">${dots}</div>
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+}
+
+function openSchModal(dateKey, day) {
+  schSelectedDate = dateKey;
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const cacheKey = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const holidays = holidayCache[cacheKey] || {};
+  const holidayName = holidays[dateKey] || '';
+  document.getElementById('sch-modal-date').textContent = `${calYear}년 ${months[calMonth]} ${day}일`;
+  document.getElementById('sch-title').value = '';
+  document.getElementById('sch-date-from').value = dateKey;
+  document.getElementById('sch-date-to').value = dateKey;
+  document.getElementById('sch-allday').checked = false;
+  document.getElementById('sch-start').value = '';
+  document.getElementById('sch-end').value = '';
+  document.getElementById('sch-time-section').style.display = '';
+  selectSchColor(1, document.querySelector('.color1-btn'));
+  renderSchList(holidayName);
+  document.getElementById('sch-modal').style.display = 'flex';
+}
+
+function closeSchModal() {
+  document.getElementById('sch-modal').style.display = 'none';
+  schSelectedDate = null;
+}
+
+function toggleAlldayCheck() {
+  const allday = document.getElementById('sch-allday').checked;
+  document.getElementById('sch-time-section').style.display = allday ? 'none' : '';
+}
+
+function toggleEditAlldayCheck() {
+  const allday = document.getElementById('sch-edit-allday').checked;
+  document.getElementById('sch-edit-time-section').style.display = allday ? 'none' : '';
+}
+
+function selectSchColor(num, el) {
+  schSelectedColor = num;
+  document.querySelectorAll('.sch-color-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+let schEditColor = 1;
+function selectSchEditColor(num, el) {
+  schEditColor = num;
+  document.querySelectorAll('.sch-edit-c1,.sch-edit-c2,.sch-edit-c3,.sch-edit-c4').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function addSchedule() {
+  const title = document.getElementById('sch-title').value.trim();
+  if (!title) { showToast('일정 제목을 입력해주세요'); return; }
+  const dateFrom = document.getElementById('sch-date-from').value || schSelectedDate;
+  const dateTo = document.getElementById('sch-date-to').value || dateFrom;
+  const allday = document.getElementById('sch-allday').checked;
+  const start = allday ? '' : document.getElementById('sch-start').value;
+  const end = allday ? '' : document.getElementById('sch-end').value;
+
+  const sch = { id: Date.now(), title, dateFrom, dateTo, allday, start, end, color: schSelectedColor };
+
+  // 날짜 범위에 걸친 모든 날짜에 일정 등록
+  const fromD = new Date(dateFrom);
+  const toD = new Date(dateTo);
+  for (let d = new Date(fromD); d <= toD; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    if (!schedules[key]) schedules[key] = [];
+    schedules[key].push({ ...sch });
+  }
+
+  saveSchedules();
+  document.getElementById('sch-title').value = '';
+  document.getElementById('sch-start').value = '';
+  document.getElementById('sch-end').value = '';
+  document.getElementById('sch-allday').checked = false;
+  document.getElementById('sch-time-section').style.display = '';
+  renderSchList();
+  renderCal();
+  showToast('일정이 추가됐어요 ✅');
+}
+
+function deleteSchedule(id) {
+  // 모든 날짜에서 해당 id 제거
+  Object.keys(schedules).forEach(key => {
+    schedules[key] = schedules[key].filter(s => s.id !== id);
+    if (!schedules[key].length) delete schedules[key];
+  });
+  saveSchedules();
+  renderSchList();
+  renderCal();
+}
+
+let schEditingId = null;
+function openSchEdit(id) {
+  const all = Object.values(schedules).flat();
+  const s = all.find(x => x.id === id);
+  if (!s) return;
+  schEditingId = id;
+  document.getElementById('sch-edit-title').value = s.title;
+  document.getElementById('sch-edit-date-from').value = s.dateFrom || schSelectedDate;
+  document.getElementById('sch-edit-date-to').value = s.dateTo || s.dateFrom || schSelectedDate;
+  document.getElementById('sch-edit-allday').checked = !!s.allday;
+  document.getElementById('sch-edit-start').value = s.start || '';
+  document.getElementById('sch-edit-end').value = s.end || '';
+  document.getElementById('sch-edit-time-section').style.display = s.allday ? 'none' : '';
+  schEditColor = s.color || 1;
+  document.querySelectorAll('.sch-edit-c1,.sch-edit-c2,.sch-edit-c3,.sch-edit-c4').forEach(b => b.classList.remove('selected'));
+  document.querySelector(`.sch-edit-c${schEditColor}`).classList.add('selected');
+  document.getElementById('sch-edit-overlay').style.display = 'flex';
+}
+
+function closeSchEdit() {
+  document.getElementById('sch-edit-overlay').style.display = 'none';
+  schEditingId = null;
+}
+
+function saveSchEdit() {
+  if (!schEditingId) return;
+  const title = document.getElementById('sch-edit-title').value.trim();
+  if (!title) { showToast('제목을 입력해주세요'); return; }
+  const dateFrom = document.getElementById('sch-edit-date-from').value;
+  const dateTo = document.getElementById('sch-edit-date-to').value || dateFrom;
+  const allday = document.getElementById('sch-edit-allday').checked;
+  const start = allday ? '' : document.getElementById('sch-edit-start').value;
+  const end = allday ? '' : document.getElementById('sch-edit-end').value;
+
+  // 기존 항목 모두 제거
+  deleteSchedule(schEditingId);
+
+  // 새 날짜 범위로 다시 등록
+  const fromD = new Date(dateFrom);
+  const toD = new Date(dateTo);
+  const newId = schEditingId; // 같은 id 유지
+  for (let d = new Date(fromD); d <= toD; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    if (!schedules[key]) schedules[key] = [];
+    schedules[key].push({ id: newId, title, dateFrom, dateTo, allday, start, end, color: schEditColor });
+  }
+  saveSchedules();
+  closeSchEdit();
+  renderSchList();
+  renderCal();
+  showToast('일정이 수정됐어요 ✅');
+}
+
+function renderSchList(holidayName = '') {
+  const list = document.getElementById('sch-list');
+  const items = schedules[schSelectedDate] || [];
+  let html = '';
+
+  if (holidayName) {
+    html += `<div class="sch-item">
+      <div class="sch-item-color" style="background:#ff6fa8"></div>
+      <div class="sch-item-info">
+        <div class="sch-item-title">🎉 ${holidayName}</div>
+        <div class="sch-item-time">공휴일</div>
+      </div>
+    </div>`;
+  }
+
+  if (!items.length && !holidayName) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text2);padding:12px;font-size:14px">등록된 일정이 없어요</div>';
+    return;
+  }
+
+  html += items.map(s => {
+    const timeStr = s.allday ? '종일' : (s.start && s.end ? s.start + ' ~ ' + s.end : s.start || s.end || '종일');
+    const dateStr = s.dateFrom && s.dateTo && s.dateFrom !== s.dateTo ? `${s.dateFrom} ~ ${s.dateTo}` : '';
+    return `<div class="sch-item">
+      <div class="sch-item-color" style="background:${COLORS[s.color]}"></div>
+      <div class="sch-item-info">
+        <div class="sch-item-title">${s.title}</div>
+        <div class="sch-item-time">${dateStr ? dateStr + ' · ' : ''}${timeStr}</div>
+      </div>
+      <button class="sch-item-edit" onclick="openSchEdit(${s.id})">✏️</button>
+      <button class="sch-item-del" onclick="deleteSchedule(${s.id})">🗑️</button>
+    </div>`;
+  }).join('');
+
+  list.innerHTML = html;
+}
+
+// ===== PIN LOCK =====
+let pinBuffer = '';
+let pinMode = 'verify';
+let pinTemp = '';
+let pinCallback = null;
+let pinFailCount = 0;
+let pinCurrentTab = '';
+
+function openPinOverlay(mode, callback, tabId = '') {
+  pinBuffer = ''; pinTemp = ''; pinMode = mode; pinCallback = callback;
+  pinFailCount = 0; pinCurrentTab = tabId;
+  const titles = {
+    verify: '🔒 잠금 해제',
+    set: 'PIN 설정',
+    confirm: 'PIN 확인'
+  };
+  const subs = {
+    verify: '6자리 PIN을 입력하세요',
+    set: '새 PIN 6자리를 입력하세요',
+    confirm: 'PIN을 한 번 더 입력하세요'
+  };
+  document.getElementById('pin-title').textContent = titles[mode];
+  document.getElementById('pin-subtitle').textContent = subs[mode];
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-forgot').style.display = 'none';
+  document.getElementById('pin-main-view').style.display = '';
+  document.getElementById('pin-recovery-view').style.display = 'none';
+  document.getElementById('pin-qa-view').style.display = 'none';
+  updatePinDots();
+  document.getElementById('pin-overlay').style.display = 'flex';
+}
+
+function closePinOverlay() {
+  pinBuffer = ''; pinTemp = '';
+  document.getElementById('pin-overlay').style.display = 'none';
+}
+
+function updatePinDots() {
+  const dots = document.querySelectorAll('.pin-dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('filled', 'error');
+    if (i < pinBuffer.length) d.classList.add('filled');
+  });
+}
+
+function pinInput(n) {
+  if (pinBuffer.length >= 6) return;
+  pinBuffer += n;
+  updatePinDots();
+  if (pinBuffer.length === 6) setTimeout(() => processPIN(), 150);
+}
+
+function pinDelete() {
+  if (pinBuffer.length > 0) { pinBuffer = pinBuffer.slice(0, -1); updatePinDots(); }
+}
+
+function processPIN() {
+  if (pinMode === 'verify') {
+    const pinKey = pinCurrentTab ? `pb-pin-${pinCurrentTab}` : 'pb-ledger-pin';
+    const saved = localStorage.getItem(pinKey);
+    if (pinBuffer === saved) {
+      pinFailCount = 0;
+      closePinOverlay();
+      if (pinCallback) pinCallback();
+    } else {
+      pinFailCount++;
+      shakePin();
+      if (pinFailCount >= 3) {
+        const qa = JSON.parse(localStorage.getItem(`pb-pin-qa-${pinCurrentTab}`) || 'null');
+        if (qa) {
+          document.getElementById('pin-error').textContent = `3회 실패 — 비밀번호 찾기를 이용하세요`;
+          document.getElementById('pin-forgot').style.display = 'block';
+        } else {
+          document.getElementById('pin-error').textContent = `3회 실패 — 등록된 보안 질문이 없어요`;
+        }
+      } else {
+        document.getElementById('pin-error').textContent = `PIN이 틀렸어요 (${pinFailCount}/3)`;
+      }
+      pinBuffer = ''; updatePinDots();
+    }
+  } else if (pinMode === 'set') {
+    pinTemp = pinBuffer; pinBuffer = '';
+    pinMode = 'confirm';
+    document.getElementById('pin-title').textContent = 'PIN 확인';
+    document.getElementById('pin-subtitle').textContent = 'PIN을 한 번 더 입력하세요';
+    document.getElementById('pin-error').textContent = '';
+    updatePinDots();
+  } else if (pinMode === 'confirm') {
+    if (pinBuffer === pinTemp) {
+      const pinKey = pinCurrentTab ? `pb-pin-${pinCurrentTab}` : 'pb-ledger-pin';
+      localStorage.setItem(pinKey, pinBuffer);
+      document.getElementById('pin-main-view').style.display = 'none';
+      document.getElementById('pin-qa-view').style.display = '';
+    } else {
+      shakePin();
+      document.getElementById('pin-error').textContent = 'PIN이 일치하지 않아요';
+      pinBuffer = ''; pinMode = 'set'; pinTemp = '';
+      document.getElementById('pin-title').textContent = 'PIN 설정';
+      document.getElementById('pin-subtitle').textContent = '새 PIN 6자리를 입력하세요';
+      updatePinDots();
+    }
+  }
+}
+
+function shakePin() {
+  const dots = document.querySelectorAll('.pin-dot');
+  dots.forEach(d => d.classList.add('error'));
+  setTimeout(() => dots.forEach(d => d.classList.remove('error')), 500);
+}
+
+function showPinRecovery() {
+  const qa = JSON.parse(localStorage.getItem(`pb-pin-qa-${pinCurrentTab}`) || 'null');
+  if (!qa) { showToast('등록된 보안 질문이 없어요'); return; }
+  document.getElementById('pin-recovery-question').textContent = qa.question;
+  document.getElementById('pin-recovery-answer').value = '';
+  document.getElementById('pin-main-view').style.display = 'none';
+  document.getElementById('pin-recovery-view').style.display = '';
+}
+
+function hidePinRecovery() {
+  document.getElementById('pin-recovery-view').style.display = 'none';
+  document.getElementById('pin-main-view').style.display = '';
+  pinBuffer = ''; pinFailCount = 0;
+  document.getElementById('pin-forgot').style.display = 'none';
+  document.getElementById('pin-error').textContent = '';
+  updatePinDots();
+}
+
+function checkPinRecovery() {
+  const qa = JSON.parse(localStorage.getItem(`pb-pin-qa-${pinCurrentTab}`) || 'null');
+  const answer = document.getElementById('pin-recovery-answer').value.trim();
+  if (!qa || answer.toLowerCase() !== qa.answer.toLowerCase()) {
+    showToast('답변이 틀렸어요'); return;
+  }
+  closePinOverlay();
+  showToast('정답이에요! 새 PIN을 설정해주세요');
+  setTimeout(() => openPinOverlay('set', () => { renderTabSettings(); }, pinCurrentTab), 300);
+}
+
+function savePinQA() {
+  const q = document.getElementById('pin-qa-question').value;
+  const a = document.getElementById('pin-qa-answer').value.trim();
+  if (!q || !a) { showToast('질문과 답변을 모두 입력해주세요'); return; }
+  localStorage.setItem(`pb-pin-qa-${pinCurrentTab}`, JSON.stringify({ question: q, answer: a }));
+  closePinOverlay();
+  showToast('PIN이 설정됐어요 🔒');
+  renderTabSettings();
+}
+
+function skipPinQA() {
+  closePinOverlay();
+  showToast('PIN이 설정됐어요 🔒 (보안 질문 없음)');
+  renderTabSettings();
+}
+
+function setPIN(tabId = '') { pinCurrentTab = tabId; openPinOverlay('set', null, tabId); }
+function changePIN(tabId = '') { pinCurrentTab = tabId; openPinOverlay('set', null, tabId); }
+function removePIN(tabId = '') {
+  const pinKey = tabId ? `pb-pin-${tabId}` : 'pb-ledger-pin';
+  localStorage.removeItem(pinKey);
+  localStorage.removeItem(`pb-pin-qa-${tabId}`);
+  showToast('PIN이 해제됐어요 🔓');
+  renderTabSettings();
+}
+
+const _origSwitchTab = switchTab;
+window.switchTab = function(id) {
+  const pinKey = `pb-pin-${id}`;
+  const hasPIN = localStorage.getItem(pinKey);
+  if (hasPIN) {
+    openPinOverlay('verify', () => _origSwitchTab(id), id);
+  } else {
+    _origSwitchTab(id);
+  }
+};
+
+calInit();
+renderTabBar();
+switchTab('calc');
+</script>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=dccb14fb604dd641939de28221277303&libraries=services,clusterer"></script>
+<script>
+// ===== MAP =====
+const KAKAO_REST_KEY = '1468ea325312af45cfb69691aa9bd0a6';
+let kakaoMap = null, mapMode = 'walk';
+let myMarker = null, watchId = null;
+let fromCoords = null, toCoords = null;
+let routePolylines = [];
+let isNavigating = false;
+
+function initKakaoMap() {
+  if (kakaoMap) return;
+  const container = document.getElementById('kakao-map');
+  if (!container || !window.kakao) return;
+  kakaoMap = new kakao.maps.Map(container, {
+    center: new kakao.maps.LatLng(35.1796, 129.0756),
+    level: 5
+  });
+  startWatchLocation();
+}
+
+function startWatchLocation() {
+  if (!navigator.geolocation) return;
+  if (watchId) navigator.geolocation.clearWatch(watchId);
+  watchId = navigator.geolocation.watchPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const latlng = new kakao.maps.LatLng(lat, lng);
+
+    if (!myMarker) {
+      const img = new kakao.maps.MarkerImage(
+        'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+        new kakao.maps.Size(30, 42)
+      );
+      myMarker = new kakao.maps.Marker({ position: latlng, map: kakaoMap, image: img, title: '내 위치' });
+      kakaoMap.setCenter(latlng);
+      kakaoMap.setLevel(4);
+    } else {
+      myMarker.setPosition(latlng);
+      if (isNavigating) kakaoMap.setCenter(latlng);
+    }
+  }, err => {
+    console.log('위치 오류:', err.message);
+  }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 });
+}
+
+function moveToMyLocation() {
+  isNavigating = false;
+  if (myMarker) {
+    kakaoMap.setCenter(myMarker.getPosition());
+    kakaoMap.setLevel(3);
+  } else if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      kakaoMap.setCenter(new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
+      kakaoMap.setLevel(3);
+    });
+  }
+}
+
+function setMapMode(mode) {
+  mapMode = mode;
+  document.querySelectorAll('.map-mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mode-' + mode).classList.add('active');
+}
+
+function useMyLocation(field) {
+  navigator.geolocation.getCurrentPosition(pos => {
+    fromCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    document.getElementById('map-from').value = '현재 위치';
+    showToast('현재 위치를 출발지로 설정했어요 📍');
+  });
+}
+
+async function geocode(address) {
+  return new Promise((resolve, reject) => {
+    const geocoder = new kakao.maps.services.Geocoder();
+    geocoder.addressSearch(address, (result, status) => {
+      if (status === kakao.maps.services.Status.OK) {
+        resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
+      } else {
+        const places = new kakao.maps.services.Places();
+        places.keywordSearch(address, (res, st) => {
+          if (st === kakao.maps.services.Status.OK) {
+            resolve({ lat: parseFloat(res[0].y), lng: parseFloat(res[0].x) });
+          } else reject(new Error('장소를 찾을 수 없어요'));
+        });
+      }
+    });
+  });
+}
+
+function clearRoutePolylines() {
+  routePolylines.forEach(p => p.setMap(null));
+  routePolylines = [];
+}
+
+function drawPolyline(vertexes, color, weight = 5) {
+  const path = [];
+  for (let i = 0; i < vertexes.length; i += 2) {
+    path.push(new kakao.maps.LatLng(vertexes[i+1], vertexes[i]));
+  }
+  const poly = new kakao.maps.Polyline({ path, strokeColor: color, strokeWeight: weight, strokeOpacity: 0.85, map: kakaoMap });
+  routePolylines.push(poly);
+}
+
+async function searchRoute() {
+  if (!kakaoMap) {
+    const tryInit = () => {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+        initKakaoMap();
+        setTimeout(searchRoute, 500);
+      } else { setTimeout(tryInit, 300); }
+    };
+    tryInit();
+    showToast('지도 초기화 중...');
+    return;
+  }
+
+  const fromVal = document.getElementById('map-from').value.trim();
+  const toVal = document.getElementById('map-to').value.trim();
+  if (!toVal) { showToast('도착지를 입력해주세요'); return; }
+
+  const loadingEl = document.getElementById('map-loading');
+  loadingEl.style.display = 'flex';
+  clearRoutePolylines();
+  isNavigating = false;
+
+  const hideLoading = () => { loadingEl.style.display = 'none'; };
+
+  try {
+    if (fromVal && fromVal !== '현재 위치') {
+      fromCoords = await geocode(fromVal);
+    } else if (!fromCoords) {
+      await new Promise((res, rej) => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          fromCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          res();
+        }, rej, { enableHighAccuracy: true, timeout: 8000 });
+      });
+    }
+    toCoords = await geocode(toVal);
+
+    new kakao.maps.Marker({ position: new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng), map: kakaoMap });
+    const destMarker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(toCoords.lat, toCoords.lng), map: kakaoMap });
+
+    const bounds = new kakao.maps.LatLngBounds();
+    bounds.extend(new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng));
+    bounds.extend(new kakao.maps.LatLng(toCoords.lat, toCoords.lng));
+
+    if (mapMode === 'walk') {
+      const walkDist = Math.round(Math.sqrt(
+        Math.pow((toCoords.lat - fromCoords.lat) * 111000, 2) +
+        Math.pow((toCoords.lng - fromCoords.lng) * 88000, 2)
+      ));
+      const walkTime = Math.ceil(walkDist / 67);
+
+      const path = [
+        new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng),
+        new kakao.maps.LatLng(toCoords.lat, toCoords.lng)
+      ];
+      const poly = new kakao.maps.Polyline({ path, strokeColor: '#7c6fff', strokeWeight: 5, strokeOpacity: 0.8, strokeStyle: 'dashed', map: kakaoMap });
+      routePolylines.push(poly);
+      kakaoMap.setBounds(bounds);
+
+      showRouteResult('walk', walkDist, walkTime, 0, [
+        { icon: '🚶', text: '도보로 이동', dist: walkDist },
+        { icon: '🏁', text: toVal + ' 도착', dist: 0 }
+      ]);
+
+    } else if (mapMode === 'car') {
+      const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${fromCoords.lng},${fromCoords.lat}&destination=${toCoords.lng},${toCoords.lat}&priority=RECOMMEND`;
+      const res = await fetch(url, { headers: { Authorization: 'KakaoAK ' + KAKAO_REST_KEY } });
+      const data = await res.json();
+
+      if (data.routes && data.routes[0] && data.routes[0].result_code === 0) {
+        const route = data.routes[0];
+        route.sections.forEach(section => {
+          section.roads.forEach(road => drawPolyline(road.vertexes, '#ff6fa8'));
+        });
+        kakaoMap.setBounds(bounds);
+
+        const dist = route.summary.distance;
+        const time = Math.ceil(route.summary.duration / 60);
+        const toll = route.summary.fare?.toll || 0;
+        const guides = route.sections[0]?.guides || [];
+
+        showRouteResult('car', dist, time, toll, guides.slice(0, 8).map(g => ({
+          icon: guideIcon(g.type), text: g.name || g.guidance, dist: g.distance
+        })));
+      } else {
+        showToast('자동차 경로를 찾을 수 없어요');
+      }
+
+    } else {
+      await searchTransitRoute(fromCoords, toCoords, toVal, bounds);
+    }
+
+    isNavigating = true;
+    hideLoading();
+
+  } catch(e) {
+    hideLoading();
+    showToast('오류: ' + (e.message || '경로 탐색 실패'));
+  }
+}
+
+function showRouteResult(mode, dist, time, toll, steps) {
+  const distStr = dist >= 1000 ? (dist/1000).toFixed(1) + 'km' : dist + 'm';
+  const timeStr = time >= 60 ? Math.floor(time/60) + '시간 ' + (time%60) + '분' : time + '분';
+
+  let summaryHTML = `
+    <div class="map-result-stat"><div class="map-result-stat-val">${timeStr}</div><div class="map-result-stat-label">소요시간</div></div>
+    <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">거리</div></div>
+  `;
+  if (mode === 'car' && toll > 0) {
+    summaryHTML += `<div class="map-result-stat"><div class="map-result-stat-val">${toll.toLocaleString()}원</div><div class="map-result-stat-label">통행료</div></div>`;
+  }
+
+  document.getElementById('map-result-summary').innerHTML = summaryHTML;
+  document.getElementById('map-steps').innerHTML = steps.map(s => `
+    <div class="map-step">
+      <div class="map-step-icon">${s.icon}</div>
+      <div class="map-step-text">${s.text}
+        ${s.dist > 0 ? `<div class="map-step-dist">${s.dist >= 1000 ? (s.dist/1000).toFixed(1)+'km' : s.dist+'m'}</div>` : ''}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('map-result').classList.add('show');
+}
+
+function drawStraightLine(from, to, color) {
+  const path = [new kakao.maps.LatLng(from.lat, from.lng), new kakao.maps.LatLng(to.lat, to.lng)];
+  const poly = new kakao.maps.Polyline({ path, strokeColor: color, strokeWeight: 4, strokeOpacity: 0.7, strokeStyle: 'dashed', map: kakaoMap });
+  routePolylines.push(poly);
+}
+
+const ODSAY_KEY = encodeURIComponent('ahMdwx/DtlETqFOkZlWXwQ');
+
+async function searchTransitRoute(from, to, toName, bounds) {
+  try {
+    const url = `https://api.odsay.com/v1/api/searchPubTransPathT?SX=${from.lng}&SY=${from.lat}&EX=${to.lng}&EY=${to.lat}&apiKey=${ODSAY_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.result || !data.result.path || !data.result.path.length) {
+      drawStraightLine(from, to, '#6fdfff');
+      kakaoMap.setBounds(bounds);
+      showTransitFallback(from, to, toName);
+      return;
+    }
+
+    const path = data.result.path[0];
+    const info = path.info;
+    const subPaths = path.subPath;
+
+    for (const sub of subPaths) {
+      if (sub.trafficType === 1) {
+        const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
+        if (sub.passStopList?.stations) {
+          const coords = sub.passStopList.stations.map(s =>
+            new kakao.maps.LatLng(s.y, s.x)
+          );
+          if (coords.length > 1) {
+            const poly = new kakao.maps.Polyline({ path: coords, strokeColor: color, strokeWeight: 6, strokeOpacity: 0.9, map: kakaoMap });
+            routePolylines.push(poly);
+          }
+        }
+      } else if (sub.trafficType === 2) {
+        if (sub.passStopList?.stations) {
+          const coords = sub.passStopList.stations.map(s =>
+            new kakao.maps.LatLng(s.y, s.x)
+          );
+          if (coords.length > 1) {
+            const poly = new kakao.maps.Polyline({ path: coords, strokeColor: '#ff6fa8', strokeWeight: 5, strokeOpacity: 0.85, map: kakaoMap });
+            routePolylines.push(poly);
+          }
+        }
+      }
+    }
+
+    kakaoMap.setBounds(bounds);
+
+    const totalTime = info.totalTime;
+    const totalFare = info.payment;
+    const totalDist = info.totalDistance;
+
+    const steps = [];
+    for (const sub of subPaths) {
+      if (sub.trafficType === 3) {
+        if (sub.distance > 0) {
+          steps.push({ icon: '🚶', text: `도보 ${sub.sectionTime}분`, dist: sub.distance, color: null });
+        }
+      } else if (sub.trafficType === 1) {
+        const lineName = sub.lane?.[0]?.name || '지하철';
+        const stationCnt = sub.stationCount;
+        const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
+        steps.push({
+          icon: '🚇',
+          text: `${sub.startName} 승차 → ${lineName} → ${sub.endName} 하차 (${stationCnt}정거장, ${sub.sectionTime}분)`,
+          dist: sub.distance,
+          lineColor: color
+        });
+      } else if (sub.trafficType === 2) {
+        const busNo = sub.lane?.[0]?.busNo || '버스';
+        const stationCnt = sub.stationCount;
+        steps.push({
+          icon: '🚌',
+          text: `${sub.startName} 승차 → ${busNo}번 버스 → ${sub.endName} 하차 (${stationCnt}정거장, ${sub.sectionTime}분)`,
+          dist: sub.distance,
+          lineColor: '#ff6fa8'
+        });
+      }
+    }
+    steps.push({ icon: '🏁', text: toName + ' 도착', dist: 0, lineColor: null });
+
+    const timeStr = totalTime >= 60 ? Math.floor(totalTime/60) + '시간 ' + (totalTime%60) + '분' : totalTime + '분';
+    const distStr = totalDist >= 1000 ? (totalDist/1000).toFixed(1) + 'km' : totalDist + 'm';
+
+    document.getElementById('map-result-summary').innerHTML = `
+      <div class="map-result-stat"><div class="map-result-stat-val">${timeStr}</div><div class="map-result-stat-label">소요시간</div></div>
+      <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">거리</div></div>
+      <div class="map-result-stat"><div class="map-result-stat-val">${totalFare.toLocaleString()}원</div><div class="map-result-stat-label">요금</div></div>
+    `;
+
+    document.getElementById('map-steps').innerHTML = steps.map(s => `
+      <div class="map-step">
+        <div class="map-step-icon" style="${s.lineColor ? `color:${s.lineColor}` : ''}">${s.icon}</div>
+        <div class="map-step-text">${s.text}
+          ${s.dist > 0 ? `<div class="map-step-dist">${s.dist >= 1000 ? (s.dist/1000).toFixed(1)+'km' : s.dist+'m'}</div>` : ''}
+        </div>
+      </div>`).join('');
+
+    document.getElementById('map-result').classList.add('show');
+
+  } catch(e) {
+    drawStraightLine(from, to, '#6fdfff');
+    kakaoMap.setBounds(bounds);
+    showTransitFallback(from, to, toName);
+  }
+}
+
+function getSubwayColor(code) {
+  const colors = {
+    1: '#0052A4', 2: '#00A84D', 3: '#EF7C1C', 4: '#00A5DE',
+    5: '#996CAC', 6: '#CD7C2F', 7: '#747F00', 8: '#E6186C',
+    9: '#BDB092', 21: '#F5A200', 22: '#F5A200'
+  };
+  return colors[code] || '#7c6fff';
+}
+
+function showTransitFallback(from, to, toName) {
+  const dist = Math.round(Math.sqrt(Math.pow((to.lat-from.lat)*111000,2) + Math.pow((to.lng-from.lng)*88000,2)));
+  const time = Math.ceil(dist / 300);
+  const timeStr = time >= 60 ? Math.floor(time/60) + '시간 ' + (time%60) + '분' : time + '분';
+  const distStr = dist >= 1000 ? (dist/1000).toFixed(1) + 'km' : dist + 'm';
+  document.getElementById('map-result-summary').innerHTML = `
+    <div class="map-result-stat"><div class="map-result-stat-val">약 ${timeStr}</div><div class="map-result-stat-label">예상시간</div></div>
+    <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">직선거리</div></div>
+  `;
+  document.getElementById('map-steps').innerHTML = `
+    <div class="map-step"><div class="map-step-icon">ℹ️</div><div class="map-step-text">경로 정보를 불러올 수 없어요<div class="map-step-dist">카카오맵 앱에서 확인해보세요</div></div></div>
+  `;
+  document.getElementById('map-result').classList.add('show');
+}
+
+function guideIcon(type) {
+  const icons = { 1:'↑', 2:'↖', 3:'←', 5:'↙', 6:'↓', 7:'↘', 8:'→', 9:'↗', 11:'⤴', 12:'⤵', 16:'🏁', 17:'🏁' };
+  return icons[type] || '•';
+}
+
+// kakao SDK가 이미 로드된 경우 맵 화면이 활성화되면 바로 초기화
+window.addEventListener('load', () => {
+  if (currentTab === 'map' && window.kakao && window.kakao.maps) {
+    initKakaoMap();
+  }
+});
+
+// ===== CAMERA (사진 + 동영상) =====
+let cameraStream = null;
+let cameraFacing = 'environment';
+let cameraPhotos = [];
+let lastPhoto = null;
+let cameraMode = 'photo';
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+let recTimerInterval = null;
+let recSeconds = 0;
+let cameraZoom = 1;
+let supportedZoom = [1];
+let cameraRatio = '4:3';
+
+async function initCamera() {
+  if (cameraStream) return;
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: cameraFacing, width: { ideal: 4096 }, height: { ideal: 3072 } },
+      audio: cameraMode === 'video'
+    });
+    const video = document.getElementById('camera-video');
+    video.srcObject = cameraStream;
+    await video.play();
+
+    // 줌 지원 여부 확인
+    const track = cameraStream.getVideoTracks()[0];
+    const caps = track.getCapabilities?.() || {};
+    if (caps.zoom) {
+      // 하드웨어 줌 지원
+      supportedZoom = [0.5, 1, 2, 3];
+    } else {
+      // 소프트웨어 줌만 가능
+      supportedZoom = [1, 2, 3];
+    }
+    updateZoomButtons();
+    applyCameraZoom(cameraZoom);
+  } catch(e) {
+    showToast('카메라/마이크 권한이 필요해요 📷');
+  }
+}
+
+function updateZoomButtons() {
+  const btns = { 1: 'zoom-1', 2: 'zoom-2', 3: 'zoom-3', 4: 'zoom-4', 5: 'zoom-5' };
+  Object.entries(btns).forEach(([z, id]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('active', parseFloat(z) === cameraZoom);
+  });
+}
+
+function setCameraRatio(ratio) {
+  cameraRatio = ratio;
+  document.querySelectorAll('.cam-ratio-btn').forEach(b => b.classList.remove('active'));
+  const ids = { '1:1': 'ratio-11', '4:3': 'ratio-43', '16:9': 'ratio-169', 'full': 'ratio-full' };
+  document.getElementById(ids[ratio])?.classList.add('active');
+  const video = document.getElementById('camera-video');
+  const ratioMap = { '1:1': '1/1', '4:3': '4/3', '16:9': '16/9', 'full': '' };
+  video.style.aspectRatio = ratioMap[ratio] || '';
+  video.style.objectFit = 'cover';
+}
+
+async function applyCameraZoom(zoom) {
+  if (!cameraStream) return;
+  const track = cameraStream.getVideoTracks()[0];
+  const caps = track.getCapabilities?.() || {};
+  if (caps.zoom) {
+    // 하드웨어 줌
+    const min = caps.zoom.min || 1;
+    const max = caps.zoom.max || 1;
+    const z = Math.min(Math.max(zoom, min), max);
+    await track.applyConstraints({ advanced: [{ zoom: z }] });
+  }
+  // 소프트웨어 줌은 takePhoto 시 canvas 크롭으로 처리
+}
+
+async function setCameraZoom(zoom) {
+  cameraZoom = zoom;
+  updateZoomButtons();
+  await applyCameraZoom(zoom);
+}
+
+function stopCamera() {
+  if (isRecording) stopRecording();
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+    document.getElementById('camera-video').srcObject = null;
+  }
+}
+
+async function toggleCameraFacing() {
+  stopCamera();
+  cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+  cameraZoom = 1;
+  await initCamera();
+}
+
+function setCameraMode(mode) {
+  if (isRecording) { showToast('녹화 중에는 전환할 수 없어요'); return; }
+  cameraMode = mode;
+  document.getElementById('cam-mode-photo').classList.toggle('active', mode === 'photo');
+  document.getElementById('cam-mode-video').classList.toggle('active', mode === 'video');
+  stopCamera();
+  initCamera();
+}
+
+function handleShutter() {
+  if (cameraMode === 'photo') {
+    takePhoto();
+  } else {
+    isRecording ? stopRecording() : startRecording();
+  }
+}
+
+// --- 사진 ---
+function takePhoto() {
+  const video = document.getElementById('camera-video');
+  const canvas = document.getElementById('camera-canvas');
+  if (!video.srcObject) { showToast('카메라가 준비되지 않았어요'); return; }
+
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+
+  // 소프트웨어 줌 크롭
+  const track = cameraStream?.getVideoTracks()[0];
+  const caps = track?.getCapabilities?.() || {};
+  const useSwZoom = !caps.zoom && cameraZoom !== 1;
+
+  let sx = 0, sy = 0, sw = vw, sh = vh;
+  if (useSwZoom && cameraZoom > 1) {
+    sw = Math.round(vw / cameraZoom);
+    sh = Math.round(vh / cameraZoom);
+    sx = Math.round((vw - sw) / 2);
+    sy = Math.round((vh - sh) / 2);
+  }
+
+  // 비율 크롭 적용
+  const ratioMap = { '1:1': 1/1, '4:3': 4/3, '16:9': 16/9, 'full': sw/sh };
+  const targetRatio = ratioMap[cameraRatio] || sw/sh;
+  const srcRatio = sw / sh;
+  let cx = sx, cy = sy, cw = sw, ch = sh;
+  if (Math.abs(targetRatio - srcRatio) > 0.01) {
+    if (targetRatio > srcRatio) {
+      ch = Math.round(cw / targetRatio);
+      cy = sy + Math.round((sh - ch) / 2);
+    } else {
+      cw = Math.round(ch * targetRatio);
+      cx = sx + Math.round((sw - cw) / 2);
+    }
+  }
+
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext('2d');
+
+  if (cameraFacing === 'user') {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  } else {
+    ctx.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
+  }
+
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+  lastPhoto = { type: 'photo', url: dataUrl };
+  cameraPhotos.unshift(lastPhoto);
+
+  const flash = document.getElementById('cam-flash');
+  flash.classList.add('on');
+  setTimeout(() => flash.classList.remove('on'), 100);
+
+  renderCameraGallery();
+  showToast('📷 촬영됐어요!');
+}
+
+// --- 동영상 ---
+function startRecording() {
+  if (!cameraStream) { showToast('카메라가 준비되지 않았어요'); return; }
+
+  recordedChunks = [];
+  const mimeType = (window.MediaRecorder && MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus'))
+    ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+
+  try {
+    mediaRecorder = new MediaRecorder(cameraStream, { mimeType });
+  } catch(e) {
+    showToast('이 기기에서는 동영상 녹화를 지원하지 않아요');
+    return;
+  }
+
+  mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const item = { type: 'video', url, blob };
+    lastPhoto = item;
+    cameraPhotos.unshift(item);
+    renderCameraGallery();
+    showToast('🎬 녹화가 저장됐어요!');
+  };
+
+  mediaRecorder.start();
+  isRecording = true;
+  recSeconds = 0;
+
+  const shutter = document.getElementById('cam-shutter');
+  shutter.classList.add('recording');
+  const timerEl = document.getElementById('cam-rec-timer');
+  timerEl.style.display = 'flex';
+  updateRecTimer();
+  recTimerInterval = setInterval(() => { recSeconds++; updateRecTimer(); }, 1000);
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  isRecording = false;
+  clearInterval(recTimerInterval);
+  document.getElementById('cam-shutter').classList.remove('recording');
+  document.getElementById('cam-rec-timer').style.display = 'none';
+}
+
+function updateRecTimer() {
+  const m = Math.floor(recSeconds / 60), s = recSeconds % 60;
+  document.getElementById('cam-rec-time').textContent = pad(m) + ':' + pad(s);
+}
+
+// --- 갤러리 ---
+function renderCameraGallery() {
+  const el = document.getElementById('camera-gallery');
+  if (!cameraPhotos.length) {
+    el.innerHTML = '<span class="cam-no-photos">촬영한 사진/영상이 없어요</span>';
+    return;
+  }
+  el.innerHTML = cameraPhotos.map((p, i) => {
+    if (p.type === 'video') {
+      return `<div class="cam-thumb-wrap" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요">
+        <video class="cam-thumb" src="${p.url}" muted></video>
+        <span class="cam-thumb-vid-badge">▶ 영상</span>
+      </div>`;
+    }
+    return `<div class="cam-thumb-wrap">
+      <img class="cam-thumb" src="${p.url}" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요" />
+    </div>`;
+  }).join('');
+}
+
+function downloadPhoto(idx) {
+  const item = cameraPhotos[idx];
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  a.href = item.url;
+  a.download = item.type === 'video' ? `pocketbon_${ts}.webm` : `pocketbon_${ts}.jpg`;
+  a.click();
+}
+
+function downloadLastPhoto() {
+  if (!lastPhoto) { showToast('먼저 촬영해주세요'); return; }
+  downloadPhoto(0);
+}
+</script>
+</body>
+</html>
