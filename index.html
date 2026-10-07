@@ -1271,6 +1271,10 @@
       <input type="checkbox" id="dd-repeat" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
       <label for="dd-repeat" style="font-size:14px;color:var(--text2);cursor:pointer">🔁 매년 반복 (생일·기념일)</label>
     </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="dd-since" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="dd-since" style="font-size:14px;color:var(--text2);cursor:pointer">💕 만난 날부터 세기 (1일째~)</label>
+    </div>
     <button class="ledger-add-btn" id="dd-add-btn" onclick="saveDday()">+ 디데이 추가</button>
     <button class="sch-modal-close" id="dd-cancel-btn" style="display:none;margin-top:0" onclick="cancelDdayEdit()">수정 취소</button>
   </div>
@@ -3132,6 +3136,10 @@ function ddParse(s) { const [y, m, d] = s.split('-').map(Number); return new Dat
 function ddCalc(item) {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   let target = ddParse(item.date);
+  if (item.since) {
+    const days = Math.round((today - target) / 86400000) + 1; // 시작일 = 1일째
+    return { diff: 0, target, days };
+  }
   if (item.repeat) {
     target.setFullYear(today.getFullYear());
     if (target < today) target.setFullYear(today.getFullYear() + 1);
@@ -3148,15 +3156,16 @@ function ddLabel(diff) {
 function saveDday() {
   const title = document.getElementById('dd-title').value.trim();
   const date = document.getElementById('dd-date').value;
-  const repeat = document.getElementById('dd-repeat').checked;
+  const since = document.getElementById('dd-since').checked;
+  const repeat = since ? false : document.getElementById('dd-repeat').checked;
   if (!title) { showToast('💡 이름을 입력해주세요'); return; }
   if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
   if (ddEditId) {
     const it = ddays.find(x => x.id === ddEditId);
-    if (it) { it.title = title; it.date = date; it.repeat = repeat; }
+    if (it) { it.title = title; it.date = date; it.repeat = repeat; it.since = since; }
     showToast('수정됐어요 ✅');
   } else {
-    ddays.push({ id: Date.now(), title, date, repeat });
+    ddays.push({ id: Date.now(), title, date, repeat, since });
     showToast('📅 디데이가 추가됐어요');
   }
   saveDdays();
@@ -3171,6 +3180,7 @@ function editDday(id) {
   document.getElementById('dd-title').value = it.title;
   document.getElementById('dd-date').value = it.date;
   document.getElementById('dd-repeat').checked = !!it.repeat;
+  document.getElementById('dd-since').checked = !!it.since;
   document.getElementById('dd-add-btn').textContent = '저장';
   document.getElementById('dd-cancel-btn').style.display = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3181,6 +3191,7 @@ function cancelDdayEdit() {
   document.getElementById('dd-title').value = '';
   document.getElementById('dd-date').value = '';
   document.getElementById('dd-repeat').checked = false;
+  document.getElementById('dd-since').checked = false;
   document.getElementById('dd-add-btn').textContent = '+ 디데이 추가';
   document.getElementById('dd-cancel-btn').style.display = 'none';
 }
@@ -3201,14 +3212,31 @@ function renderDdays() {
   }
   const list = ddays.map(x => ({ ...x, ...ddCalc(x) }))
     .sort((a, b) => {
-      // 지나지 않은 항목(가까운 순) → 지난 항목(최근 순)
-      if ((a.diff >= 0) !== (b.diff >= 0)) return a.diff >= 0 ? -1 : 1;
+      // 만난 날 카운터 → 다가오는 디데이 → 지난 디데이
+      const rank = x => x.since ? 0 : x.diff >= 0 ? 1 : 2;
+      if (rank(a) !== rank(b)) return rank(a) - rank(b);
+      if (a.since) return b.days - a.days;
       return a.diff >= 0 ? a.diff - b.diff : b.diff - a.diff;
     });
   el.innerHTML = list.map(x => {
-    const cls = x.diff === 0 ? 'today' : x.diff < 0 ? 'past' : '';
     const t = x.target;
     const dateStr = t.getFullYear() + '.' + String(t.getMonth() + 1).padStart(2, '0') + '.' + String(t.getDate()).padStart(2, '0');
+    if (x.since) {
+      const next = (Math.floor(x.days / 100) + 1) * 100;
+      const sub = x.days < 1
+        ? dateStr + ' (아직 시작 전)'
+        : dateStr + ' · ' + next + '일까지 ' + (next - x.days) + '일';
+      return `<div class="dd-item">
+        <div class="dd-info">
+          <div class="dd-title">💕 ${escHtml(x.title)}</div>
+          <div class="dd-date">${sub}</div>
+        </div>
+        <div class="dd-badge">${x.days < 1 ? 'D' + (x.days - 1) : x.days + '일째'}</div>
+        <button class="item-edit" onclick="editDday(${x.id})">✏️</button>
+        <button class="item-del" onclick="deleteDday(${x.id})">✕</button>
+      </div>`;
+    }
+    const cls = x.diff === 0 ? 'today' : x.diff < 0 ? 'past' : '';
     return `<div class="dd-item ${cls}">
       <div class="dd-info">
         <div class="dd-title">${x.repeat ? '🔁 ' : ''}${escHtml(x.title)}</div>
