@@ -780,6 +780,21 @@
     .modal-btn.danger-btn { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); }
     .backup-info { background: var(--surface2); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; }
     .backup-info strong { color: var(--text); }
+
+    /* D-Day */
+  .dd-form { background: var(--surface); border-radius: var(--radius); padding: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+  .dd-list { display: flex; flex-direction: column; gap: 10px; }
+  .dd-item { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px 18px; display: flex; align-items: center; gap: 12px; }
+  .dd-item.today { border-color: var(--accent2); background: rgba(255,111,168,0.08); }
+  .dd-item.past { opacity: 0.55; }
+  .dd-info { flex: 1; min-width: 0; }
+  .dd-title { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dd-date { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .dd-badge { font-size: 26px; font-weight: 300; letter-spacing: -1px; color: var(--accent); flex-shrink: 0; }
+  .dd-item.today .dd-badge { color: var(--accent2); font-weight: 600; }
+  .dd-item.past .dd-badge { color: var(--text2); }  
+
+    
   </style>
 </head>
 <body>
@@ -1247,6 +1262,21 @@
   </div>
 </div>
 
+<!-- D-DAY -->
+<div class="screen" id="dday">
+  <div class="dd-form">
+    <input type="text" class="ledger-input" id="dd-title" placeholder="이름 (예: 수능, 여행, 생일)" maxlength="30">
+    <input type="date" class="ledger-input" id="dd-date">
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="dd-repeat" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="dd-repeat" style="font-size:14px;color:var(--text2);cursor:pointer">🔁 매년 반복 (생일·기념일)</label>
+    </div>
+    <button class="ledger-add-btn" id="dd-add-btn" onclick="saveDday()">+ 디데이 추가</button>
+    <button class="sch-modal-close" id="dd-cancel-btn" style="display:none;margin-top:0" onclick="cancelDdayEdit()">수정 취소</button>
+  </div>
+  <div class="dd-list" id="dd-list"></div>
+</div>
+
 <!-- SETTINGS -->
 <div class="screen" id="settings">
   <div class="settings-section">
@@ -1369,6 +1399,7 @@ const ALL_TABS = [
   { id: 'memo',     label: '메모',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>` },
   { id: 'ledger',   label: '가계부', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h2M10 15h4"/></svg>` },
   { id: 'calendar', label: '달력',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>` },
+  { id: 'dday',     label: '디데이', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22V4"/><path d="M4 4h14l-3 4 3 4H4"/></svg>` },
   { id: 'map',      label: '길찾기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>` },
   { id: 'camera',   label: '카메라', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
   { id: 'settings', label: '설정',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` },
@@ -1582,6 +1613,7 @@ function switchTab(id) {
   renderTabBar();
   if (id === 'settings') renderTabSettings();
   if (id === 'calendar') renderCal();
+  if (id === 'dday') renderDdays();
   if (id === 'map') {
     const tryInit = () => {
       if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
@@ -2486,7 +2518,8 @@ const BACKUP_KEYS = [
   'pocketbon-todos',
   'pocketbon-ledger',
   'pocketbon-schedules',
-  'pocketbon-recurring'
+  'pocketbon-recurring',
+  'pocketbon-ddays'
 ];
 
 function showToast(msg, duration = 2500) {
@@ -2569,7 +2602,8 @@ function showStorageInfo() {
     'pocketbon-alarms': '⏰ 알람',
     'pocketbon-memos':  '📝 메모',
     'pocketbon-todos':  '✅ 할일',
-    'pocketbon-ledger': '💰 가계부'
+    'pocketbon-ledger': '💰 가계부',
+    'pocketbon-ddays':  '📅 디데이'
   };
   BACKUP_KEYS.forEach(k => {
     const v = localStorage.getItem(k);
@@ -3084,6 +3118,106 @@ window.switchTab = function(id) {
   }
 };
 
+// ===== D-Day =====
+let ddays = JSON.parse(localStorage.getItem('pocketbon-ddays') || '[]');
+let ddEditId = null;
+function saveDdays() { localStorage.setItem('pocketbon-ddays', JSON.stringify(ddays)); }
+
+function ddParse(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+
+function ddCalc(item) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  let target = ddParse(item.date);
+  if (item.repeat) {
+    target.setFullYear(today.getFullYear());
+    if (target < today) target.setFullYear(today.getFullYear() + 1);
+  }
+  const diff = Math.round((target - today) / 86400000);
+  return { diff, target };
+}
+
+function ddLabel(diff) {
+  if (diff === 0) return 'D-DAY';
+  return diff > 0 ? 'D-' + diff : 'D+' + Math.abs(diff);
+}
+
+function saveDday() {
+  const title = document.getElementById('dd-title').value.trim();
+  const date = document.getElementById('dd-date').value;
+  const repeat = document.getElementById('dd-repeat').checked;
+  if (!title) { showToast('💡 이름을 입력해주세요'); return; }
+  if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
+  if (ddEditId) {
+    const it = ddays.find(x => x.id === ddEditId);
+    if (it) { it.title = title; it.date = date; it.repeat = repeat; }
+    showToast('수정됐어요 ✅');
+  } else {
+    ddays.push({ id: Date.now(), title, date, repeat });
+    showToast('📅 디데이가 추가됐어요');
+  }
+  saveDdays();
+  cancelDdayEdit();
+  renderDdays();
+}
+
+function editDday(id) {
+  const it = ddays.find(x => x.id === id);
+  if (!it) return;
+  ddEditId = id;
+  document.getElementById('dd-title').value = it.title;
+  document.getElementById('dd-date').value = it.date;
+  document.getElementById('dd-repeat').checked = !!it.repeat;
+  document.getElementById('dd-add-btn').textContent = '저장';
+  document.getElementById('dd-cancel-btn').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelDdayEdit() {
+  ddEditId = null;
+  document.getElementById('dd-title').value = '';
+  document.getElementById('dd-date').value = '';
+  document.getElementById('dd-repeat').checked = false;
+  document.getElementById('dd-add-btn').textContent = '+ 디데이 추가';
+  document.getElementById('dd-cancel-btn').style.display = 'none';
+}
+
+function deleteDday(id) {
+  ddays = ddays.filter(x => x.id !== id);
+  saveDdays();
+  if (ddEditId === id) cancelDdayEdit();
+  renderDdays();
+}
+
+function renderDdays() {
+  const el = document.getElementById('dd-list');
+  if (!el) return;
+  if (!ddays.length) {
+    el.innerHTML = '<div class="empty-hint"><span>📅</span>디데이가 없어요</div>';
+    return;
+  }
+  const list = ddays.map(x => ({ ...x, ...ddCalc(x) }))
+    .sort((a, b) => {
+      // 지나지 않은 항목(가까운 순) → 지난 항목(최근 순)
+      if ((a.diff >= 0) !== (b.diff >= 0)) return a.diff >= 0 ? -1 : 1;
+      return a.diff >= 0 ? a.diff - b.diff : b.diff - a.diff;
+    });
+  el.innerHTML = list.map(x => {
+    const cls = x.diff === 0 ? 'today' : x.diff < 0 ? 'past' : '';
+    const t = x.target;
+    const dateStr = t.getFullYear() + '.' + String(t.getMonth() + 1).padStart(2, '0') + '.' + String(t.getDate()).padStart(2, '0');
+    return `<div class="dd-item ${cls}">
+      <div class="dd-info">
+        <div class="dd-title">${x.repeat ? '🔁 ' : ''}${escHtml(x.title)}</div>
+        <div class="dd-date">${dateStr}</div>
+      </div>
+      <div class="dd-badge">${ddLabel(x.diff)}</div>
+      <button class="item-edit" onclick="editDday(${x.id})">✏️</button>
+      <button class="item-del" onclick="deleteDday(${x.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+renderDdays();
+  
 calInit();
 renderTabBar();
 switchTab('calc');
