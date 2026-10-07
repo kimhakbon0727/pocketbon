@@ -1563,11 +1563,15 @@ function resetTabOrder() {
 }
 
 function moveTabOrder(id, dir) {
-  const idx = tabOrder.indexOf(id);
-  if (idx < 0) return;
+  // 화면에 보이는 순서(설정 제외) 기준으로 이동
+  const ids = getVisibleTabs().filter(t => t.id !== 'settings').map(t => t.id);
+  const idx = ids.indexOf(id);
   const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= tabOrder.length) return;
-  [tabOrder[idx], tabOrder[newIdx]] = [tabOrder[newIdx], tabOrder[idx]];
+  if (idx < 0 || newIdx < 0 || newIdx >= ids.length) return;
+  [ids[idx], ids[newIdx]] = [ids[newIdx], ids[idx]];
+  // 꺼둔 탭은 뒤에 보관해서 나중에 켜도 순서가 유지되게 함
+  const hidden = tabOrder.filter(x => !ids.includes(x));
+  tabOrder = [...ids, ...hidden];
   saveTabPrefs();
   renderTabSettings();
   renderTabBar();
