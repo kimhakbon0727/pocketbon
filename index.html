@@ -230,7 +230,7 @@
       min-height: 120px; display: flex; flex-direction: column;
       justify-content: flex-end; align-items: flex-end;
     }
-    .calc-expr { font-size: 16px; color: var(--text2); min-height: 22px; word-break: break-all; }
+    .calc-expr { font-size: 16px; color: var(--text2); min-height: 22px; word-break: break-all; text-align: right; max-height: 66px; overflow-y: auto; line-height: 1.4; }
     .calc-result { font-size: 52px; font-weight: 300; letter-spacing: -2px; word-break: break-all; line-height: 1.1; }
     .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     .btn {
@@ -726,7 +726,6 @@
       padding: 6px 14px; border-radius: 20px; z-index: 5;
       display: flex; align-items: center; gap: 6px;
     }
-    }
     .cam-rec-dot {
       width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d;
       animation: recPulse 1s infinite;
@@ -792,9 +791,8 @@
   .dd-date { font-size: 12px; color: var(--text2); margin-top: 3px; }
   .dd-badge { font-size: 26px; font-weight: 300; letter-spacing: -1px; color: var(--accent); flex-shrink: 0; }
   .dd-item.today .dd-badge { color: var(--accent2); font-weight: 600; }
-  .dd-item.past .dd-badge { color: var(--text2); }  
+  .dd-item.past .dd-badge { color: var(--text2); }
 
-    
   </style>
 </head>
 <body>
@@ -809,7 +807,7 @@
   </div>
   <div class="calc-grid">
     <button class="btn clear" onclick="calcClear()">C</button>
-    <button class="btn op" onclick="calcSign()">+/-</button>
+    <button class="btn op" onclick="calcBackspace()">⌫</button>
     <button class="btn op" onclick="calcPercent()">%</button>
     <button class="btn op" onclick="calcOp('/')">÷</button>
     <button class="btn" onclick="calcNum('7')">7</button>
@@ -824,7 +822,8 @@
     <button class="btn" onclick="calcNum('2')">2</button>
     <button class="btn" onclick="calcNum('3')">3</button>
     <button class="btn op" onclick="calcOp('+')">+</button>
-    <button class="btn zero" onclick="calcNum('0')">0</button>
+    <button class="btn op" onclick="calcSign()">+/-</button>
+    <button class="btn" onclick="calcNum('0')">0</button>
     <button class="btn" onclick="calcDot()">.</button>
     <button class="btn eq" onclick="calcEqual()">=</button>
   </div>
@@ -1637,9 +1636,9 @@ function switchTab(id) {
 }
 
 // ===== Calculator =====
-let state = { raw: '0', display: '0', expr: '', op: null, prev: null, prevRaw: null, reset: false };
+// tokens: ['45000','+','2000','+','2000'] 처럼 식을 쌓아둠
+let calc = { tokens: [], raw: '0', reset: false, done: false, expr: '' };
 
-// 숫자에 콤마 추가 (소수점 있을 때도 처리)
 function addComma(str) {
   if (str === 'Error') return str;
   const neg = str.startsWith('-');
@@ -1648,52 +1647,113 @@ function addComma(str) {
   const formatted = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return (neg ? '-' : '') + formatted + (dec !== undefined ? '.' + dec : '');
 }
+function sym(op) { return op === '*' ? '×' : op === '/' ? '÷' : op === '-' ? '−' : op; }
+function isOp(t) { return ['+','-','*','/'].includes(t); }
+function fmt(n) { return !isFinite(n) ? 'Error' : parseFloat(n.toPrecision(10)).toString(); }
+
+function exprText(tokens) {
+  return tokens.map(t => isOp(t) ? sym(t) : addComma(t)).join(' ');
+}
 
 function updateCalc() {
-  document.getElementById('result').textContent = addComma(state.display);
-  document.getElementById('expr').textContent = state.expr;
+  document.getElementById('result').textContent = addComma(calc.raw);
+  document.getElementById('expr').textContent = calc.done ? calc.expr : exprText(calc.tokens);
 }
+
+// 계산 끝난 뒤 새 숫자를 입력하면 새로 시작
+function calcFresh() {
+  if (calc.done) { calc = { tokens: [], raw: '0', reset: false, done: false, expr: '' }; }
+}
+
 function calcNum(n) {
-  if (state.reset) { state.raw = n; state.reset = false; }
-  else state.raw = state.raw === '0' ? n : state.raw + n;
-  state.display = state.raw;
+  calcFresh();
+  if (calc.reset) { calc.raw = n; calc.reset = false; }
+  else calc.raw = calc.raw === '0' ? n : calc.raw + n;
   updateCalc();
 }
+
 function calcDot() {
-  if (state.reset) { state.raw = '0.'; state.display = '0.'; state.reset = false; return updateCalc(); }
-  if (!state.raw.includes('.')) { state.raw += '.'; state.display = state.raw; }
+  calcFresh();
+  if (calc.reset) { calc.raw = '0.'; calc.reset = false; return updateCalc(); }
+  if (!calc.raw.includes('.')) calc.raw += '.';
   updateCalc();
 }
+
 function calcOp(op) {
-  const cur = parseFloat(state.raw);
-  if (state.op && !state.reset) {
-    const res = compute(state.prev, cur, state.op);
-    state.display = fmt(res); state.raw = state.display; state.prev = res; state.prevRaw = state.display;
-  } else { state.prev = cur; state.prevRaw = state.raw; }
-  state.op = op;
-  state.expr = addComma(state.prevRaw || state.raw) + ' ' + sym(op);
-  state.reset = true; updateCalc();
+  if (calc.raw === 'Error') calc.raw = '0';
+  if (calc.done) {
+    // 결과값에 이어서 계산
+    calc.tokens = [calc.raw]; calc.done = false; calc.expr = '';
+    calc.tokens.push(op);
+  } else if (calc.reset && calc.tokens.length && isOp(calc.tokens[calc.tokens.length - 1])) {
+    // 연산자를 연속으로 누르면 바꿔치기
+    calc.tokens[calc.tokens.length - 1] = op;
+  } else {
+    calc.tokens.push(calc.raw, op);
+  }
+  calc.reset = true;
+  updateCalc();
 }
+
+function evaluateTokens(t) {
+  // 곱셈/나눗셈 먼저, 덧셈/뺄셈은 나중에
+  const st = [parseFloat(t[0])];
+  for (let i = 1; i < t.length; i += 2) {
+    const op = t[i], n = parseFloat(t[i + 1]);
+    if (op === '*') st[st.length - 1] *= n;
+    else if (op === '/') st[st.length - 1] /= n;
+    else st.push(op === '-' ? -n : n);
+  }
+  return st.reduce((a, b) => a + b, 0);
+}
+
 function calcEqual() {
-  if (!state.op) return;
-  const cur = parseFloat(state.raw);
-  const res = compute(state.prev, cur, state.op);
-  const resStr = fmt(res);
-  state.expr = addComma(state.prevRaw) + ' ' + sym(state.op) + ' ' + addComma(state.raw) + ' =';
-  state.display = resStr; state.raw = resStr;
-  state.op = null; state.prev = null; state.prevRaw = null; state.reset = true; updateCalc();
+  if (calc.done || !calc.tokens.length) return;
+  const t = [...calc.tokens];
+  // "5 +" 처럼 연산자로 끝났으면 현재 숫자를 붙임
+  if (isOp(t[t.length - 1])) t.push(calc.raw);
+  const res = fmt(evaluateTokens(t));
+  calc.expr = exprText(t) + ' =';
+  calc.raw = res;
+  calc.tokens = [];
+  calc.done = true;
+  calc.reset = true;
+  updateCalc();
 }
-function compute(a, b, op) {
-  if (op === '+') return a + b;
-  if (op === '-') return a - b;
-  if (op === '*') return a * b;
-  if (op === '/') return b !== 0 ? a / b : 0;
+
+function calcBackspace() {
+  if (calc.done) {
+    // 결과 상태에서는 식 표시를 지우고 결과를 편집 가능하게
+    calc.done = false; calc.expr = ''; calc.tokens = []; calc.reset = false;
+  } else if (calc.reset && calc.tokens.length && isOp(calc.tokens[calc.tokens.length - 1])) {
+    // 방금 누른 연산자를 지우고 앞 숫자를 다시 편집
+    calc.tokens.pop();
+    calc.raw = calc.tokens.pop() || '0';
+    calc.reset = false;
+    return updateCalc();
+  }
+  if (calc.raw === 'Error') calc.raw = '0';
+  calc.raw = calc.raw.slice(0, -1);
+  if (calc.raw === '' || calc.raw === '-') calc.raw = '0';
+  updateCalc();
 }
-function fmt(n) { return !isFinite(n) ? 'Error' : parseFloat(n.toPrecision(10)).toString(); }
-function sym(op) { return op === '*' ? '×' : op === '/' ? '÷' : op; }
-function calcClear() { state = { raw: '0', display: '0', expr: '', op: null, prev: null, prevRaw: null, reset: false }; updateCalc(); }
-function calcSign() { state.raw = fmt(parseFloat(state.raw) * -1); state.display = state.raw; updateCalc(); }
-function calcPercent() { state.raw = fmt(parseFloat(state.raw) / 100); state.display = state.raw; updateCalc(); }
+
+function calcClear() {
+  calc = { tokens: [], raw: '0', reset: false, done: false, expr: '' };
+  updateCalc();
+}
+
+function calcSign() {
+  if (calc.raw === '0' || calc.raw === 'Error') return;
+  calc.raw = calc.raw.startsWith('-') ? calc.raw.slice(1) : '-' + calc.raw;
+  updateCalc();
+}
+
+function calcPercent() {
+  if (calc.raw === 'Error') return;
+  calc.raw = fmt(parseFloat(calc.raw) / 100);
+  updateCalc();
+}
 
 // ===== Weather =====
 const wmoMap = {0:'Clear',1:'Clear',2:'Clouds',3:'Clouds',51:'Drizzle',53:'Drizzle',55:'Drizzle',61:'Rain',63:'Rain',65:'Rain',71:'Snow',73:'Snow',75:'Snow',80:'Rain',81:'Rain',82:'Rain',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
@@ -3249,7 +3309,7 @@ function renderDdays() {
   }).join('');
 }
 renderDdays();
-  
+
 calInit();
 renderTabBar();
 switchTab('calc');
