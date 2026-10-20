@@ -1286,9 +1286,9 @@
   <button class="ledger-add-btn" onclick="bdSave()">💾 저장</button>
 
   <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);flex-wrap:wrap">
-    <span>마지막 참석 후</span>
-    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="1" value="30" oninput="bdAutoSave()">
-    <span>일 지난 사람 알림</span>
+    <span>참석일 다음 달 같은 날까지 오기 · 마감</span>
+    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" value="7" oninput="bdAutoSave()">
+    <span>일 전부터 알림</span>
   </div>
 
   <button class="ledger-add-btn" onclick="bdRender()">📢 알림 메시지 만들기</button>
@@ -3374,7 +3374,7 @@ function bdLast(month, day) {
 
 function bdSaveToStorage() {
   localStorage.setItem('pb-bday-text', document.getElementById('bd-input').value);
-  localStorage.setItem('pb-bday-after', document.getElementById('bd-days').value || 30);
+  localStorage.setItem('pb-bday-before', document.getElementById('bd-days').value || 7);
 }
 
 function bdAutoSave() { bdSaveToStorage(); }
@@ -3385,24 +3385,36 @@ function bdSave() {
   showToast('💾 저장됐어요 (' + cnt + '명)');
 }
 
+// 마지막 참석일 → 다음 달 같은 날 (없는 날이면 말일) = 마감일
+function bdDeadline(last) {
+  const y = last.getFullYear(), m = last.getMonth(), d = last.getDate();
+  const dl = new Date(y, m + 1, d);
+  if (dl.getMonth() !== (m + 1) % 12) return new Date(y, m + 2, 0);
+  return dl;
+}
+
 function bdRender() {
   bdSaveToStorage();
   const raw = document.getElementById('bd-input').value;
   const n = parseInt(document.getElementById('bd-days').value);
-  const after = isNaN(n) ? 30 : n;
+  const before = isNaN(n) ? 7 : n;
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const list = [];
   raw.split('\n').forEach(l => {
     const p = bdParse(l);
     if (!p) return;
-    const since = Math.round((today - bdLast(p.month, p.day)) / 86400000);
-    if (since >= after) list.push({ ...p, since });
+    const dl = bdDeadline(bdLast(p.month, p.day));
+    const left = Math.round((dl - today) / 86400000); // 마감까지 남은 일수
+    if (left <= before) list.push({ ...p, dl, left });
   });
-  list.sort((a, b) => b.since - a.since);
-  const lines = list.map(p => `${p.name}님 (마지막 참석 ${p.month}/${p.day}) - ${p.since}일 지남`);
+  list.sort((a, b) => a.left - b.left);
+  const lines = list.map(p => {
+    const when = p.left > 0 ? p.left + '일 남음' : p.left === 0 ? '오늘까지!' : Math.abs(p.left) + '일 지남';
+    return `${p.name}님 (마지막 참석 ${p.month}/${p.day}) - ${p.dl.getMonth() + 1}/${p.dl.getDate()}까지 · ${when}`;
+  });
   document.getElementById('bd-output').value = lines.length
-    ? '📢 벙 참석 안내\n마지막 참석 후 ' + after + '일이 지난 분들이에요!\n' + lines.join('\n') + '\n벙에서 뵈어요 🙌'
+    ? '📢 벙 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n' + lines.join('\n') + '\n벙에서 뵈어요 🙌'
     : '알릴 사람이 없어요';
 }
 
@@ -3416,7 +3428,7 @@ async function bdCopy() {
 
 // 저장된 값 불러오기 (메시지는 버튼을 눌러야 생성)
 document.getElementById('bd-input').value = localStorage.getItem('pb-bday-text') || '';
-document.getElementById('bd-days').value = localStorage.getItem('pb-bday-after') || 30;
+document.getElementById('bd-days').value = localStorage.getItem('pb-bday-before') || 7;
 
 calInit();
 renderTabBar();
