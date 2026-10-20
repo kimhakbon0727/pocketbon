@@ -1283,20 +1283,42 @@
 <!-- 벙 참석 알림 -->
 <div class="screen" id="bday">
   <div style="font-size:16px;font-weight:600;padding:0 4px">📋 멤버 명단</div>
-  <textarea class="memo-input" id="bd-input" rows="34" style="flex:none;min-height:780px;resize:vertical" placeholder="한 줄에 한 명씩 입력&#10;예: 이공 92 동구 남 9.15" oninput="bdAutoSave()"></textarea>
-  <button class="ledger-add-btn" onclick="bdSave()">💾 저장</button>
-  <div id="bd-count" style="text-align:center;font-size:14px;color:var(--text2)"></div>
+  <div id="bd-count" style="font-size:14px;color:var(--text2);padding:0 4px;margin-top:-8px"></div>
+  <div class="dd-list" id="bd-list" style="max-height:60vh;overflow-y:auto"></div>
+
+  <div class="dd-form">
+    <div style="font-size:14px;color:var(--text2)">➕ 멤버 추가 (한 줄에 한 명)</div>
+    <textarea class="memo-input" id="bd-add" rows="4" style="flex:none;resize:vertical" placeholder="이공 92 동구 남 9.15&#10;파파 88 남 10.5"></textarea>
+    <button class="ledger-add-btn" onclick="bdAdd()">+ 추가</button>
+  </div>
 
   <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);flex-wrap:wrap">
-    <span>참석일 다음 달 같은 날까지 오기 · 마감</span>
-    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" value="7" oninput="bdAutoSave()">
+    <span>마감(참석 다음 달 같은 날)</span>
+    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" value="7" oninput="bdPrefChanged()">
     <span>일 전부터 알림</span>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <input type="checkbox" id="bd-over" checked style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0" onchange="bdPrefChanged()">
+    <label for="bd-over" style="font-size:14px;color:var(--text2);cursor:pointer">마감 지난 사람도 메시지에 포함</label>
   </div>
 
   <button class="ledger-add-btn" onclick="bdRender()">📢 참석 안내 메시지 만들기</button>
   <div style="font-size:16px;font-weight:600;padding:0 4px">📢 참석 안내 메시지</div>
   <textarea class="memo-input" id="bd-output" rows="22" style="flex:none;min-height:480px;resize:vertical" readonly placeholder="버튼을 누르면 여기에 알림 메시지가 나와요"></textarea>
   <button class="ledger-add-btn" onclick="bdCopy()">📋 메시지 복사</button>
+</div>
+
+<!-- 멤버 수정 -->
+<div class="sch-edit-overlay" id="bd-edit-modal" style="display:none" onclick="if(event.target===this)bdCloseEdit()">
+  <div class="sch-edit-box">
+    <div class="sch-edit-title">✏️ 멤버 수정</div>
+    <input class="sch-input" id="bd-e-name" placeholder="닉네임" maxlength="20"/>
+    <input class="sch-input" id="bd-e-info" placeholder="추가 정보 (예: 92 동구 남)" maxlength="30"/>
+    <div class="sch-section-label">📅 마지막 참석일</div>
+    <input class="sch-input" id="bd-e-date" type="date"/>
+    <button class="sch-add-btn" onclick="bdSaveEdit()">저장</button>
+    <button class="sch-modal-close" onclick="bdCloseEdit()">취소</button>
+  </div>
 </div>
 
 <!-- SETTINGS -->
@@ -1641,6 +1663,7 @@ function switchTab(id) {
   if (id === 'settings') renderTabSettings();
   if (id === 'calendar') renderCal();
   if (id === 'dday') renderDdays();
+  if (id === 'bday') bdRenderList();
   if (id === 'map') {
     const tryInit = () => {
       if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
@@ -2670,7 +2693,7 @@ function restoreData(e) {
       if (backup.prefs) {
         const pk = Object.keys(backup.prefs);
         const pinCount = pk.filter(k => /^pb-pin-(?!qa-)/.test(k) || k === 'pb-ledger-pin').length;
-        if (backup.prefs['pb-bday-text'] !== undefined) lines.push('<strong>벙 명단:</strong> ' + bdCountText(backup.prefs['pb-bday-text']) + '명');
+        if (backup.prefs['pb-bday-members'] !== undefined || backup.prefs['pb-bday-text'] !== undefined) lines.push('<strong>벙 명단:</strong> ' + bdCountPrefs(backup.prefs) + '명');
         lines.push('<strong>탭 설정:</strong> ' + (pk.some(k => k.startsWith('pb-tab-')) ? '포함' : '없음'));
         lines.push('<strong>PIN 잠금:</strong> ' + pinCount + '개');
       }
@@ -2725,7 +2748,7 @@ function showStorageInfo() {
       lines.push('<strong>' + labels[k] + ':</strong> 없음');
     }
   });
-  lines.push('<strong>👥 벙 명단:</strong> ' + bdCountText(localStorage.getItem('pb-bday-text')) + '명');
+  lines.push('<strong>👥 벙 명단:</strong> ' + bdMembers.length + '명');
   lines.push('<br><strong>총 용량:</strong> ' + (totalBytes/1024).toFixed(1) + ' KB');
 
   document.getElementById('storage-summary').textContent =
@@ -3352,8 +3375,16 @@ function renderDdays() {
 }
 renderDdays();
 
-// ===== 벙 참석 알림 =====
-// "이공 92 동구 남 9.15" → { name:'이공', month:9, day:15 }
+// ===== 벙(멤버) 참석 관리 =====
+let bdMembers = [];
+let bdEditId = null;
+
+function bdYmd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function bdToDate(ymd) { const [y, m, d] = ymd.split('-').map(Number); return new Date(y, m - 1, d); }
+function bdToday() { const t = new Date(); t.setHours(0, 0, 0, 0); return t; }
+function bdNewId() { return Date.now() * 1000 + Math.floor(Math.random() * 1000); }
+
+// "이공 92 동구 남 9.15" → { name:'이공', info:'92 동구 남', month:9, day:15 }
 function bdParse(line) {
   const s = line.trim();
   if (!s) return null;
@@ -3361,13 +3392,15 @@ function bdParse(line) {
   if (!m) return null;
   const month = +m[1], day = +m[2];
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  const name = s.split(/\s+/)[0]; // 맨 앞 단어 = 닉네임
-  return { name, month, day };
+  const head = s.slice(0, m.index).trim();
+  if (!head) return null;
+  const parts = head.split(/\s+/);
+  return { name: parts[0], info: parts.slice(1).join(' '), month, day };
 }
 
 // 연도가 없으니 오늘 이전(또는 오늘) 중 가장 가까운 그 날짜로 계산
 function bdLast(month, day) {
-  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const t = bdToday();
   let d;
   for (let y = t.getFullYear(); y >= t.getFullYear() - 1; y--) {
     d = new Date(y, month - 1, day);
@@ -3375,29 +3408,6 @@ function bdLast(month, day) {
     if (d <= t) break;
   }
   return d;
-}
-
-function bdCountText(text) {
-  return (text || '').split('\n').filter(l => bdParse(l)).length;
-}
-
-function bdUpdateCount() {
-  const el = document.getElementById('bd-count');
-  if (el) el.textContent = '👥 저장된 명단: ' + bdCountText(document.getElementById('bd-input').value) + '명';
-}
-
-function bdSaveToStorage() {
-  localStorage.setItem('pb-bday-text', document.getElementById('bd-input').value);
-  localStorage.setItem('pb-bday-before', document.getElementById('bd-days').value || 7);
-  bdUpdateCount();
-}
-
-function bdAutoSave() { bdSaveToStorage(); }
-
-function bdSave() {
-  bdSaveToStorage();
-  const cnt = document.getElementById('bd-input').value.split('\n').filter(l => bdParse(l)).length;
-  showToast('💾 저장됐어요 (' + cnt + '명)');
 }
 
 // 마지막 참석일 → 다음 달 같은 날 (없는 날이면 말일) = 마감일
@@ -3408,28 +3418,163 @@ function bdDeadline(last) {
   return dl;
 }
 
-function bdRender() {
-  bdSaveToStorage();
-  const raw = document.getElementById('bd-input').value;
-  const n = parseInt(document.getElementById('bd-days').value);
-  const before = isNaN(n) ? 7 : n;
+function bdStatus(m) {
+  const dl = bdDeadline(bdToDate(m.last));
+  const left = Math.round((dl - bdToday()) / 86400000);
+  return { dl, left };
+}
 
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const list = [];
-  raw.split('\n').forEach(l => {
+// 예전 텍스트 방식 명단 개수 (설정/복원 화면용)
+function bdCountText(text) {
+  return (text || '').split('\n').filter(l => bdParse(l)).length;
+}
+function bdCountPrefs(prefs) {
+  try { if (prefs['pb-bday-members']) return JSON.parse(prefs['pb-bday-members']).length; } catch (e) {}
+  return bdCountText(prefs['pb-bday-text']);
+}
+
+function bdSaveMembers() { localStorage.setItem('pb-bday-members', JSON.stringify(bdMembers)); }
+
+function bdLoad() {
+  const raw = localStorage.getItem('pb-bday-members');
+  if (raw) {
+    try { bdMembers = JSON.parse(raw) || []; } catch (e) { bdMembers = []; }
+    return;
+  }
+  // 예전 텍스트 방식에서 가져오기
+  bdMembers = [];
+  (localStorage.getItem('pb-bday-text') || '').split('\n').forEach(l => {
     const p = bdParse(l);
-    if (!p) return;
-    const dl = bdDeadline(bdLast(p.month, p.day));
-    const left = Math.round((dl - today) / 86400000); // 마감까지 남은 일수
-    if (left <= before) list.push({ ...p, dl, left });
+    if (p) bdMembers.push({ id: bdNewId(), name: p.name, info: p.info, last: bdYmd(bdLast(p.month, p.day)) });
   });
-  list.sort((a, b) => a.left - b.left);
-  const lines = list.map(p => {
-    const when = p.left > 0 ? p.left + '일 남음' : p.left === 0 ? '오늘까지!' : Math.abs(p.left) + '일 지남';
-    return `${p.name}님 (마지막 참석 ${p.month}/${p.day}) - ${p.dl.getMonth() + 1}/${p.dl.getDate()}까지 · ${when}`;
+  if (bdMembers.length) bdSaveMembers();
+}
+
+function bdBefore() {
+  const n = parseInt(document.getElementById('bd-days').value);
+  return isNaN(n) ? 7 : n;
+}
+
+function bdPrefChanged() {
+  localStorage.setItem('pb-bday-before', document.getElementById('bd-days').value || 7);
+  localStorage.setItem('pb-bday-over', document.getElementById('bd-over').checked ? '1' : '0');
+  bdRenderList();
+}
+
+function bdAdd() {
+  const ta = document.getElementById('bd-add');
+  const lines = ta.value.split('\n').filter(l => l.trim());
+  if (!lines.length) { showToast('💡 추가할 멤버를 입력해주세요'); return; }
+  let added = 0, updated = 0;
+  const bad = [];
+  lines.forEach(l => {
+    const p = bdParse(l);
+    if (!p) { bad.push(l.trim()); return; }
+    const last = bdYmd(bdLast(p.month, p.day));
+    const ex = bdMembers.find(x => x.name === p.name && x.info === p.info);
+    if (ex) { ex.last = last; updated++; }
+    else { bdMembers.push({ id: bdNewId(), name: p.name, info: p.info, last }); added++; }
+  });
+  bdSaveMembers();
+  ta.value = bad.join('\n'); // 못 읽은 줄은 남겨서 고칠 수 있게
+  bdRenderList();
+  let msg = '✅ ' + added + '명 추가';
+  if (updated) msg += ', ' + updated + '명 날짜 갱신';
+  if (bad.length) msg += ' · ⚠️ 날짜를 못 읽은 ' + bad.length + '줄은 남겨뒀어요';
+  showToast(msg, bad.length ? 4000 : 2500);
+}
+
+function bdAttend(id) {
+  const m = bdMembers.find(x => x.id === id);
+  if (!m) return;
+  m.last = bdYmd(bdToday());
+  bdSaveMembers();
+  bdRenderList();
+  showToast('✅ ' + m.name + '님 오늘 참석 처리');
+}
+
+function bdDelete(id) {
+  const m = bdMembers.find(x => x.id === id);
+  if (!m) return;
+  if (!confirm(m.name + '님을 명단에서 삭제할까요?')) return;
+  bdMembers = bdMembers.filter(x => x.id !== id);
+  bdSaveMembers();
+  bdRenderList();
+}
+
+function bdOpenEdit(id) {
+  const m = bdMembers.find(x => x.id === id);
+  if (!m) return;
+  bdEditId = id;
+  document.getElementById('bd-e-name').value = m.name;
+  document.getElementById('bd-e-info').value = m.info || '';
+  document.getElementById('bd-e-date').value = m.last;
+  document.getElementById('bd-edit-modal').style.display = 'flex';
+}
+
+function bdCloseEdit() {
+  document.getElementById('bd-edit-modal').style.display = 'none';
+  bdEditId = null;
+}
+
+function bdSaveEdit() {
+  const m = bdMembers.find(x => x.id === bdEditId);
+  if (!m) return;
+  const name = document.getElementById('bd-e-name').value.trim();
+  const date = document.getElementById('bd-e-date').value;
+  if (!name) { showToast('닉네임을 입력해주세요'); return; }
+  if (!date) { showToast('참석일을 선택해주세요'); return; }
+  m.name = name;
+  m.info = document.getElementById('bd-e-info').value.trim();
+  m.last = date;
+  bdSaveMembers();
+  bdCloseEdit();
+  bdRenderList();
+  showToast('수정됐어요 ✅');
+}
+
+function bdRenderList() {
+  const el = document.getElementById('bd-list');
+  if (!el) return;
+  const before = bdBefore();
+  const list = bdMembers.map(m => ({ ...m, ...bdStatus(m) })).sort((a, b) => a.left - b.left);
+  const due = list.filter(m => m.left <= before).length;
+  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' : '');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-hint"><span>🎤</span>아직 멤버가 없어요<br>아래에서 추가해주세요</div>';
+    return;
+  }
+  el.innerHTML = list.map(m => {
+    const badge = m.left > 0 ? 'D-' + m.left : m.left === 0 ? '오늘까지' : Math.abs(m.left) + '일 지남';
+    const color = m.left < 0 ? '#ff8080' : m.left <= before ? 'var(--accent2)' : 'var(--text2)';
+    const border = m.left <= before ? 'border-color:' + (m.left < 0 ? '#ff8080' : 'var(--accent2)') + ';' : '';
+    const d = bdToDate(m.last);
+    return `<div class="dd-item" style="${border}">
+      <div class="dd-info">
+        <div class="dd-title">${escHtml(m.name)} <span style="font-size:12px;color:var(--text2);font-weight:400">${escHtml(m.info || '')}</span></div>
+        <div class="dd-date">마지막 참석 ${d.getMonth() + 1}/${d.getDate()} · 마감 ${m.dl.getMonth() + 1}/${m.dl.getDate()}</div>
+      </div>
+      <div class="dd-badge" style="font-size:16px;color:${color}">${badge}</div>
+      <button class="item-edit" onclick="bdAttend(${m.id})" title="오늘 참석">✅</button>
+      <button class="item-edit" onclick="bdOpenEdit(${m.id})">✏️</button>
+      <button class="item-del" onclick="bdDelete(${m.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function bdRender() {
+  const before = bdBefore();
+  const incl = document.getElementById('bd-over').checked;
+  const list = bdMembers.map(m => ({ ...m, ...bdStatus(m) }))
+    .filter(m => m.left <= before && (incl || m.left >= 0))
+    .sort((a, b) => a.left - b.left);
+  const lines = list.map(m => {
+    const d = bdToDate(m.last);
+    const when = m.left > 0 ? m.left + '일 남음' : m.left === 0 ? '오늘까지!' : Math.abs(m.left) + '일 지남';
+    return `${m.name}님 (마지막 참석 ${d.getMonth() + 1}/${d.getDate()}) - ${m.dl.getMonth() + 1}/${m.dl.getDate()}까지 · ${when}`;
   });
   document.getElementById('bd-output').value = lines.length
-    ? '📢 벙 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n' + lines.join('\n') + '\n벙에서 뵈어요 🙌'
+    ? '📢 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n' + lines.join('\n') + '\n함께해요 🙌'
     : '알릴 사람이 없어요';
 }
 
@@ -3442,9 +3587,10 @@ async function bdCopy() {
 }
 
 // 저장된 값 불러오기 (메시지는 버튼을 눌러야 생성)
-document.getElementById('bd-input').value = localStorage.getItem('pb-bday-text') || '';
 document.getElementById('bd-days').value = localStorage.getItem('pb-bday-before') || 7;
-bdUpdateCount();
+document.getElementById('bd-over').checked = localStorage.getItem('pb-bday-over') !== '0';
+bdLoad();
+bdRenderList();
 
 calInit();
 renderTabBar();
