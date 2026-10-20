@@ -1284,6 +1284,7 @@
 <div class="screen" id="bday">
   <textarea class="memo-input" id="bd-input" rows="34" style="flex:none;min-height:780px;resize:vertical" placeholder="한 줄에 한 명씩 입력&#10;예: 이공 92 동구 남 9.15" oninput="bdAutoSave()"></textarea>
   <button class="ledger-add-btn" onclick="bdSave()">💾 저장</button>
+  <div id="bd-count" style="text-align:center;font-size:14px;color:var(--text2)"></div>
 
   <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);flex-wrap:wrap">
     <span>참석일 다음 달 같은 날까지 오기 · 마감</span>
@@ -2667,6 +2668,7 @@ function restoreData(e) {
       if (backup.prefs) {
         const pk = Object.keys(backup.prefs);
         const pinCount = pk.filter(k => /^pb-pin-(?!qa-)/.test(k) || k === 'pb-ledger-pin').length;
+        if (backup.prefs['pb-bday-text'] !== undefined) lines.push('<strong>벙 명단:</strong> ' + bdCountText(backup.prefs['pb-bday-text']) + '명');
         lines.push('<strong>탭 설정:</strong> ' + (pk.some(k => k.startsWith('pb-tab-')) ? '포함' : '없음'));
         lines.push('<strong>PIN 잠금:</strong> ' + pinCount + '개');
       }
@@ -2721,6 +2723,7 @@ function showStorageInfo() {
       lines.push('<strong>' + labels[k] + ':</strong> 없음');
     }
   });
+  lines.push('<strong>👥 벙 명단:</strong> ' + bdCountText(localStorage.getItem('pb-bday-text')) + '명');
   lines.push('<br><strong>총 용량:</strong> ' + (totalBytes/1024).toFixed(1) + ' KB');
 
   document.getElementById('storage-summary').textContent =
@@ -3372,9 +3375,19 @@ function bdLast(month, day) {
   return d;
 }
 
+function bdCountText(text) {
+  return (text || '').split('\n').filter(l => bdParse(l)).length;
+}
+
+function bdUpdateCount() {
+  const el = document.getElementById('bd-count');
+  if (el) el.textContent = '👥 저장된 명단: ' + bdCountText(document.getElementById('bd-input').value) + '명';
+}
+
 function bdSaveToStorage() {
   localStorage.setItem('pb-bday-text', document.getElementById('bd-input').value);
   localStorage.setItem('pb-bday-before', document.getElementById('bd-days').value || 7);
+  bdUpdateCount();
 }
 
 function bdAutoSave() { bdSaveToStorage(); }
@@ -3429,6 +3442,7 @@ async function bdCopy() {
 // 저장된 값 불러오기 (메시지는 버튼을 눌러야 생성)
 document.getElementById('bd-input').value = localStorage.getItem('pb-bday-text') || '';
 document.getElementById('bd-days').value = localStorage.getItem('pb-bday-before') || 7;
+bdUpdateCount();
 
 calInit();
 renderTabBar();
