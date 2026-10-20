@@ -1286,11 +1286,9 @@
   <button class="ledger-add-btn" onclick="bdSave()">💾 저장</button>
 
   <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);flex-wrap:wrap">
-    <span>참석일로부터</span>
-    <input type="number" id="bd-period" class="ledger-input" style="width:70px" min="1" value="30" oninput="bdAutoSave()">
-    <span>일 기준,</span>
-    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" value="7" oninput="bdAutoSave()">
-    <span>일 전부터 알림</span>
+    <span>마지막 참석 후</span>
+    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="1" value="30" oninput="bdAutoSave()">
+    <span>일 지난 사람 알림</span>
   </div>
 
   <button class="ledger-add-btn" onclick="bdRender()">📢 알림 메시지 만들기</button>
@@ -3376,8 +3374,7 @@ function bdLast(month, day) {
 
 function bdSaveToStorage() {
   localStorage.setItem('pb-bday-text', document.getElementById('bd-input').value);
-  localStorage.setItem('pb-bday-period', document.getElementById('bd-period').value || 30);
-  localStorage.setItem('pb-bday-days', document.getElementById('bd-days').value || 7);
+  localStorage.setItem('pb-bday-after', document.getElementById('bd-days').value || 30);
 }
 
 function bdAutoSave() { bdSaveToStorage(); }
@@ -3391,24 +3388,22 @@ function bdSave() {
 function bdRender() {
   bdSaveToStorage();
   const raw = document.getElementById('bd-input').value;
-  const period = parseInt(document.getElementById('bd-period').value) || 30;
   const n = parseInt(document.getElementById('bd-days').value);
-  const notify = isNaN(n) ? 7 : n;
+  const after = isNaN(n) ? 30 : n;
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const lines = [];
+  const list = [];
   raw.split('\n').forEach(l => {
     const p = bdParse(l);
     if (!p) return;
     const since = Math.round((today - bdLast(p.month, p.day)) / 86400000);
-    const left = period - since;
-    if (left >= 0 && left <= notify) {
-      lines.push(`${p.name}님 (마지막 참석 ${p.month}/${p.day}) - ${left === 0 ? '오늘이 ' + period + '일째' : left + '일 뒤 ' + period + '일째'}`);
-    }
+    if (since >= after) list.push({ ...p, since });
   });
+  list.sort((a, b) => b.since - a.since);
+  const lines = list.map(p => `${p.name}님 (마지막 참석 ${p.month}/${p.day}) - ${p.since}일 지남`);
   document.getElementById('bd-output').value = lines.length
-    ? '📢 벙 참석 안내\n최근 벙 참석 후 ' + period + '일이 다가오는 분들이에요!\n' + lines.join('\n') + '\n벙에서 뵈어요 🙌'
-    : '오늘 알릴 사람이 없어요';
+    ? '📢 벙 참석 안내\n마지막 참석 후 ' + after + '일이 지난 분들이에요!\n' + lines.join('\n') + '\n벙에서 뵈어요 🙌'
+    : '알릴 사람이 없어요';
 }
 
 async function bdCopy() {
@@ -3421,8 +3416,7 @@ async function bdCopy() {
 
 // 저장된 값 불러오기 (메시지는 버튼을 눌러야 생성)
 document.getElementById('bd-input').value = localStorage.getItem('pb-bday-text') || '';
-document.getElementById('bd-period').value = localStorage.getItem('pb-bday-period') || 30;
-document.getElementById('bd-days').value = localStorage.getItem('pb-bday-days') || 7;
+document.getElementById('bd-days').value = localStorage.getItem('pb-bday-after') || 30;
 
 calInit();
 renderTabBar();
