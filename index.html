@@ -1280,6 +1280,20 @@
   <div class="dd-list" id="dd-list"></div>
 </div>
 
+<!-- 벙 참석 알림 -->
+<div class="screen" id="bday">
+  <textarea class="memo-input" id="bd-input" rows="6" style="flex:none" placeholder="닉네임을 한 줄에 한 명씩 입력&#10;예: 파파 88 남 10.20" oninput="bdRender()"></textarea>
+  <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);flex-wrap:wrap">
+    <span>참석일로부터</span>
+    <input type="number" id="bd-period" class="ledger-input" style="width:70px" min="1" value="30" oninput="bdRender()">
+    <span>일 기준,</span>
+    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" value="7" oninput="bdRender()">
+    <span>일 전부터 알림</span>
+  </div>
+  <textarea class="memo-input" id="bd-output" rows="8" style="flex:none" readonly></textarea>
+  <button class="ledger-add-btn" onclick="bdCopy()">📋 메시지 복사</button>
+</div>
+  
 <!-- SETTINGS -->
 <div class="screen" id="settings">
   <div class="settings-section">
@@ -1395,6 +1409,7 @@
 // ===== Tab =====
 // ===== Tab Management =====
 const ALL_TABS = [
+  { id: 'bday', label: '벙', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.8 0 4.5 2 4.5 5"/></svg>` },
   { id: 'calc',     label: '계산기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="10" y2="11"/><line x1="14" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="16" y2="15"/><line x1="8" y1="19" x2="10" y2="19"/><line x1="14" y1="19" x2="16" y2="19"/></svg>` },
   { id: 'weather',  label: '날씨',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 10a6 6 0 10-11.4 2.6A4 4 0 106 20h12a4 4 0 000-8z"/></svg>` },
   { id: 'alarm',    label: '알람',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M4 4l2 2M20 4l-2 2M9 3h6M12 3v2"/></svg>` },
@@ -1621,6 +1636,7 @@ function switchTab(id) {
   if (id === 'settings') renderTabSettings();
   if (id === 'calendar') renderCal();
   if (id === 'dday') renderDdays();
+  if (id === 'bday') bdRender();
   if (id === 'map') {
     const tryInit = () => {
       if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
@@ -3330,6 +3346,67 @@ function renderDdays() {
 }
 renderDdays();
 
+// ===== 벙 참석 알림 =====
+// "파파 88 남 10.20" → { name:'파파', month:10, day:20 }
+function bdParse(line) {
+  const nick = line.trim();
+  const m = nick.match(/(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*$/);
+  if (!m) return null;
+  const month = +m[1], day = +m[2];
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const name = nick.slice(0, m.index).trim().replace(/\s*\d{2}\s*[남여]?\s*$/, '').trim();
+  return { name: name || nick, month, day };
+}
+
+// 연도가 없으니 오늘 이전(또는 오늘) 중 가장 가까운 그 날짜로 계산
+function bdLast(month, day) {
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  let d;
+  for (let y = t.getFullYear(); y >= t.getFullYear() - 1; y--) {
+    d = new Date(y, month - 1, day);
+    if (d.getMonth() !== month - 1) d = new Date(y, month, 0);
+    if (d <= t) break;
+  }
+  return d;
+}
+
+function bdRender() {
+  const raw = document.getElementById('bd-input').value;
+  const period = parseInt(document.getElementById('bd-period').value) || 30;
+  const n = parseInt(document.getElementById('bd-days').value);
+  const notify = isNaN(n) ? 7 : n;
+  localStorage.setItem('pb-bday-text', raw);
+  localStorage.setItem('pb-bday-period', period);
+  localStorage.setItem('pb-bday-days', notify);
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const lines = [];
+  raw.split('\n').forEach(l => {
+    const p = bdParse(l);
+    if (!p) return;
+    const since = Math.round((today - bdLast(p.month, p.day)) / 86400000);
+    const left = period - since; // 기준일까지 남은 일수
+    if (left >= 0 && left <= notify) {
+      lines.push(`${p.name}님 (마지막 참석 ${p.month}/${p.day}) - ${left === 0 ? '오늘이 ' + period + '일째' : left + '일 뒤 ' + period + '일째'}`);
+    }
+  });
+  document.getElementById('bd-output').value = lines.length
+    ? '📢 벙 참석 안내\n최근 벙 참석 후 ' + period + '일이 다가오는 분들이에요!\n' + lines.join('\n') + '\n벙에서 뵈어요 🙌'
+    : '오늘 알릴 사람이 없어요';
+}
+
+async function bdCopy() {
+  const out = document.getElementById('bd-output');
+  try { await navigator.clipboard.writeText(out.value); }
+  catch (e) { out.select(); document.execCommand('copy'); }
+  showToast('📋 복사됐어요! 채팅방에 붙여넣으세요');
+}
+
+document.getElementById('bd-input').value = localStorage.getItem('pb-bday-text') || '';
+document.getElementById('bd-period').value = localStorage.getItem('pb-bday-period') || 30;
+document.getElementById('bd-days').value = localStorage.getItem('pb-bday-days') || 7;
+bdRender();
+  
 calInit();
 renderTabBar();
 switchTab('calc');
