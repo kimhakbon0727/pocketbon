@@ -1282,7 +1282,7 @@
 
 <!-- 벙 참석 알림 -->
 <div class="screen" id="bday">
-  <div style="font-size:16px;font-weight:600;padding:0 4px">📋 벙 명단</div>
+  <div style="font-size:16px;font-weight:600;padding:0 4px">📋 멤버 명단</div>
   <textarea class="memo-input" id="bd-input" rows="34" style="flex:none;min-height:780px;resize:vertical" placeholder="한 줄에 한 명씩 입력&#10;예: 이공 92 동구 남 9.15" oninput="bdAutoSave()"></textarea>
   <button class="ledger-add-btn" onclick="bdSave()">💾 저장</button>
   <div id="bd-count" style="text-align:center;font-size:14px;color:var(--text2)"></div>
@@ -1293,8 +1293,8 @@
     <span>일 전부터 알림</span>
   </div>
 
-  <button class="ledger-add-btn" onclick="bdRender()">📢 알림 메시지 만들기</button>
-  <div style="font-size:16px;font-weight:600;padding:0 4px">📢 알림 메시지</div>
+  <button class="ledger-add-btn" onclick="bdRender()">📢 참석 안내 메시지 만들기</button>
+  <div style="font-size:16px;font-weight:600;padding:0 4px">📢 참석 안내 메시지</div>
   <textarea class="memo-input" id="bd-output" rows="22" style="flex:none;min-height:480px;resize:vertical" readonly placeholder="버튼을 누르면 여기에 알림 메시지가 나와요"></textarea>
   <button class="ledger-add-btn" onclick="bdCopy()">📋 메시지 복사</button>
 </div>
