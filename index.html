@@ -1282,18 +1282,22 @@
 
 <!-- 벙 참석 알림 -->
 <div class="screen" id="bday">
-  <textarea class="memo-input" id="bd-input" rows="6" style="flex:none" placeholder="닉네임을 한 줄에 한 명씩 입력&#10;예: 파파 88 남 10.20" oninput="bdRender()"></textarea>
+  <textarea class="memo-input" id="bd-input" rows="6" style="flex:none" placeholder="한 줄에 한 명씩 입력&#10;예: 이공 92 동구 남 9.15" oninput="bdAutoSave()"></textarea>
+  <button class="ledger-add-btn" onclick="bdSave()">💾 저장</button>
+
   <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);flex-wrap:wrap">
     <span>참석일로부터</span>
-    <input type="number" id="bd-period" class="ledger-input" style="width:70px" min="1" value="30" oninput="bdRender()">
+    <input type="number" id="bd-period" class="ledger-input" style="width:70px" min="1" value="30" oninput="bdAutoSave()">
     <span>일 기준,</span>
-    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" value="7" oninput="bdRender()">
+    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" value="7" oninput="bdAutoSave()">
     <span>일 전부터 알림</span>
   </div>
-  <textarea class="memo-input" id="bd-output" rows="8" style="flex:none" readonly></textarea>
+
+  <button class="ledger-add-btn" onclick="bdRender()">📢 알림 메시지 만들기</button>
+  <textarea class="memo-input" id="bd-output" rows="8" style="flex:none" readonly placeholder="버튼을 누르면 여기에 알림 메시지가 나와요"></textarea>
   <button class="ledger-add-btn" onclick="bdCopy()">📋 메시지 복사</button>
 </div>
-  
+
 <!-- SETTINGS -->
 <div class="screen" id="settings">
   <div class="settings-section">
@@ -1636,7 +1640,6 @@ function switchTab(id) {
   if (id === 'settings') renderTabSettings();
   if (id === 'calendar') renderCal();
   if (id === 'dday') renderDdays();
-  if (id === 'bday') bdRender();
   if (id === 'map') {
     const tryInit = () => {
       if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
@@ -3347,15 +3350,16 @@ function renderDdays() {
 renderDdays();
 
 // ===== 벙 참석 알림 =====
-// "파파 88 남 10.20" → { name:'파파', month:10, day:20 }
+// "이공 92 동구 남 9.15" → { name:'이공', month:9, day:15 }
 function bdParse(line) {
-  const nick = line.trim();
-  const m = nick.match(/(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*$/);
+  const s = line.trim();
+  if (!s) return null;
+  const m = s.match(/(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*$/);
   if (!m) return null;
   const month = +m[1], day = +m[2];
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  const name = nick.slice(0, m.index).trim().replace(/\s*\d{2}\s*[남여]?\s*$/, '').trim();
-  return { name: name || nick, month, day };
+  const name = s.split(/\s+/)[0]; // 맨 앞 단어 = 닉네임
+  return { name, month, day };
 }
 
 // 연도가 없으니 오늘 이전(또는 오늘) 중 가장 가까운 그 날짜로 계산
@@ -3370,14 +3374,26 @@ function bdLast(month, day) {
   return d;
 }
 
+function bdSaveToStorage() {
+  localStorage.setItem('pb-bday-text', document.getElementById('bd-input').value);
+  localStorage.setItem('pb-bday-period', document.getElementById('bd-period').value || 30);
+  localStorage.setItem('pb-bday-days', document.getElementById('bd-days').value || 7);
+}
+
+function bdAutoSave() { bdSaveToStorage(); }
+
+function bdSave() {
+  bdSaveToStorage();
+  const cnt = document.getElementById('bd-input').value.split('\n').filter(l => bdParse(l)).length;
+  showToast('💾 저장됐어요 (' + cnt + '명)');
+}
+
 function bdRender() {
+  bdSaveToStorage();
   const raw = document.getElementById('bd-input').value;
   const period = parseInt(document.getElementById('bd-period').value) || 30;
   const n = parseInt(document.getElementById('bd-days').value);
   const notify = isNaN(n) ? 7 : n;
-  localStorage.setItem('pb-bday-text', raw);
-  localStorage.setItem('pb-bday-period', period);
-  localStorage.setItem('pb-bday-days', notify);
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const lines = [];
@@ -3385,7 +3401,7 @@ function bdRender() {
     const p = bdParse(l);
     if (!p) return;
     const since = Math.round((today - bdLast(p.month, p.day)) / 86400000);
-    const left = period - since; // 기준일까지 남은 일수
+    const left = period - since;
     if (left >= 0 && left <= notify) {
       lines.push(`${p.name}님 (마지막 참석 ${p.month}/${p.day}) - ${left === 0 ? '오늘이 ' + period + '일째' : left + '일 뒤 ' + period + '일째'}`);
     }
@@ -3397,16 +3413,17 @@ function bdRender() {
 
 async function bdCopy() {
   const out = document.getElementById('bd-output');
+  if (!out.value) { showToast('먼저 알림 메시지를 만들어주세요'); return; }
   try { await navigator.clipboard.writeText(out.value); }
   catch (e) { out.select(); document.execCommand('copy'); }
   showToast('📋 복사됐어요! 채팅방에 붙여넣으세요');
 }
 
+// 저장된 값 불러오기 (메시지는 버튼을 눌러야 생성)
 document.getElementById('bd-input').value = localStorage.getItem('pb-bday-text') || '';
 document.getElementById('bd-period').value = localStorage.getItem('pb-bday-period') || 30;
 document.getElementById('bd-days').value = localStorage.getItem('pb-bday-days') || 7;
-bdRender();
-  
+
 calInit();
 renderTabBar();
 switchTab('calc');
