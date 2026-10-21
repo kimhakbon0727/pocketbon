@@ -1316,8 +1316,9 @@
     <input class="sch-input" id="bd-e-info" placeholder="추가 정보 (예: 92 동구 남)" maxlength="30"/>
     <div class="sch-section-label">📅 마지막 참석일</div>
     <input class="sch-input" id="bd-e-date" type="date"/>
-    <div class="sch-section-label">🚫 알림 제외 (사유가 있을 때)</div>
-    <input class="sch-input" id="bd-e-reason" placeholder="제외 사유 (비우면 제외 안 함, 예: 군대, 출장)" maxlength="30"/>
+    <div class="sch-section-label">⏳ 사유 연장 (개월, 0이면 연장 없음)</div>
+    <input class="sch-input" id="bd-e-ext" type="number" min="0" max="24" placeholder="연장 개월 수"/>
+    <input class="sch-input" id="bd-e-reason" placeholder="연장 사유 (예: 군대, 출장)" maxlength="30"/>
     <button class="sch-add-btn" onclick="bdSaveEdit()">저장</button>
     <button class="sch-modal-close" onclick="bdCloseEdit()">취소</button>
   </div>
@@ -3427,10 +3428,23 @@ function bdDeadline(last) {
   return dl;
 }
 
+// 연장 개월 수 (이전 버전에서 사유만 있던 데이터는 1개월로 간주)
+function bdExt(m) { return m.ext != null ? (parseInt(m.ext) || 0) : (m.excuse ? 1 : 0); }
+
+// 날짜에 n개월 더하기 (없는 날이면 말일)
+function bdAddMonths(d, n) {
+  const y = d.getFullYear(), mo = d.getMonth(), day = d.getDate();
+  const r = new Date(y, mo + n, day);
+  if (r.getMonth() !== (((mo + n) % 12) + 12) % 12) return new Date(y, mo + n + 1, 0);
+  return r;
+}
+
 function bdStatus(m) {
-  const dl = bdDeadline(bdToDate(m.last));
-  const left = Math.round((dl - bdToday()) / 86400000);
-  return { dl, left };
+  const dl = bdDeadline(bdToDate(m.last));      // 원래 마감일 (그대로 표시)
+  const ext = bdExt(m);
+  const edl = ext > 0 ? bdAddMonths(dl, ext) : dl; // 연장된 마감일
+  const left = Math.round((edl - bdToday()) / 86400000);
+  return { dl, edl, ext, left };
 }
 
 // 예전 텍스트 방식 명단 개수 (설정/복원 화면용)
@@ -3497,7 +3511,7 @@ function bdAttend(id) {
   const m = bdMembers.find(x => x.id === id);
   if (!m) return;
   m.last = bdYmd(bdToday());
-  m.excuse = '';
+  m.excuse = ''; m.ext = 0;
   bdSaveMembers();
   bdRenderList();
   showToast('✅ ' + m.name + '님 오늘 참석 처리');
@@ -3515,20 +3529,24 @@ function bdDelete(id) {
 function bdExcuse(id) {
   const m = bdMembers.find(x => x.id === id);
   if (!m) return;
-  if (m.excuse) {
-    if (!confirm(m.name + '님의 제외(' + m.excuse + ')를 해제할까요?')) return;
-    m.excuse = '';
-    bdSaveMembers(); bdRenderList();
-    showToast('↩️ ' + m.name + '님 제외 해제');
-    return;
-  }
-  const r = prompt(m.name + '님을 알림에서 제외할 사유를 입력하세요\n(예: 군대, 출장, 휴식)');
+  const r = prompt(m.name + '님 사유 연장 (+1개월)\n사유를 입력하세요 (예: 군대, 출장, 휴식)');
   if (r === null) return;
   const reason = r.trim();
   if (!reason) { showToast('💡 사유를 입력해주세요'); return; }
+  m.ext = bdExt(m) + 1;
   m.excuse = reason;
   bdSaveMembers(); bdRenderList();
-  showToast('🚫 ' + m.name + '님 알림 제외 (' + reason + ')');
+  const st = bdStatus(m);
+  showToast('⏳ ' + m.name + '님 ' + (st.edl.getMonth() + 1) + '/' + st.edl.getDate() + '까지 연장 (' + reason + ')');
+}
+
+function bdUnextend(id) {
+  const m = bdMembers.find(x => x.id === id);
+  if (!m || !bdExt(m)) return;
+  if (!confirm(m.name + '님의 연장을 취소하고 원래 마감일로 되돌릴까요?')) return;
+  m.ext = 0; m.excuse = '';
+  bdSaveMembers(); bdRenderList();
+  showToast('↩️ ' + m.name + '님 연장 취소');
 }
 
 function bdOpenEdit(id) {
@@ -3539,6 +3557,7 @@ function bdOpenEdit(id) {
   document.getElementById('bd-e-info').value = m.info || '';
   document.getElementById('bd-e-date').value = m.last;
   document.getElementById('bd-e-reason').value = m.excuse || '';
+  document.getElementById('bd-e-ext').value = bdExt(m);
   document.getElementById('bd-edit-modal').style.display = 'flex';
 }
 
@@ -3557,7 +3576,8 @@ function bdSaveEdit() {
   m.name = name;
   m.info = document.getElementById('bd-e-info').value.trim();
   m.last = date;
-  m.excuse = document.getElementById('bd-e-reason').value.trim();
+  m.ext = Math.max(0, parseInt(document.getElementById('bd-e-ext').value) || 0);
+  m.excuse = m.ext > 0 ? document.getElementById('bd-e-reason').value.trim() : '';
   bdSaveMembers();
   bdCloseEdit();
   bdRenderList();
@@ -3569,28 +3589,28 @@ function bdRenderList() {
   if (!el) return;
   const before = bdBefore();
   const list = bdMembers.map(m => ({ ...m, ...bdStatus(m) })).sort((a, b) => a.left - b.left);
-  const due = list.filter(m => !m.excuse && m.left <= before).length;
-  const exc = list.filter(m => m.excuse).length;
-  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' + (exc ? ' · 제외 ' + exc + '명' : '') : '');
+  const due = list.filter(m => m.left <= before).length;
+  const exc = list.filter(m => m.ext > 0).length;
+  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' + (exc ? ' · 연장 ' + exc + '명' : '') : '');
   if (!list.length) {
     el.innerHTML = '<div class="empty-hint"><span>🎤</span>아직 멤버가 없어요<br>아래에서 추가해주세요</div>';
     return;
   }
   el.innerHTML = list.map(m => {
-    const badge = m.excuse ? '제외' : m.left > 0 ? 'D-' + m.left : m.left === 0 ? '오늘까지' : Math.abs(m.left) + '일 지남';
-    const color = m.excuse ? 'var(--text2)' : m.left < 0 ? '#ff8080' : m.left <= before ? 'var(--accent2)' : 'var(--text2)';
-    const border = !m.excuse && m.left <= before ? 'border-color:' + (m.left < 0 ? '#ff8080' : 'var(--accent2)') + ';' : '';
-    const dim = m.excuse ? 'opacity:.6;' : '';
+    const badge = m.left > 0 ? 'D-' + m.left : m.left === 0 ? '오늘까지' : Math.abs(m.left) + '일 지남';
+    const color = m.left < 0 ? '#ff8080' : m.left <= before ? 'var(--accent2)' : 'var(--text2)';
+    const border = m.left <= before ? 'border-color:' + (m.left < 0 ? '#ff8080' : 'var(--accent2)') + ';' : '';
     const d = bdToDate(m.last);
-    return `<div class="dd-item" style="${border}${dim}">
+    return `<div class="dd-item" style="${border}">
       <div class="dd-info">
         <div class="dd-title">${escHtml(m.name)} <span style="font-size:12px;color:var(--text2);font-weight:400">${escHtml(m.info || '')}</span></div>
         <div class="dd-date">마지막 참석 ${d.getMonth() + 1}/${d.getDate()} · 마감 ${m.dl.getMonth() + 1}/${m.dl.getDate()}</div>
-        ${m.excuse ? '<div class="dd-date" style="color:var(--accent)">🚫 제외 사유: ' + escHtml(m.excuse) + '</div>' : ''}
+        ${m.ext > 0 ? '<div class="dd-date" style="color:var(--accent)">⏳ +' + m.ext + '개월 연장 → ' + (m.edl.getMonth() + 1) + '/' + m.edl.getDate() + '까지' + (m.excuse ? ' (' + escHtml(m.excuse) + ')' : '') + '</div>' : ''}
       </div>
       <div class="dd-badge" style="font-size:16px;color:${color}">${badge}</div>
       <button class="item-edit" onclick="bdAttend(${m.id})" title="오늘 참석">✅</button>
-      <button class="item-edit" onclick="bdExcuse(${m.id})" title="${m.excuse ? '제외 해제' : '사유로 제외'}">${m.excuse ? '↩️' : '🚫'}</button>
+      <button class="item-edit" onclick="bdExcuse(${m.id})" title="사유로 1개월 연장">⏳</button>${m.ext > 0 ? `
+      <button class="item-edit" onclick="bdUnextend(${m.id})" title="연장 취소">↩️</button>` : ''}
       <button class="item-edit" onclick="bdOpenEdit(${m.id})">✏️</button>
       <button class="item-del" onclick="bdDelete(${m.id})">✕</button>
     </div>`;
@@ -3601,12 +3621,13 @@ function bdRender() {
   const before = bdBefore();
   const incl = document.getElementById('bd-over').checked;
   const list = bdMembers.map(m => ({ ...m, ...bdStatus(m) }))
-    .filter(m => !m.excuse && m.left <= before && (incl || m.left >= 0))
+    .filter(m => m.left <= before && (incl || m.left >= 0))
     .sort((a, b) => a.left - b.left);
   const lines = list.map(m => {
     const d = bdToDate(m.last);
     const when = m.left > 0 ? m.left + '일 남음' : m.left === 0 ? '오늘까지!' : Math.abs(m.left) + '일 지남';
-    return `${m.name}님 (마지막 참석 ${d.getMonth() + 1}/${d.getDate()}) - ${m.dl.getMonth() + 1}/${m.dl.getDate()}까지 · ${when}`;
+    const ext = m.ext > 0 ? ` → ${m.excuse ? m.excuse + ' ' : ''}연장 ${m.edl.getMonth() + 1}/${m.edl.getDate()}까지` : '';
+    return `${m.name}님 (마지막 참석 ${d.getMonth() + 1}/${d.getDate()}) - ${m.dl.getMonth() + 1}/${m.dl.getDate()}까지${ext} · ${when}`;
   });
   document.getElementById('bd-output').value = lines.length
     ? '📢 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n' + lines.join('\n') + '\n함께해요 🙌'
