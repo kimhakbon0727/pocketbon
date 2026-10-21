@@ -3632,13 +3632,13 @@ function bdRender() {
   const items = list.map(m => {
     const d = bdToDate(m.last);
     const when = m.baseLeft > 0 ? m.baseLeft + '일 남음' : m.baseLeft === 0 ? '오늘까지!' : Math.abs(m.baseLeft) + '일 지남';
-    let line = `${m.name}님 (마지막 참석 ${d.getMonth() + 1}/${d.getDate()}) - ${m.dl.getMonth() + 1}/${m.dl.getDate()}까지 · ${when}`;
+    let line = `${m.name}님 (마지막 참석 ${d.getMonth() + 1}/${d.getDate()})\n- ${m.dl.getMonth() + 1}/${m.dl.getDate()}까지 - ${when}`;
     if (m.ext > 0) line += ` · 사유: ${m.excuse || '연장'} (연장 ${m.edl.getMonth() + 1}/${m.edl.getDate()}까지)`;
     if (m.ext > 0) line = '⏳ ' + line;   // 카톡에는 색이 안 나와서 이모지로 표시
     return { text: line, ext: m.ext > 0 };
   });
-  const head = '📢 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n';
-  const foot = '\n함께해요 🙌';
+  const head = '📢 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n\n';
+  const foot = '\n\n함께해요 🙌';
   const out = document.getElementById('bd-output');
   const view = document.getElementById('bd-output-view');
   if (!items.length) {
@@ -3646,11 +3646,11 @@ function bdRender() {
     view.textContent = out.value;
     return;
   }
-  out.value = head + items.map(i => i.text).join('\n') + foot;   // 복사용 (일반 텍스트)
+  out.value = head + items.map(i => i.text).join('\n\n') + foot;   // 복사용 (일반 텍스트)
   view.innerHTML = escHtml(head) +
     items.map(i => i.ext
       ? '<span style="color:var(--accent2);font-weight:600">' + escHtml(i.text) + '</span>'
-      : escHtml(i.text)).join('\n') +
+      : escHtml(i.text)).join('\n\n') +
     escHtml(foot);
 }
 
