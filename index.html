@@ -1282,7 +1282,10 @@
 
 <!-- 벙 참석 알림 -->
 <div class="screen" id="bday">
-  <div style="font-size:16px;font-weight:600;padding:0 4px">📋 멤버 명단</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px">
+    <div style="font-size:16px;font-weight:600">📋 멤버 명단</div>
+    <button class="item-edit" style="font-size:14px;padding:6px 12px;width:auto" onclick="bdOpenManual()">📖 메뉴얼</button>
+  </div>
   <div id="bd-count" style="font-size:14px;color:var(--text2);padding:0 4px;margin-top:-8px"></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     <input class="ledger-input" id="bd-search" placeholder="🔍 닉네임/정보 검색" style="flex:1;min-width:140px" oninput="bdQuery=this.value;bdRenderList()">
@@ -1323,6 +1326,60 @@
   <textarea id="bd-output" style="display:none" readonly></textarea>
   <div id="bd-msg-targets" style="display:none"></div>
   <button class="ledger-add-btn" onclick="bdCopy()">📋 메시지 복사</button>
+</div>
+
+<!-- 벙 메뉴얼 -->
+<div class="sch-edit-overlay" id="bd-manual-modal" style="display:none" onclick="if(event.target===this)bdCloseManual()">
+  <div class="sch-edit-box" style="max-height:85vh;overflow-y:auto;line-height:1.65;font-size:14px">
+    <div class="sch-edit-title">📖 벙 참석 관리 메뉴얼</div>
+
+    <div style="font-weight:600;margin-top:6px">1. 멤버 추가</div>
+    <div style="color:var(--text2)">하단 입력칸에 <b>한 줄에 한 명</b>씩 적고 [+ 추가]를 눌러요.<br>
+    형식: <b>닉네임 추가정보 월.일</b> (마지막 참석일)<br>
+    예) <code>사마봉 91 영도구 남 10.20</code><br>
+    · 추가정보는 없어도 돼요. 날짜는 <code>10.20</code> / <code>10/20</code> 모두 가능해요.<br>
+    · 닉네임이 이미 있으면 등록되지 않고 알림창이 떠요.<br>
+    · 날짜를 못 읽은 줄은 입력칸에 남아서 고칠 수 있어요.</div>
+
+    <div style="font-weight:600;margin-top:12px">2. 마감일 규칙</div>
+    <div style="color:var(--text2)">마지막 참석일의 <b>다음 달 같은 날</b>이 마감이에요. (해당 날짜가 없으면 말일)<br>
+    예) 10/31 참석 → 11/30 마감<br>
+    명단 오른쪽 배지가 남은 일수(D-N), 마감 지난 일수를 보여줘요.<br>
+    마감이 임박한 사람은 <span style="color:var(--accent2)">분홍 테두리</span>, 지난 사람은 <span style="color:#ff8080">빨간색</span>으로 표시돼요.</div>
+
+    <div style="font-weight:600;margin-top:12px">3. 명단 버튼</div>
+    <div style="color:var(--text2)">✅ <b>오늘 참석</b> — 마지막 참석일을 오늘로 바꾸고 연장을 초기화해요.<br>
+    ⏳ <b>사유 연장</b> — 사유를 적으면 마감이 1개월 늘어나요. 누를 때마다 한 달씩 추가돼요. 원래 마감일은 그대로 표시돼요.<br>
+    ↩️ <b>연장 취소</b> — 연장 중인 사람에게만 보여요. 원래 마감일로 되돌려요.<br>
+    ✏️ <b>수정</b> — 닉네임, 정보, 참석일, 연장 개월·사유를 직접 고치고 이력도 볼 수 있어요.<br>
+    ✕ <b>삭제</b> — 확인창 후 삭제돼요. 직후 8초 동안 아래에 뜨는 [되돌리기]로 복구할 수 있어요.</div>
+
+    <div style="font-weight:600;margin-top:12px">4. 검색 · 필터</div>
+    <div style="color:var(--text2)">명단 위 검색칸에서 닉네임/정보로 찾고, 오른쪽 필터로 <b>전체 / 알림 대상만 / 연장 중만</b>을 골라 볼 수 있어요.</div>
+
+    <div style="font-weight:600;margin-top:12px">5. 참석 일괄 처리</div>
+    <div style="color:var(--text2)">벙이 끝난 뒤 쓰면 편해요.<br>
+    ① [☑️ 참석 일괄 처리] 누르기 → ② 참석한 사람 체크 (전체 선택도 가능) → ③ [✅ 선택 N명 오늘 참석] → 확인.<br>
+    검색·필터를 켠 상태에서 [전체 선택]을 누르면 화면에 보이는 사람만 선택돼요.</div>
+
+    <div style="font-weight:600;margin-top:12px">6. 참석 안내 메시지 만들기</div>
+    <div style="color:var(--text2)">① <b>알림 시작일</b>: 마감 며칠 전부터 대상에 넣을지 정해요. (기본 7일)<br>
+    ② <b>마감 지난 사람도 포함</b>: 체크하면 마감이 지난 사람도 메시지에 들어가요.<br>
+    ③ <b>안내 문구</b>: 메시지 맨 위에 들어가는 문구예요. 자유롭게 고치면 자동 저장돼요. (비우면 기본 문구)<br>
+    ④ [📢 참석 안내 메시지 만들기]를 누르면 미리보기가 나와요.<br>
+    ⑤ 미리보기 아래 <b>칩에서 체크를 해제</b>하면 그 사람만 이번 메시지에서 빠져요. (새로고침하면 초기화)<br>
+    ⑥ [📋 메시지 복사] 후 단톡방에 붙여넣으세요.<br>
+    · 연장 중인 사람은 앞에 ⏳가 붙고 <b>원래 마감일 기준</b>으로 사유와 연장 마감일이 함께 나와요.<br>
+    · 앱 미리보기에서는 연장자가 분홍색으로 보이지만, 카톡에서는 색이 안 나와서 ⏳로 구분해요.</div>
+
+    <div style="font-weight:600;margin-top:12px">7. 이력</div>
+    <div style="color:var(--text2)">참석·연장·연장 취소가 날짜와 함께 자동 기록돼요. 명단에 <b>참석 N회</b>가 표시되고, ✏️ 수정 창에서 최근 이력을 볼 수 있어요.</div>
+
+    <div style="font-weight:600;margin-top:12px">💡 저장 · 백업</div>
+    <div style="color:var(--text2)">명단과 설정은 이 기기 브라우저에 자동 저장돼요. 기기를 바꾸거나 브라우저 데이터를 지우기 전에는 설정 화면의 백업 기능을 꼭 써주세요.</div>
+
+    <button class="sch-modal-close" style="margin-top:14px" onclick="bdCloseManual()">닫기</button>
+  </div>
 </div>
 
 <!-- 멤버 수정 -->
@@ -3540,6 +3597,9 @@ function bdGetHead() {
   const v = document.getElementById('bd-head').value.replace(/\s+$/, '');
   return (v || BD_DEFAULT_HEAD) + '\n\n';
 }
+
+function bdOpenManual() { document.getElementById('bd-manual-modal').style.display = 'flex'; }
+function bdCloseManual() { document.getElementById('bd-manual-modal').style.display = 'none'; }
 
 function bdToggleSel() {
   bdSelMode = !bdSelMode;
