@@ -3489,24 +3489,31 @@ function bdAdd() {
   const ta = document.getElementById('bd-add');
   const lines = ta.value.split('\n').filter(l => l.trim());
   if (!lines.length) { showToast('💡 추가할 멤버를 입력해주세요'); return; }
-  let added = 0, updated = 0;
+  let added = 0;
   const bad = [];
+  const dups = [];
   lines.forEach(l => {
     const p = bdParse(l);
     if (!p) { bad.push(l.trim()); return; }
     const last = bdYmd(bdLast(p.month, p.day));
-    const ex = bdMembers.find(x => x.name === p.name && x.info === p.info);
-    if (ex) { ex.last = last; updated++; }
-    else { bdMembers.push({ id: bdNewId(), name: p.name, info: p.info, last }); added++; }
+    // 닉네임이 같으면 중복 (이미 있는 멤버 + 이번에 같이 입력한 멤버 모두 포함)
+    if (bdMembers.some(x => bdNameKey(x.name) === bdNameKey(p.name))) { dups.push(p.name); return; }
+    bdMembers.push({ id: bdNewId(), name: p.name, info: p.info, last }); added++;
   });
   bdSaveMembers();
   ta.value = bad.join('\n'); // 못 읽은 줄은 남겨서 고칠 수 있게
   bdRenderList();
   let msg = '✅ ' + added + '명 추가';
-  if (updated) msg += ', ' + updated + '명 날짜 갱신';
   if (bad.length) msg += ' · ⚠️ 날짜를 못 읽은 ' + bad.length + '줄은 남겨뒀어요';
-  showToast(msg, bad.length ? 4000 : 2500);
+  if (added || bad.length) showToast(msg, bad.length ? 4000 : 2500);
+  if (dups.length) {
+    alert('⚠️ 이미 등록된 멤버라 추가하지 않았어요\n\n' + dups.map(n => '· ' + n).join('\n') +
+      (added ? '\n\n(나머지 ' + added + '명은 추가됐어요)' : ''));
+  }
 }
+
+// 닉네임 비교용 (공백 제거, 대소문자 무시)
+function bdNameKey(n) { return String(n || '').replace(/\s+/g, '').toLowerCase(); }
 
 function bdAttend(id) {
   const m = bdMembers.find(x => x.id === id);
@@ -3574,6 +3581,10 @@ function bdSaveEdit() {
   const date = document.getElementById('bd-e-date').value;
   if (!name) { showToast('닉네임을 입력해주세요'); return; }
   if (!date) { showToast('참석일을 선택해주세요'); return; }
+  if (bdMembers.some(x => x.id !== m.id && bdNameKey(x.name) === bdNameKey(name))) {
+    alert('⚠️ 이미 등록된 닉네임이에요\n\n· ' + name);
+    return;
+  }
   m.name = name;
   m.info = document.getElementById('bd-e-info').value.trim();
   m.last = date;
@@ -3637,7 +3648,7 @@ function bdRender() {
     if (m.ext > 0) line = '⏳ ' + line;   // 카톡에는 색이 안 나와서 이모지로 표시
     return { text: line, ext: m.ext > 0 };
   });
-  const head = '@all\n\n📢 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n사유로 인해 못 올 것 같으면 운영진에게 1:1 채팅으로 사유를 남겨주세요!\n\n';
+  const head = '📢 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n사유로 인해 못 올 것 같으면 단톡방에 운영진을 @로 언급해서 남겨주시거나, 운영진에게 1:1 채팅으로 사유를 남겨주세요!\n\n';
   const foot = '\n\n함께해요 🙌';
   const out = document.getElementById('bd-output');
   const view = document.getElementById('bd-output-view');
