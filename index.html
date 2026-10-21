@@ -1284,6 +1284,19 @@
 <div class="screen" id="bday">
   <div style="font-size:16px;font-weight:600;padding:0 4px">📋 멤버 명단</div>
   <div id="bd-count" style="font-size:14px;color:var(--text2);padding:0 4px;margin-top:-8px"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <input class="ledger-input" id="bd-search" placeholder="🔍 닉네임/정보 검색" style="flex:1;min-width:140px" oninput="bdQuery=this.value;bdRenderList()">
+    <select class="ledger-input" id="bd-filter" style="width:auto" onchange="bdFilter=this.value;bdRenderList()">
+      <option value="all">전체</option>
+      <option value="due">알림 대상만</option>
+      <option value="ext">연장 중만</option>
+    </select>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button class="ledger-add-btn" id="bd-sel-toggle" style="flex:none;padding:8px 14px;font-size:14px" onclick="bdToggleSel()">☑️ 참석 일괄 처리</button>
+    <button class="ledger-add-btn" id="bd-sel-all" style="display:none;flex:none;padding:8px 14px;font-size:14px" onclick="bdSelAll()">전체 선택</button>
+    <button class="ledger-add-btn" id="bd-sel-go" style="display:none;flex:none;padding:8px 14px;font-size:14px" onclick="bdAttendSelected()">✅ 선택 0명 오늘 참석</button>
+  </div>
   <div class="dd-list" id="bd-list" style="max-height:60vh;overflow-y:auto"></div>
 
   <div class="dd-form">
@@ -1302,6 +1315,8 @@
     <label for="bd-over" style="font-size:14px;color:var(--text2);cursor:pointer">마감 지난 사람도 메시지에 포함</label>
   </div>
 
+  <div style="font-size:14px;color:var(--text2);padding:0 4px">📝 안내 문구 (맨 위에 들어가요, 자동 저장)</div>
+  <textarea class="memo-input" id="bd-head" rows="5" style="flex:none;resize:vertical" oninput="bdHeadChanged()"></textarea>
   <button class="ledger-add-btn" onclick="bdRender()">📢 참석 안내 메시지 만들기</button>
   <div style="font-size:16px;font-weight:600;padding:0 4px">📢 참석 안내 메시지</div>
   <div class="memo-input" id="bd-output-view" style="flex:none;min-height:480px;white-space:pre-wrap;overflow-y:auto;line-height:1.6"><span style="color:var(--text2)">버튼을 누르면 여기에 알림 메시지가 나와요</span></div>
@@ -3457,6 +3472,55 @@ function bdCountPrefs(prefs) {
   return bdCountText(prefs['pb-bday-text']);
 }
 
+let bdQuery = '', bdFilter = 'all', bdSelMode = false;
+const bdSel = new Set();
+const BD_DEFAULT_HEAD = '@all\n\n📢 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n사유로 인해 못 올 것 같으면 운영진에게 1:1 채팅으로 사유를 남겨주세요!';
+
+function bdHeadChanged() {
+  localStorage.setItem('pb-bday-head', document.getElementById('bd-head').value);
+}
+function bdGetHead() {
+  const v = document.getElementById('bd-head').value.replace(/\s+$/, '');
+  return (v || BD_DEFAULT_HEAD) + '\n\n';
+}
+
+function bdToggleSel() {
+  bdSelMode = !bdSelMode;
+  bdSel.clear();
+  bdRenderList();
+}
+function bdSelToggleOne(id) {
+  if (bdSel.has(id)) bdSel.delete(id); else bdSel.add(id);
+  bdRenderList();
+}
+function bdSelAll() {
+  const ids = bdVisible().map(m => m.id);
+  const allOn = ids.length && ids.every(id => bdSel.has(id));
+  ids.forEach(id => allOn ? bdSel.delete(id) : bdSel.add(id));
+  bdRenderList();
+}
+function bdAttendSelected() {
+  const targets = bdMembers.filter(m => bdSel.has(m.id));
+  if (!targets.length) { showToast('💡 참석 처리할 사람을 선택해주세요'); return; }
+  if (!confirm(targets.length + '명을 오늘 참석으로 처리할까요?\n(연장 중인 사람은 연장이 초기화돼요)')) return;
+  const today = bdYmd(bdToday());
+  targets.forEach(m => { m.last = today; m.excuse = ''; m.ext = 0; });
+  bdSaveMembers();
+  bdSelMode = false; bdSel.clear();
+  bdRenderList();
+  showToast('✅ ' + targets.length + '명 오늘 참석 처리');
+}
+
+// 검색/필터가 적용된 목록 (마감 임박순)
+function bdVisible() {
+  const before = bdBefore();
+  const q = bdQuery.trim().toLowerCase();
+  return bdMembers.map(m => ({ ...m, ...bdStatus(m) }))
+    .filter(m => !q || (m.name + ' ' + (m.info || '')).toLowerCase().includes(q))
+    .filter(m => bdFilter === 'due' ? m.left <= before : bdFilter === 'ext' ? m.ext > 0 : true)
+    .sort((a, b) => a.left - b.left);
+}
+
 function bdSaveMembers() { localStorage.setItem('pb-bday-members', JSON.stringify(bdMembers)); }
 
 function bdLoad() {
@@ -3600,12 +3664,25 @@ function bdRenderList() {
   const el = document.getElementById('bd-list');
   if (!el) return;
   const before = bdBefore();
-  const list = bdMembers.map(m => ({ ...m, ...bdStatus(m) })).sort((a, b) => a.left - b.left);
-  const due = list.filter(m => m.left <= before).length;
-  const exc = list.filter(m => m.ext > 0).length;
-  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' + (exc ? ' · 연장 ' + exc + '명' : '') : '');
-  if (!list.length) {
+  const all = bdMembers.map(m => ({ ...m, ...bdStatus(m) }));
+  const list = bdVisible();
+  // 삭제된 사람은 선택에서 제거
+  [...bdSel].forEach(id => { if (!bdMembers.some(m => m.id === id)) bdSel.delete(id); });
+  const tg = document.getElementById('bd-sel-toggle');
+  tg.textContent = bdSelMode ? '✖ 일괄 처리 닫기' : '☑️ 참석 일괄 처리';
+  document.getElementById('bd-sel-all').style.display = bdSelMode ? '' : 'none';
+  const go = document.getElementById('bd-sel-go');
+  go.style.display = bdSelMode ? '' : 'none';
+  go.textContent = '✅ 선택 ' + bdSel.size + '명 오늘 참석';
+  const due = all.filter(m => m.left <= before).length;
+  const exc = all.filter(m => m.ext > 0).length;
+  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' + (exc ? ' · 연장 ' + exc + '명' : '') : '') + (list.length !== all.length ? ' · 표시 ' + list.length + '명' : '');
+  if (!all.length) {
     el.innerHTML = '<div class="empty-hint"><span>🎤</span>아직 멤버가 없어요<br>아래에서 추가해주세요</div>';
+    return;
+  }
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-hint"><span>🔍</span>조건에 맞는 멤버가 없어요</div>';
     return;
   }
   el.innerHTML = list.map(m => {
@@ -3614,6 +3691,7 @@ function bdRenderList() {
     const border = m.left <= before ? 'border-color:' + (m.left < 0 ? '#ff8080' : 'var(--accent2)') + ';' : '';
     const d = bdToDate(m.last);
     return `<div class="dd-item" style="${border}">
+      ${bdSelMode ? `<input type="checkbox" ${bdSel.has(m.id) ? 'checked' : ''} onchange="bdSelToggleOne(${m.id})" style="width:20px;height:20px;accent-color:var(--accent);flex-shrink:0;cursor:pointer">` : ''}
       <div class="dd-info">
         <div class="dd-title" style="white-space:normal;overflow:visible;text-overflow:clip;word-break:keep-all;overflow-wrap:anywhere">${escHtml(m.name)} <span style="font-size:12px;color:var(--text2);font-weight:400">${escHtml(m.info || '')}</span></div>
         <div class="dd-date" style="overflow-wrap:anywhere">마지막 참석 ${d.getMonth() + 1}/${d.getDate()} · 마감 ${m.dl.getMonth() + 1}/${m.dl.getDate()}</div>
@@ -3648,7 +3726,7 @@ function bdRender() {
     if (m.ext > 0) line = '⏳ ' + line;   // 카톡에는 색이 안 나와서 이모지로 표시
     return { text: line, ext: m.ext > 0 };
   });
-  const head = '@all\n\n📢 참석 안내\n마지막 참석 후 다음 달 같은 날까지 나와주세요!\n사유로 인해 못 올 것 같으면 운영진에게 1:1 채팅으로 사유를 남겨주세요!\n\n';
+  const head = bdGetHead();
   const foot = '\n\n함께해요 🙌';
   const out = document.getElementById('bd-output');
   const view = document.getElementById('bd-output-view');
@@ -3680,6 +3758,7 @@ async function bdCopy() {
 // 저장된 값 불러오기 (메시지는 버튼을 눌러야 생성)
 document.getElementById('bd-days').value = localStorage.getItem('pb-bday-before') || 7;
 document.getElementById('bd-over').checked = localStorage.getItem('pb-bday-over') !== '0';
+document.getElementById('bd-head').value = localStorage.getItem('pb-bday-head') ?? BD_DEFAULT_HEAD;
 bdLoad();
 bdRenderList();
 
