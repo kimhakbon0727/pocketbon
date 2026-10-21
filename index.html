@@ -1316,6 +1316,8 @@
     <input class="sch-input" id="bd-e-info" placeholder="추가 정보 (예: 92 동구 남)" maxlength="30"/>
     <div class="sch-section-label">📅 마지막 참석일</div>
     <input class="sch-input" id="bd-e-date" type="date"/>
+    <div class="sch-section-label">🚫 알림 제외 (사유가 있을 때)</div>
+    <input class="sch-input" id="bd-e-reason" placeholder="제외 사유 (비우면 제외 안 함, 예: 군대, 출장)" maxlength="30"/>
     <button class="sch-add-btn" onclick="bdSaveEdit()">저장</button>
     <button class="sch-modal-close" onclick="bdCloseEdit()">취소</button>
   </div>
@@ -2041,6 +2043,7 @@ async function toggleAlarm(id) {
 }
 
 async function deleteAlarm(id) {
+  if (!confirm('이 알람을 삭제할까요?')) return;
   clearTimeout(alarmTimers[id]);
   delete alarmTimers[id];
   alarms = alarms.filter(a => a.id !== id);
@@ -2266,6 +2269,7 @@ function addMemo() {
 }
 
 function deleteMemo(id) {
+  if (!confirm('이 메모를 삭제할까요?')) return;
   memos = memos.filter(m => m.id !== id);
   saveMemos(); renderMemos();
 }
@@ -2349,6 +2353,7 @@ function toggleTodo(id) {
 }
 
 function deleteTodo(id) {
+  if (!confirm('이 할 일을 삭제할까요?')) return;
   todos = todos.filter(t => t.id !== id);
   saveTodos(); renderTodos();
 }
@@ -2487,11 +2492,13 @@ function addLedger() {
 }
 
 function deleteLedger(id) {
+  if (!confirm('이 내역을 삭제할까요?')) return;
   ledger = ledger.filter(l => l.id !== id);
   saveLedger(); renderLedger();
 }
 
 function deleteRecurring(id) {
+  if (!confirm('이 고정 항목을 삭제할까요?')) return;
   recurringItems = recurringItems.filter(r => r.id !== id);
   saveRecurring(); renderLedger();
 }
@@ -2975,6 +2982,7 @@ function addSchedule() {
 }
 
 function deleteSchedule(id) {
+  if (!confirm('이 일정을 삭제할까요?')) return;
   // 모든 날짜에서 해당 id 제거
   Object.keys(schedules).forEach(key => {
     schedules[key] = schedules[key].filter(s => s.id !== id);
@@ -3322,6 +3330,7 @@ function cancelDdayEdit() {
 }
 
 function deleteDday(id) {
+  if (!confirm('이 디데이를 삭제할까요?')) return;
   ddays = ddays.filter(x => x.id !== id);
   saveDdays();
   if (ddEditId === id) cancelDdayEdit();
@@ -3488,6 +3497,7 @@ function bdAttend(id) {
   const m = bdMembers.find(x => x.id === id);
   if (!m) return;
   m.last = bdYmd(bdToday());
+  m.excuse = '';
   bdSaveMembers();
   bdRenderList();
   showToast('✅ ' + m.name + '님 오늘 참석 처리');
@@ -3502,6 +3512,25 @@ function bdDelete(id) {
   bdRenderList();
 }
 
+function bdExcuse(id) {
+  const m = bdMembers.find(x => x.id === id);
+  if (!m) return;
+  if (m.excuse) {
+    if (!confirm(m.name + '님의 제외(' + m.excuse + ')를 해제할까요?')) return;
+    m.excuse = '';
+    bdSaveMembers(); bdRenderList();
+    showToast('↩️ ' + m.name + '님 제외 해제');
+    return;
+  }
+  const r = prompt(m.name + '님을 알림에서 제외할 사유를 입력하세요\n(예: 군대, 출장, 휴식)');
+  if (r === null) return;
+  const reason = r.trim();
+  if (!reason) { showToast('💡 사유를 입력해주세요'); return; }
+  m.excuse = reason;
+  bdSaveMembers(); bdRenderList();
+  showToast('🚫 ' + m.name + '님 알림 제외 (' + reason + ')');
+}
+
 function bdOpenEdit(id) {
   const m = bdMembers.find(x => x.id === id);
   if (!m) return;
@@ -3509,6 +3538,7 @@ function bdOpenEdit(id) {
   document.getElementById('bd-e-name').value = m.name;
   document.getElementById('bd-e-info').value = m.info || '';
   document.getElementById('bd-e-date').value = m.last;
+  document.getElementById('bd-e-reason').value = m.excuse || '';
   document.getElementById('bd-edit-modal').style.display = 'flex';
 }
 
@@ -3527,6 +3557,7 @@ function bdSaveEdit() {
   m.name = name;
   m.info = document.getElementById('bd-e-info').value.trim();
   m.last = date;
+  m.excuse = document.getElementById('bd-e-reason').value.trim();
   bdSaveMembers();
   bdCloseEdit();
   bdRenderList();
@@ -3538,24 +3569,28 @@ function bdRenderList() {
   if (!el) return;
   const before = bdBefore();
   const list = bdMembers.map(m => ({ ...m, ...bdStatus(m) })).sort((a, b) => a.left - b.left);
-  const due = list.filter(m => m.left <= before).length;
-  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' : '');
+  const due = list.filter(m => !m.excuse && m.left <= before).length;
+  const exc = list.filter(m => m.excuse).length;
+  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' + (exc ? ' · 제외 ' + exc + '명' : '') : '');
   if (!list.length) {
     el.innerHTML = '<div class="empty-hint"><span>🎤</span>아직 멤버가 없어요<br>아래에서 추가해주세요</div>';
     return;
   }
   el.innerHTML = list.map(m => {
-    const badge = m.left > 0 ? 'D-' + m.left : m.left === 0 ? '오늘까지' : Math.abs(m.left) + '일 지남';
-    const color = m.left < 0 ? '#ff8080' : m.left <= before ? 'var(--accent2)' : 'var(--text2)';
-    const border = m.left <= before ? 'border-color:' + (m.left < 0 ? '#ff8080' : 'var(--accent2)') + ';' : '';
+    const badge = m.excuse ? '제외' : m.left > 0 ? 'D-' + m.left : m.left === 0 ? '오늘까지' : Math.abs(m.left) + '일 지남';
+    const color = m.excuse ? 'var(--text2)' : m.left < 0 ? '#ff8080' : m.left <= before ? 'var(--accent2)' : 'var(--text2)';
+    const border = !m.excuse && m.left <= before ? 'border-color:' + (m.left < 0 ? '#ff8080' : 'var(--accent2)') + ';' : '';
+    const dim = m.excuse ? 'opacity:.6;' : '';
     const d = bdToDate(m.last);
-    return `<div class="dd-item" style="${border}">
+    return `<div class="dd-item" style="${border}${dim}">
       <div class="dd-info">
         <div class="dd-title">${escHtml(m.name)} <span style="font-size:12px;color:var(--text2);font-weight:400">${escHtml(m.info || '')}</span></div>
         <div class="dd-date">마지막 참석 ${d.getMonth() + 1}/${d.getDate()} · 마감 ${m.dl.getMonth() + 1}/${m.dl.getDate()}</div>
+        ${m.excuse ? '<div class="dd-date" style="color:var(--accent)">🚫 제외 사유: ' + escHtml(m.excuse) + '</div>' : ''}
       </div>
       <div class="dd-badge" style="font-size:16px;color:${color}">${badge}</div>
       <button class="item-edit" onclick="bdAttend(${m.id})" title="오늘 참석">✅</button>
+      <button class="item-edit" onclick="bdExcuse(${m.id})" title="${m.excuse ? '제외 해제' : '사유로 제외'}">${m.excuse ? '↩️' : '🚫'}</button>
       <button class="item-edit" onclick="bdOpenEdit(${m.id})">✏️</button>
       <button class="item-del" onclick="bdDelete(${m.id})">✕</button>
     </div>`;
@@ -3566,7 +3601,7 @@ function bdRender() {
   const before = bdBefore();
   const incl = document.getElementById('bd-over').checked;
   const list = bdMembers.map(m => ({ ...m, ...bdStatus(m) }))
-    .filter(m => m.left <= before && (incl || m.left >= 0))
+    .filter(m => !m.excuse && m.left <= before && (incl || m.left >= 0))
     .sort((a, b) => a.left - b.left);
   const lines = list.map(m => {
     const d = bdToDate(m.last);
