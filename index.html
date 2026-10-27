@@ -1382,7 +1382,7 @@
     ⑤ [📢 참석 안내 메시지 만들기]를 누르면 미리보기가 나와요.<br>
     ⑥ 미리보기 아래 <b>칩에서 체크를 해제</b>하면 그 사람만 이번 메시지에서 빠져요. (새로고침하면 초기화)<br>
     ⑦ [📋 메시지 복사] 후 단톡방에 붙여넣으세요.<br>
-    · 연장 중인 사람은 별도 구역("⏳ 연장 중")으로 나뉘고, <b>원래 마감일</b>과 <b>연장 마감일</b>, 사유가 함께 나와요.<br>
+    · 연장 중인 사람은 별도 구역("🙏 연장 중")으로 나뉘고, <b>원래 마감일</b>과 <b>연장 마감일</b>, 사유가 함께 나와요.<br>
     · 앱 미리보기에서는 연장자가 분홍색으로 보이지만, 카톡에서는 색이 안 나와서 구역 제목으로 구분해요.</div>
 
     <div style="font-weight:600;margin-top:12px">7. 이력</div>
@@ -3947,11 +3947,11 @@ function bdRender() {
   const hasBoth = normal.length && extended.length;
   const parts = [];   // { text, ext, title }
   if (normal.length) {
-    if (hasBoth) parts.push({ text: '📌 참석 마감 대상', ext: false, title: true });
+    if (hasBoth) parts.push({ text: '⏰ 참석 마감 대상', ext: false, title: true });
     normal.forEach(t => parts.push({ text: t, ext: false }));
   }
   if (extended.length) {
-    parts.push({ text: '⏳ 연장 중', ext: true, title: true });
+    parts.push({ text: '🙏 연장 중', ext: true, title: true });
     extended.forEach(t => parts.push({ text: t, ext: true }));
   }
 
