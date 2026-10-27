@@ -1293,6 +1293,7 @@
       <option value="all">전체</option>
       <option value="due">알림 대상만</option>
       <option value="ext">연장 중만</option>
+      <option value="staff">운영진만</option>
     </select>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -1305,6 +1306,10 @@
   <div class="dd-form">
     <div style="font-size:14px;color:var(--text2)">➕ 멤버 추가 (한 줄에 한 명)</div>
     <textarea class="memo-input" id="bd-add" rows="4" style="flex:none;resize:vertical" placeholder="ex) 사마봉 91 영도구 남 10.20"></textarea>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="bd-add-staff" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="bd-add-staff" style="font-size:14px;color:var(--text2);cursor:pointer">👑 운영진으로 추가 (날짜 없이 닉네임만)</label>
+    </div>
     <button class="ledger-add-btn" onclick="bdAdd()">+ 추가</button>
   </div>
 
@@ -1340,6 +1345,11 @@
     · 추가정보는 없어도 돼요. 날짜는 <code>10.20</code> / <code>10/20</code> 모두 가능해요.<br>
     · 닉네임이 이미 있으면 등록되지 않고 알림창이 떠요.<br>
     · 날짜를 못 읽은 줄은 입력칸에 남아서 고칠 수 있어요.</div>
+
+    <div style="font-weight:600;margin-top:12px">1-1. 운영진 등록</div>
+    <div style="color:var(--text2)">추가 입력칸 아래 <b>👑 운영진으로 추가</b>를 체크하고 <b>닉네임 추가정보</b>만 적으면 돼요. (날짜 없음)<br>
+    · 운영진은 마감일·알림·참석 안내 메시지에서 제외되고 목록 맨 위에 👑로 표시돼요.<br>
+    · 필터의 <b>운영진만</b>으로 따로 볼 수 있어요. ✏️ 수정에서 운영진 ↔ 일반 멤버 전환도 가능해요.</div>
 
     <div style="font-weight:600;margin-top:12px">2. 마감일 규칙</div>
     <div style="color:var(--text2)">마지막 참석일의 <b>다음 달 같은 날</b>이 마감이에요. (해당 날짜가 없으면 말일)<br>
@@ -1388,6 +1398,8 @@
     <div class="sch-edit-title">✏️ 멤버 수정</div>
     <input class="sch-input" id="bd-e-name" placeholder="닉네임" maxlength="20"/>
     <input class="sch-input" id="bd-e-info" placeholder="추가 정보 (예: 92 동구 남)" maxlength="30"/>
+    <div class="sch-allday-row"><input type="checkbox" id="bd-e-staff" onchange="bdToggleEditStaff()"/><label for="bd-e-staff">👑 운영진 (참석 마감 없음)</label></div>
+    <div id="bd-e-member-fields">
     <div class="sch-section-label">📅 마지막 참석일</div>
     <input class="sch-input" id="bd-e-date" type="date"/>
     <div class="sch-section-label">⏳ 사유 연장 (개월, 0이면 연장 없음)</div>
@@ -1395,6 +1407,7 @@
     <input class="sch-input" id="bd-e-reason" placeholder="연장 사유 (예: 군대, 출장)" maxlength="30"/>
     <div class="sch-section-label">📜 참석·연장 이력</div>
     <div id="bd-e-hist" style="max-height:120px;overflow-y:auto;padding:0 2px"></div>
+    </div>
     <button class="sch-add-btn" onclick="bdSaveEdit()">저장</button>
     <button class="sch-modal-close" onclick="bdCloseEdit()">취소</button>
   </div>
@@ -3516,6 +3529,7 @@ function bdAddMonths(d, n) {
 }
 
 function bdStatus(m) {
+  if (m.staff) return { dl: null, edl: null, ext: 0, left: Infinity };
   const dl = bdDeadline(bdToDate(m.last));      // 원래 마감일 (그대로 표시)
   const ext = bdExt(m);
   const edl = ext > 0 ? bdAddMonths(dl, ext) : dl; // 연장된 마감일
@@ -3611,13 +3625,13 @@ function bdSelToggleOne(id) {
   bdRenderList();
 }
 function bdSelAll() {
-  const ids = bdVisible().map(m => m.id);
+  const ids = bdVisible().filter(m => !m.staff).map(m => m.id);
   const allOn = ids.length && ids.every(id => bdSel.has(id));
   ids.forEach(id => allOn ? bdSel.delete(id) : bdSel.add(id));
   bdRenderList();
 }
 function bdAttendSelected() {
-  const targets = bdMembers.filter(m => bdSel.has(m.id));
+  const targets = bdMembers.filter(m => bdSel.has(m.id) && !m.staff);
   if (!targets.length) { showToast('💡 참석 처리할 사람을 선택해주세요'); return; }
   if (!confirm(targets.length + '명을 오늘 참석으로 처리할까요?\n(연장 중인 사람은 연장이 초기화돼요)')) return;
   const today = bdYmd(bdToday());
@@ -3634,8 +3648,8 @@ function bdVisible() {
   const q = bdQuery.trim().toLowerCase();
   return bdMembers.map(m => ({ ...m, ...bdStatus(m) }))
     .filter(m => !q || (m.name + ' ' + (m.info || '')).toLowerCase().includes(q))
-    .filter(m => bdFilter === 'due' ? m.left <= before : bdFilter === 'ext' ? m.ext > 0 : true)
-    .sort((a, b) => a.left - b.left);
+    .filter(m => bdFilter === 'staff' ? !!m.staff : bdFilter === 'due' ? m.left <= before : bdFilter === 'ext' ? m.ext > 0 : true)
+    .sort((a, b) => (a.staff ? 0 : 1) - (b.staff ? 0 : 1) || (a.staff ? 0 : a.left - b.left));
 }
 
 function bdSaveMembers() { localStorage.setItem('pb-bday-members', JSON.stringify(bdMembers)); }
@@ -3668,12 +3682,24 @@ function bdPrefChanged() {
 
 function bdAdd() {
   const ta = document.getElementById('bd-add');
+  const isStaff = document.getElementById('bd-add-staff').checked;
   const lines = ta.value.split('\n').filter(l => l.trim());
   if (!lines.length) { showToast('💡 추가할 멤버를 입력해주세요'); return; }
   let added = 0;
   const bad = [];
   const dups = [];
   lines.forEach(l => {
+    if (isStaff) {
+      // 운영진: 날짜 없이 "닉네임 추가정보" (끝에 날짜가 붙어 있어도 무시)
+      const p = bdParse(l);
+      const parts = l.trim().split(/\s+/);
+      const name = p ? p.name : parts[0];
+      const info = p ? p.info : parts.slice(1).join(' ');
+      if (bdMembers.some(x => bdNameKey(x.name) === bdNameKey(name))) { dups.push(name); return; }
+      bdMembers.push({ id: bdNewId(), name, info, staff: true });
+      added++;
+      return;
+    }
     const p = bdParse(l);
     if (!p) { bad.push(l.trim()); return; }
     const last = bdYmd(bdLast(p.month, p.day));
@@ -3685,6 +3711,7 @@ function bdAdd() {
   });
   bdSaveMembers();
   ta.value = bad.join('\n'); // 못 읽은 줄은 남겨서 고칠 수 있게
+  document.getElementById('bd-add-staff').checked = false;
   bdRenderList();
   let msg = '✅ ' + added + '명 추가';
   if (bad.length) msg += ' · ⚠️ 날짜를 못 읽은 ' + bad.length + '줄은 남겨뒀어요';
@@ -3700,7 +3727,7 @@ function bdNameKey(n) { return String(n || '').replace(/\s+/g, '').toLowerCase()
 
 function bdAttend(id) {
   const m = bdMembers.find(x => x.id === id);
-  if (!m) return;
+  if (!m || m.staff) return;
   m.last = bdYmd(bdToday());
   m.excuse = ''; m.ext = 0;
   bdLog(m, 'attend');
@@ -3723,7 +3750,7 @@ function bdDelete(id) {
 
 function bdExcuse(id) {
   const m = bdMembers.find(x => x.id === id);
-  if (!m) return;
+  if (!m || m.staff) return;
   const r = prompt(m.name + '님 사유 연장 (+1개월)\n사유를 입력하세요 (예: 군대, 출장, 휴식)');
   if (r === null) return;
   const reason = r.trim();
@@ -3752,11 +3779,17 @@ function bdOpenEdit(id) {
   bdEditId = id;
   document.getElementById('bd-e-name').value = m.name;
   document.getElementById('bd-e-info').value = m.info || '';
-  document.getElementById('bd-e-date').value = m.last;
+  document.getElementById('bd-e-date').value = m.last || '';
   document.getElementById('bd-e-reason').value = m.excuse || '';
   document.getElementById('bd-e-ext').value = bdExt(m);
   document.getElementById('bd-e-hist').innerHTML = bdHistHtml(m);
+  document.getElementById('bd-e-staff').checked = !!m.staff;
+  bdToggleEditStaff();
   document.getElementById('bd-edit-modal').style.display = 'flex';
+}
+
+function bdToggleEditStaff() {
+  document.getElementById('bd-e-member-fields').style.display = document.getElementById('bd-e-staff').checked ? 'none' : '';
 }
 
 function bdCloseEdit() {
@@ -3770,13 +3803,20 @@ function bdSaveEdit() {
   const name = document.getElementById('bd-e-name').value.trim();
   const date = document.getElementById('bd-e-date').value;
   if (!name) { showToast('닉네임을 입력해주세요'); return; }
-  if (!date) { showToast('참석일을 선택해주세요'); return; }
+  const isStaff = document.getElementById('bd-e-staff').checked;
+  if (!isStaff && !date) { showToast('참석일을 선택해주세요'); return; }
   if (bdMembers.some(x => x.id !== m.id && bdNameKey(x.name) === bdNameKey(name))) {
     alert('⚠️ 이미 등록된 닉네임이에요\n\n· ' + name);
     return;
   }
   m.name = name;
   m.info = document.getElementById('bd-e-info').value.trim();
+  m.staff = isStaff;
+  if (isStaff) {
+    m.last = ''; m.ext = 0; m.excuse = '';
+    bdSaveMembers(); bdCloseEdit(); bdRenderList(); showToast('수정됐어요 ✅');
+    return;
+  }
   m.last = date;
   m.ext = Math.max(0, parseInt(document.getElementById('bd-e-ext').value) || 0);
   m.excuse = m.ext > 0 ? document.getElementById('bd-e-reason').value.trim() : '';
@@ -3802,7 +3842,8 @@ function bdRenderList() {
   go.textContent = '✅ 선택 ' + bdSel.size + '명 오늘 참석';
   const due = all.filter(m => m.left <= before).length;
   const exc = all.filter(m => m.ext > 0).length;
-  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' + (exc ? ' · 연장 ' + exc + '명' : '') : '') + (list.length !== all.length ? ' · 표시 ' + list.length + '명' : '');
+  const stf = all.filter(m => m.staff).length;
+  document.getElementById('bd-count').textContent = '👥 저장된 명단: ' + list.length + '명' + (list.length ? ' · 알림 대상 ' + due + '명' + (exc ? ' · 연장 ' + exc + '명' : '') + (stf ? ' · 운영진 ' + stf + '명' : '') : '') + (list.length !== all.length ? ' · 표시 ' + list.length + '명' : '');
   if (!all.length) {
     el.innerHTML = '<div class="empty-hint"><span>🎤</span>아직 멤버가 없어요<br>아래에서 추가해주세요</div>';
     return;
@@ -3812,6 +3853,15 @@ function bdRenderList() {
     return;
   }
   el.innerHTML = list.map(m => {
+    if (m.staff) return `<div class="dd-item" style="border-color:var(--accent)">
+      <div class="dd-info">
+        <div class="dd-title" style="white-space:normal;overflow:visible;text-overflow:clip;word-break:keep-all;overflow-wrap:anywhere">👑 ${escHtml(m.name)} <span style="font-size:12px;color:var(--text2);font-weight:400">${escHtml(m.info || '')}</span></div>
+        <div class="dd-date">운영진 · 참석 마감 없음</div>
+      </div>
+      <div class="dd-badge" style="font-size:16px;color:var(--accent)">운영진</div>
+      <button class="item-edit" onclick="bdOpenEdit(${m.id})">✏️</button>
+      <button class="item-del" onclick="bdDelete(${m.id})">✕</button>
+    </div>`;
     const badge = m.left > 0 ? 'D-' + m.left : m.left === 0 ? '오늘까지' : Math.abs(m.left) + '일 지남';
     const color = m.left < 0 ? '#ff8080' : m.left <= before ? 'var(--accent2)' : 'var(--text2)';
     const border = m.left <= before ? 'border-color:' + (m.left < 0 ? '#ff8080' : 'var(--accent2)') + ';' : '';
@@ -3836,14 +3886,15 @@ function bdRenderList() {
 function bdRender() {
   const before = bdBefore();
   const incl = document.getElementById('bd-over').checked;
-  // 기존(원래) 마감일 기준으로 대상/정렬 — 연장자도 원래 마감이 임박했으면 포함
-  const list = bdMembers.map(m => {
+  // 기존(원래) 마감일 기준으로 대상/정렬 — 연장자도 원래 마감이 임박했으면 포함 (운영진 제외)
+  const list = bdMembers.filter(m => !m.staff).map(m => {
     const st = bdStatus(m);
     const baseLeft = Math.round((st.dl - bdToday()) / 86400000);
     return { ...m, ...st, baseLeft };
   })
     .filter(m => m.baseLeft <= before && (incl || m.baseLeft >= 0 || (m.ext > 0 && m.left >= 0)))
     .sort((a, b) => a.baseLeft - b.baseLeft);
+
   // 메시지에 넣을 사람 고르기 (체크 해제하면 이번 메시지에서만 제외)
   const box = document.getElementById('bd-msg-targets');
   if (list.length) {
@@ -3854,29 +3905,54 @@ function bdRender() {
         '<input type="checkbox" ' + (bdMsgSkip.has(m.id) ? '' : 'checked') + ' onchange="bdMsgToggle(' + m.id + ')" style="accent-color:var(--accent)">' +
         (m.ext > 0 ? '⏳ ' : '') + escHtml(m.name) + '</label>').join('') + '</div>';
   } else { box.style.display = 'none'; box.innerHTML = ''; }
-  const items = list.filter(m => !bdMsgSkip.has(m.id)).map(m => {
+
+  const md = d => (d.getMonth() + 1) + '/' + d.getDate();
+  const leftText = n => n > 0 ? n + '일 남음' : n === 0 ? '오늘까지!' : Math.abs(n) + '일 지남';
+
+  const picked = list.filter(m => !bdMsgSkip.has(m.id));
+  const normal = picked.filter(m => !(m.ext > 0)).map(m => {
     const d = bdToDate(m.last);
-    const when = m.baseLeft > 0 ? m.baseLeft + '일 남음' : m.baseLeft === 0 ? '오늘까지!' : Math.abs(m.baseLeft) + '일 지남';
-    let line = `${m.name}님 (마지막 참석 ${d.getMonth() + 1}/${d.getDate()})\n- ${m.dl.getMonth() + 1}/${m.dl.getDate()}까지 - ${when}`;
-    if (m.ext > 0) line += ` · 사유: ${m.excuse || '연장'} (연장 ${m.edl.getMonth() + 1}/${m.edl.getDate()}까지)`;
-    if (m.ext > 0) line = '⏳ ' + line;   // 카톡에는 색이 안 나와서 이모지로 표시
-    return { text: line, ext: m.ext > 0 };
+    return `${m.name}님 (마지막 참석 ${md(d)})\n- ${md(m.dl)}까지 - ${leftText(m.baseLeft)}`;
   });
+  const extended = picked.filter(m => m.ext > 0).map(m => {
+    const d = bdToDate(m.last);
+    return `⏳ ${m.name}님 (마지막 참석 ${md(d)})\n` +
+           `- 원래 마감 ${md(m.dl)} - ${leftText(m.baseLeft)}\n` +
+           `- 연장 마감 ${md(m.edl)}까지 (+${m.ext}개월) - ${leftText(m.left)}\n` +
+           `- 사유: ${m.excuse || '연장'}`;
+  });
+
   const head = bdGetHead();
   const foot = '\n\n함께해요 🙌';
   const out = document.getElementById('bd-output');
   const view = document.getElementById('bd-output-view');
-  if (!items.length) {
+
+  if (!normal.length && !extended.length) {
     out.value = '알릴 사람이 없어요';
     view.textContent = out.value;
     return;
   }
-  out.value = head + items.map(i => i.text).join('\n\n') + foot;   // 복사용 (일반 텍스트)
-  view.innerHTML = escHtml(head) +
-    items.map(i => i.ext
-      ? '<span style="color:var(--accent2);font-weight:600">' + escHtml(i.text) + '</span>'
-      : escHtml(i.text)).join('\n\n') +
-    escHtml(foot);
+
+  const hasBoth = normal.length && extended.length;
+  const parts = [];   // { text, ext, title }
+  if (normal.length) {
+    if (hasBoth) parts.push({ text: '📌 참석 마감 대상', ext: false, title: true });
+    normal.forEach(t => parts.push({ text: t, ext: false }));
+  }
+  if (extended.length) {
+    parts.push({ text: '⏳ 사유 연장 중', ext: true, title: true });
+    extended.forEach(t => parts.push({ text: t, ext: true }));
+  }
+
+  // 제목 다음 줄은 바로 붙이고, 사람 사이는 한 줄 띄움
+  const sep = i => i === 0 ? '' : (parts[i - 1].title ? '\n' : '\n\n');
+  out.value = head + parts.map((p, i) => sep(i) + p.text).join('') + foot;   // 복사용 (일반 텍스트)
+
+  // 앱 미리보기 (연장자는 분홍색)
+  view.innerHTML = escHtml(head) + parts.map((p, i) => {
+    const t = escHtml(p.text);
+    return sep(i) + (p.ext ? '<span style="color:var(--accent2);font-weight:600">' + t + '</span>' : p.title ? '<b>' + t + '</b>' : t);
+  }).join('') + escHtml(foot);
 }
 
 async function bdCopy() {
