@@ -1325,6 +1325,8 @@
 
   <div style="font-size:14px;color:var(--text2);padding:0 4px">📝 안내 문구 (맨 위에 들어가요, 자동 저장)</div>
   <textarea class="memo-input" id="bd-head" rows="5" style="flex:none;resize:vertical" oninput="bdHeadChanged()"></textarea>
+  <div style="font-size:14px;color:var(--text2);padding:0 4px">✍️ 맺음 문구 (맨 아래에 들어가요, 자동 저장 · 비우면 문구 없음)</div>
+  <textarea class="memo-input" id="bd-foot" rows="2" style="flex:none;resize:vertical" oninput="bdFootChanged()"></textarea>
   <button class="ledger-add-btn" onclick="bdRender()">📢 참석 안내 메시지 만들기</button>
   <div style="font-size:16px;font-weight:600;padding:0 4px">📢 참석 안내 메시지</div>
   <div class="memo-input" id="bd-output-view" style="flex:none;min-height:480px;white-space:pre-wrap;overflow-y:auto;line-height:1.6"><span style="color:var(--text2)">버튼을 누르면 여기에 알림 메시지가 나와요</span></div>
@@ -3607,6 +3609,14 @@ const BD_DEFAULT_HEAD = '@all\n\n📢 참석 안내\n마지막 참석 후 다음
 function bdHeadChanged() {
   localStorage.setItem('pb-bday-head', document.getElementById('bd-head').value);
 }
+const BD_DEFAULT_FOOT = '함께해요 🙌';
+function bdFootChanged() {
+  localStorage.setItem('pb-bday-foot', document.getElementById('bd-foot').value);
+}
+function bdGetFoot() {
+  const v = document.getElementById('bd-foot').value.replace(/\s+$/, '');
+  return v ? '\n\n' + v : '';   // 비워두면 맺음 문구 없이 나감
+}
 function bdGetHead() {
   const v = document.getElementById('bd-head').value.replace(/\s+$/, '');
   return (v || BD_DEFAULT_HEAD) + '\n\n';
@@ -3923,7 +3933,7 @@ function bdRender() {
   });
 
   const head = bdGetHead();
-  const foot = '\n\n함께해요 🙌';
+  const foot = bdGetFoot();
   const out = document.getElementById('bd-output');
   const view = document.getElementById('bd-output-view');
 
@@ -3971,6 +3981,7 @@ async function bdCopy() {
 document.getElementById('bd-days').value = localStorage.getItem('pb-bday-before') || 7;
 document.getElementById('bd-over').checked = localStorage.getItem('pb-bday-over') !== '0';
 document.getElementById('bd-head').value = localStorage.getItem('pb-bday-head') ?? BD_DEFAULT_HEAD;
+document.getElementById('bd-foot').value = localStorage.getItem('pb-bday-foot') ?? BD_DEFAULT_FOOT;
 bdLoad();
 bdRenderList();
 
