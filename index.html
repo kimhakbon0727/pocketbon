@@ -3916,7 +3916,7 @@ function bdRender() {
   });
   const extended = picked.filter(m => m.ext > 0).map(m => {
     const d = bdToDate(m.last);
-    return `⏳ ${m.name}님 (마지막 참석 ${md(d)})\n` +
+    return `${m.name}님 (마지막 참석 ${md(d)})\n` +
            `- 원래 마감 ${md(m.dl)} - ${leftText(m.baseLeft)}\n` +
            `- 연장 마감 ${md(m.edl)}까지 (+${m.ext}개월) - ${leftText(m.left)}\n` +
            `- 사유: ${m.excuse || '연장'}`;
@@ -3940,7 +3940,7 @@ function bdRender() {
     normal.forEach(t => parts.push({ text: t, ext: false }));
   }
   if (extended.length) {
-    parts.push({ text: '⏳ 사유 연장 중', ext: true, title: true });
+    parts.push({ text: '⏳ 연장 중', ext: true, title: true });
     extended.forEach(t => parts.push({ text: t, ext: true }));
   }
 
