@@ -930,13 +930,14 @@
 <div class="screen" id="memo">
   <div class="memo-tabs">
     <button class="memo-tab active" id="mtab-memo" onclick="switchMemoTab('memo')">📝 메모</button>
-    <button class="memo-tab" id="mtab-todo" onclick="switchMemoTab('todo')">✅ 할일</button>
+    <button class="memo-tab" id="mtab-todo" onclick="switchMemoTab('todo')">🎤 노래</button>
+    <button class="memo-tab" id="mtab-task" onclick="switchMemoTab('task')">✅ 할일</button>
   </div>
 
   <!-- 메모 패널 -->
   <div class="memo-panel active" id="mpanel-memo">
     <div class="memo-input-row">
-      <textarea class="memo-input" id="memo-input" rows="2" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&event.metaKey)addMemo()"></textarea>
+      <textarea class="memo-input" id="memo-input" rows="8" style="min-height:200px;resize:vertical" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&event.metaKey)addMemo()"></textarea>
       <button class="add-btn" onclick="addMemo()">+</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
@@ -951,10 +952,10 @@
     <div class="memo-list" id="memo-list"></div>
   </div>
 
-  <!-- 할일 패널 -->
+  <!-- 노래 패널 (예전 할일 탭) -->
   <div class="memo-panel" id="mpanel-todo">
     <div class="memo-input-row">
-      <input type="text" class="memo-input" id="todo-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTodo()" style="height:48px">
+      <input type="text" class="memo-input" id="todo-input" placeholder="노래를 입력하세요..." onkeydown="if(event.key==='Enter')addTodo()" style="height:48px">
       <button class="add-btn" onclick="addTodo()">+</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
@@ -963,7 +964,7 @@
     </div>
     <div class="search-bar">
       <span class="search-bar-icon">🔍</span>
-      <input type="text" id="todo-search" placeholder="할일 검색..." oninput="renderTodos()"/>
+      <input type="text" id="todo-search" placeholder="노래 검색..." oninput="renderTodos()"/>
       <button class="search-bar-clear" onclick="clearTodoSearch()">✕</button>
     </div>
     <div class="ledger-filter-row" style="margin-bottom:4px">
@@ -972,6 +973,29 @@
       <button class="filter-btn"        id="todo-filter-done"    onclick="setTodoFilter('done')">완료</button>
     </div>
     <div class="memo-list" id="todo-list"></div>
+  </div>
+
+  <!-- 할일 패널 (새로 추가) -->
+  <div class="memo-panel" id="mpanel-task">
+    <div class="memo-input-row">
+      <input type="text" class="memo-input" id="task-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTask()" style="height:48px">
+      <button class="add-btn" onclick="addTask()">+</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
+      <input type="checkbox" id="task-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <label for="task-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
+    </div>
+    <div class="search-bar">
+      <span class="search-bar-icon">🔍</span>
+      <input type="text" id="task-search" placeholder="할일 검색..." oninput="renderTasks()"/>
+      <button class="search-bar-clear" onclick="clearTaskSearch()">✕</button>
+    </div>
+    <div class="ledger-filter-row" style="margin-bottom:4px">
+      <button class="filter-btn active" id="task-filter-all"    onclick="setTaskFilter('all')">전체</button>
+      <button class="filter-btn"        id="task-filter-active" onclick="setTaskFilter('active')">미완료</button>
+      <button class="filter-btn"        id="task-filter-done"   onclick="setTaskFilter('done')">완료</button>
+    </div>
+    <div class="memo-list" id="task-list"></div>
   </div>
 </div>
 
@@ -1005,8 +1029,21 @@
     <input type="text"   class="ledger-input" id="ledger-amount" placeholder="금액 (원)" inputmode="numeric" oninput="formatLedgerAmount(this)">
     <input type="date"   class="ledger-input" id="ledger-date">
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-      <input type="checkbox" id="ledger-recurring" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <input type="checkbox" id="ledger-recurring" onchange="toggleRecurringFields()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
       <label for="ledger-recurring" style="font-size:14px;color:var(--text2);cursor:pointer">📌 매월 고정 항목으로 등록</label>
+    </div>
+    <div id="ledger-rec-block" style="display:none;margin-bottom:8px">
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div class="sch-section-label">📅 시작일</div>
+          <input type="date" class="ledger-input" id="ledger-rec-start" style="font-size:14px;padding:12px 10px">
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="sch-section-label">🏁 종료일 (선택)</div>
+          <input type="date" class="ledger-input" id="ledger-rec-end" style="font-size:14px;padding:12px 10px">
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5">시작일의 '일'에 맞춰 매월 반복돼요. 종료일을 비워두면 계속 반복돼요.</div>
     </div>
     <button class="ledger-add-btn" onclick="addLedger()">추가</button>
   </div>
@@ -1162,7 +1199,7 @@
 <!-- LEDGER EDIT MODAL -->
 <div class="sch-edit-overlay" id="ledger-edit-modal" style="display:none" onclick="if(event.target===this)closeLedgerEdit()">
   <div class="sch-edit-box">
-    <div class="sch-edit-title">✏️ 내역 수정</div>
+    <div class="sch-edit-title" id="ledit-title">✏️ 내역 수정</div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button id="ledit-type-income" class="filter-btn active" onclick="setLedgerEditType('income')" style="flex:1;padding:10px">수입 💚</button>
       <button id="ledit-type-expense" class="filter-btn" onclick="setLedgerEditType('expense')" style="flex:1;padding:10px">지출 ❤️</button>
@@ -1170,6 +1207,15 @@
     <input class="sch-input" id="ledit-desc" placeholder="내용" maxlength="40"/>
     <input class="sch-input" id="ledit-amount" type="text" placeholder="금액" inputmode="numeric" oninput="formatLedgerAmount(this)"/>
     <input class="sch-input" id="ledit-date" type="date"/>
+    <div id="ledit-rec-block" style="display:none">
+      <div class="sch-section-label">📅 적용 기간 (종료일은 비우면 계속)</div>
+      <div class="sch-date-row">
+        <input class="sch-input" id="ledit-start" type="date"/>
+        <span class="sch-date-arrow">→</span>
+        <input class="sch-input" id="ledit-end" type="date"/>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5">시작일의 '일'에 맞춰 매월 반복돼요.</div>
+    </div>
     <button class="sch-add-btn" onclick="saveLedgerEdit()">저장</button>
     <button class="sch-modal-close" onclick="closeLedgerEdit()">취소</button>
   </div>
@@ -2373,7 +2419,7 @@ function editMemo(id) {
   const el = document.getElementById(`memo-item-${id}`);
   el.innerHTML = `
     <div style="flex:1">
-      <textarea class="memo-edit-area" id="memo-edit-${id}" rows="3">${escHtml(memo.text)}</textarea>
+      <textarea class="memo-edit-area" id="memo-edit-${id}" rows="7">${escHtml(memo.text)}</textarea>
       <div class="memo-edit-btns">
         <button class="memo-edit-save" onclick="saveMemoEdit(${id})">저장</button>
         <button class="memo-edit-cancel" onclick="renderMemos()">취소</button>
@@ -2446,7 +2492,7 @@ function toggleTodo(id) {
 }
 
 function deleteTodo(id) {
-  if (!confirm('이 할 일을 삭제할까요?')) return;
+  if (!confirm('이 노래를 삭제할까요?')) return;
   todos = todos.filter(t => t.id !== id);
   saveTodos(); renderTodos();
 }
@@ -2493,7 +2539,7 @@ function renderTodos() {
   // 고정 항목 상단 정렬
   list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
   if (!list.length) {
-    el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '✅'}</span>${q ? '검색 결과가 없어요' : '할 일이 없어요'}</div>`;
+    el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '🎤'}</span>${q ? '검색 결과가 없어요' : '노래가 없어요'}</div>`;
     return;
   }
   el.innerHTML = list.map(t => `
@@ -2511,6 +2557,92 @@ function clearTodoSearch() {
   if (el) { el.value = ''; renderTodos(); }
 }
 renderTodos();
+
+// ===== 할일 (새로 추가된 탭) =====
+let tasks = JSON.parse(localStorage.getItem('pocketbon-tasks') || '[]');
+let taskFilter = 'all';
+function saveTasks() { localStorage.setItem('pocketbon-tasks', JSON.stringify(tasks)); }
+
+function addTask() {
+  const val = document.getElementById('task-input').value.trim();
+  if (!val) return;
+  const pinned = document.getElementById('task-pinned').checked;
+  tasks.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString(), pinned });
+  saveTasks(); renderTasks();
+  document.getElementById('task-input').value = '';
+  document.getElementById('task-pinned').checked = false;
+}
+
+function toggleTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.done = !t.done; saveTasks(); renderTasks(); }
+}
+
+function deleteTask(id) {
+  if (!confirm('이 할 일을 삭제할까요?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks(); renderTasks();
+}
+
+function editTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  const el = document.getElementById(`task-item-${id}`);
+  el.innerHTML = `
+    <div style="flex:1">
+      <input class="memo-edit-area" id="task-edit-${id}" value="${escHtml(task.text)}" style="height:42px;resize:none" />
+      <div class="memo-edit-btns">
+        <button class="memo-edit-save" onclick="saveTaskEdit(${id})">저장</button>
+        <button class="memo-edit-cancel" onclick="renderTasks()">취소</button>
+      </div>
+    </div>`;
+  document.getElementById(`task-edit-${id}`).focus();
+}
+
+function saveTaskEdit(id) {
+  const val = document.getElementById(`task-edit-${id}`).value.trim();
+  if (!val) return;
+  const task = tasks.find(t => t.id === id);
+  if (task) task.text = val;
+  saveTasks(); renderTasks();
+}
+
+function toggleTaskPinned(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.pinned = !t.pinned; saveTasks(); renderTasks(); }
+}
+
+function setTaskFilter(f) {
+  taskFilter = f;
+  ['all','active','done'].forEach(x => document.getElementById('task-filter-'+x).classList.toggle('active', x === f));
+  renderTasks();
+}
+
+function renderTasks() {
+  const el = document.getElementById('task-list');
+  const q = (document.getElementById('task-search')?.value || '').toLowerCase().trim();
+  let list = tasks.filter(t => taskFilter === 'all' ? true : taskFilter === 'done' ? t.done : !t.done);
+  if (q) list = list.filter(t => t.text.toLowerCase().includes(q));
+  list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '✅'}</span>${q ? '검색 결과가 없어요' : '할 일이 없어요'}</div>`;
+    return;
+  }
+  el.innerHTML = list.map(t => `
+    <div class="todo-item" id="task-item-${t.id}" style="${t.pinned ? 'border:1px solid var(--accent);background:rgba(124,111,255,0.06);border-radius:14px;' : ''}">
+      <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTask(${t.id})"></div>
+      <div class="todo-text ${t.done ? 'done' : ''}" style="flex:1">${t.pinned ? '📌 ' : ''}${escHtml(t.text)}</div>
+      <button class="item-edit" onclick="toggleTaskPinned(${t.id})" title="${t.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${t.pinned ? '📍' : '📌'}</button>
+      <button class="item-edit" onclick="editTask(${t.id})">✏️</button>
+      <button class="item-del" onclick="deleteTask(${t.id})">✕</button>
+    </div>`).join('');
+}
+
+function clearTaskSearch() {
+  const el = document.getElementById('task-search');
+  if (el) { el.value = ''; renderTasks(); }
+}
+renderTasks();
 
 // ===== Ledger =====
 let ledger = JSON.parse(localStorage.getItem('pocketbon-ledger') || '[]');
@@ -2562,14 +2694,19 @@ function addLedger() {
   const isRecurring = document.getElementById('ledger-recurring').checked;
   if (!desc) { showToast('💡 내용을 입력해주세요'); return; }
   if (!amount || amount <= 0) { showToast('💡 금액을 입력해주세요'); return; }
-  if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
+  const recStart = document.getElementById('ledger-rec-start').value;
+  const recEnd   = document.getElementById('ledger-rec-end').value;
+  if (isRecurring) {
+    if (!recStart) { showToast('💡 시작일을 선택해주세요'); return; }
+    if (recEnd && recEnd < recStart) { showToast('💡 종료일이 시작일보다 빨라요'); return; }
+  } else if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
 
   const item = { id: Date.now(), type: ledgerType, desc, amount, date };
 
   if (isRecurring) {
-    // 날짜에서 일(day)만 추출
-    const day = parseInt(date.split('-')[2]);
-    recurringItems.push({ id: item.id, type: ledgerType, desc, amount, day });
+    // 시작일의 '일'이 매월 반복되는 날, 시작일~종료일 사이의 달에만 적용
+    const day = parseInt(recStart.split('-')[2]);
+    recurringItems.push({ id: item.id, type: ledgerType, desc, amount, day, start: recStart, end: recEnd || '' });
     saveRecurring();
     showToast('📌 고정 항목으로 등록됐어요!');
   } else {
@@ -2582,7 +2719,35 @@ function addLedger() {
   document.getElementById('ledger-desc').value = '';
   document.getElementById('ledger-amount').value = '';
   document.getElementById('ledger-recurring').checked = false;
+  document.getElementById('ledger-rec-start').value = '';
+  document.getElementById('ledger-rec-end').value = '';
+  toggleRecurringFields();
 }
+
+// 고정 항목 체크 시: 날짜 입력 대신 시작일/종료일 입력칸 표시
+function toggleRecurringFields() {
+  const on = document.getElementById('ledger-recurring').checked;
+  document.getElementById('ledger-rec-block').style.display = on ? 'block' : 'none';
+  document.getElementById('ledger-date').style.display = on ? 'none' : '';
+  if (on) {
+    const st = document.getElementById('ledger-rec-start');
+    if (!st.value) st.value = document.getElementById('ledger-date').value;
+  }
+}
+
+// 고정 항목이 특정 달(y년 m월)에 찍히는 날짜 (31일 → 그 달 말일로 보정)
+function recurringDateFor(r, y, m) {
+  const lastDay = new Date(y, m, 0).getDate();
+  const d = Math.min(r.day, lastDay);
+  return y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+}
+// 시작일 ~ 종료일 범위 안에 있는지 (기간이 없는 예전 항목은 항상 적용)
+function recurringActive(r, dateStr) {
+  if (r.start && dateStr < r.start) return false;
+  if (r.end && dateStr > r.end) return false;
+  return true;
+}
+function fmtYmd(s) { return s.replace(/-/g, '.'); }
 
 function deleteLedger(id) {
   if (!confirm('이 내역을 삭제할까요?')) return;
@@ -2617,14 +2782,17 @@ function renderRecurringList() {
       <div class="ledger-item-info">
         <div class="ledger-item-desc">📌 ${escHtml(r.desc)}</div>
         <div class="ledger-item-date">매월 ${r.day}일</div>
+        <div class="ledger-item-date">${(r.start || r.end) ? (r.start ? fmtYmd(r.start) : '처음') + ' ~ ' + (r.end ? fmtYmd(r.end) : '계속') : '기간 제한 없음'}</div>
       </div>
       <div class="ledger-item-amount ${r.type}">${r.type === 'income' ? '+' : '-'}₩${r.amount.toLocaleString()}</div>
+      <button class="item-edit" onclick="openRecurringEdit(${r.id})">✏️</button>
       <button class="item-del" onclick="deleteRecurring(${r.id})">✕</button>
     </div>`).join('');
 }
 
 let ledgerEditId = null;
 let ledgerEditType = 'income';
+let ledgerEditRec = false;   // true면 고정 항목 수정 중
 
 function openLedgerEdit(id) {
   const item = ledger.find(l => l.id === id);
@@ -2638,12 +2806,37 @@ function openLedgerEdit(id) {
   document.getElementById('ledit-date').value = item.date;
   document.getElementById('ledit-type-income').classList.toggle('active', item.type === 'income');
   document.getElementById('ledit-type-expense').classList.toggle('active', item.type === 'expense');
+  ledgerEditRec = false;
+  document.getElementById('ledit-title').textContent = '✏️ 내역 수정';
+  document.getElementById('ledit-date').style.display = '';
+  document.getElementById('ledit-rec-block').style.display = 'none';
+  document.getElementById('ledger-edit-modal').style.display = 'flex';
+}
+
+function openRecurringEdit(id) {
+  const item = recurringItems.find(r => r.id === id);
+  if (!item) return;
+  ledgerEditId = id;
+  ledgerEditType = item.type;
+  ledgerEditRec = true;
+  document.getElementById('ledit-title').textContent = '✏️ 고정 항목 수정';
+  document.getElementById('ledit-desc').value = item.desc;
+  const amountEl = document.getElementById('ledit-amount');
+  amountEl.value = item.amount.toLocaleString();
+  amountEl.dataset.raw = item.amount;
+  document.getElementById('ledit-start').value = item.start || '';
+  document.getElementById('ledit-end').value = item.end || '';
+  document.getElementById('ledit-date').style.display = 'none';
+  document.getElementById('ledit-rec-block').style.display = '';
+  document.getElementById('ledit-type-income').classList.toggle('active', item.type === 'income');
+  document.getElementById('ledit-type-expense').classList.toggle('active', item.type === 'expense');
   document.getElementById('ledger-edit-modal').style.display = 'flex';
 }
 
 function closeLedgerEdit() {
   document.getElementById('ledger-edit-modal').style.display = 'none';
   ledgerEditId = null;
+  ledgerEditRec = false;
 }
 
 function setLedgerEditType(t) {
@@ -2658,6 +2851,22 @@ function saveLedgerEdit() {
   const date   = document.getElementById('ledit-date').value;
   if (!desc) { showToast('내용을 입력해주세요'); return; }
   if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
+  if (ledgerEditRec) {
+    const start = document.getElementById('ledit-start').value;
+    const end   = document.getElementById('ledit-end').value;
+    if (start && end && end < start) { showToast('종료일이 시작일보다 빨라요'); return; }
+    const r = recurringItems.find(x => x.id === ledgerEditId);
+    if (r) {
+      r.type = ledgerEditType; r.desc = desc; r.amount = amount;
+      r.start = start; r.end = end;
+      if (start) r.day = parseInt(start.split('-')[2]);
+    }
+    saveRecurring();
+    closeLedgerEdit();
+    renderLedger();
+    showToast('수정됐어요 ✅');
+    return;
+  }
   if (!date) { showToast('날짜를 선택해주세요'); return; }
   const item = ledger.find(l => l.id === ledgerEditId);
   if (item) { item.type = ledgerEditType; item.desc = desc; item.amount = amount; item.date = date; }
@@ -2673,10 +2882,9 @@ function renderLedger() {
 
   // 고정 항목 → 이번 달 가상 데이터 생성
   const paddedM = String(m).padStart(2,'0');
-  const recurringThisMonth = recurringItems.map(r => {
-    const day = String(r.day).padStart(2,'0');
-    return { ...r, date: `${y}-${paddedM}-${day}`, isRecurring: true };
-  });
+  const recurringThisMonth = recurringItems
+    .map(r => ({ ...r, date: recurringDateFor(r, y, m), isRecurring: true }))
+    .filter(r => recurringActive(r, r.date));
 
   const monthData = ledger.filter(l => l.date.startsWith(ledgerMonth));
   const allData = [...monthData, ...recurringThisMonth];
@@ -2690,6 +2898,7 @@ function renderLedger() {
   const balEl = document.getElementById('ledger-balance');
   balEl.textContent = (balance >= 0 ? '+' : '') + '₩' + balance.toLocaleString();
   balEl.className = 'ledger-balance ' + (balance >= 0 ? 'plus' : 'minus');
+  if (recurringVisible) renderRecurringList();   // 고정 항목 목록도 같이 갱신
 
   // 날짜 내림차순 정렬
   const sorted = allData
@@ -2707,7 +2916,8 @@ function renderLedger() {
       </div>
       <div class="ledger-item-amount ${l.type}">${l.type === 'income' ? '+' : '-'}₩${l.amount.toLocaleString()}</div>
       ${l.isRecurring
-        ? `<button class="item-del" onclick="deleteRecurring(${l.id})">✕</button>`
+        ? `<button class="item-edit" onclick="openRecurringEdit(${l.id})">✏️</button>
+           <button class="item-del" onclick="deleteRecurring(${l.id})">✕</button>`
         : `<button class="item-edit" onclick="openLedgerEdit(${l.id})">✏️</button>
            <button class="item-del" onclick="deleteLedger(${l.id})">✕</button>`
       }
@@ -2727,6 +2937,7 @@ const BACKUP_KEYS = [
   'pocketbon-alarms',
   'pocketbon-memos',
   'pocketbon-todos',
+  'pocketbon-tasks',
   'pocketbon-ledger',
   'pocketbon-schedules',
   'pocketbon-recurring',
@@ -2786,7 +2997,8 @@ function restoreData(e) {
       const lines = ['<strong>백업 날짜:</strong> ' + date];
       if (d['pocketbon-alarms'])    lines.push('<strong>알람:</strong> ' + d['pocketbon-alarms'].length + '개');
       if (d['pocketbon-memos'])     lines.push('<strong>메모:</strong> ' + d['pocketbon-memos'].length + '개');
-      if (d['pocketbon-todos'])     lines.push('<strong>할일:</strong> ' + d['pocketbon-todos'].length + '개');
+      if (d['pocketbon-todos'])     lines.push('<strong>노래:</strong> ' + d['pocketbon-todos'].length + '개');
+      if (d['pocketbon-tasks'])     lines.push('<strong>할일:</strong> ' + d['pocketbon-tasks'].length + '개');
       if (d['pocketbon-ledger'])    lines.push('<strong>가계부:</strong> ' + d['pocketbon-ledger'].length + '건');
       if (d['pocketbon-schedules']) lines.push('<strong>일정:</strong> ' + Object.keys(d['pocketbon-schedules']).length + '일');
       if (d['pocketbon-recurring']) lines.push('<strong>고정 항목:</strong> ' + d['pocketbon-recurring'].length + '개');
@@ -2833,7 +3045,8 @@ function showStorageInfo() {
   const labels = {
     'pocketbon-alarms': '⏰ 알람',
     'pocketbon-memos':  '📝 메모',
-    'pocketbon-todos':  '✅ 할일',
+    'pocketbon-todos':  '🎤 노래',
+    'pocketbon-tasks':  '✅ 할일',
     'pocketbon-ledger': '💰 가계부',
     'pocketbon-ddays':  '📅 디데이'
   };
