@@ -936,9 +936,9 @@
 
   <!-- 메모 패널 -->
   <div class="memo-panel active" id="mpanel-memo">
-    <div class="memo-input-row">
+    <div class="memo-input-row" style="flex-direction:column">
       <textarea class="memo-input" id="memo-input" rows="8" style="min-height:200px;resize:vertical" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&event.metaKey)addMemo()"></textarea>
-      <button class="add-btn" onclick="addMemo()">+</button>
+      <button class="add-btn" onclick="addMemo()" style="width:100%;align-self:stretch;font-size:16px">+ 메모 추가</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
       <input type="checkbox" id="memo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
