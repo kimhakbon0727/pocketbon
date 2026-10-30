@@ -153,74 +153,74 @@
     .cal-day.today.holiday .cal-day-num { color: #fff; }
 
     /* Map */
-    .map-screen { display: none; flex: 1; flex-direction: column; padding: 0; overflow: hidden; }
+    /* [주석처리됨] .map-screen { display: none; flex: 1; flex-direction: column; padding: 0; overflow: hidden; } */
     .map-screen.active { display: flex; }
-    .map-top { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 5; }
-    .map-input-row { display: flex; gap: 8px; align-items: center; }
-    .map-input-wrap { flex: 1; position: relative; }
-    .map-input {
+    /* [주석처리됨] .map-top { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 5; } */
+    /* [주석처리됨] .map-input-row { display: flex; gap: 8px; align-items: center; } */
+    /* [주석처리됨] .map-input-wrap { flex: 1; position: relative; } */
+    /* [주석처리됨] .map-input {
       width: 100%; padding: 10px 36px 10px 14px; border-radius: 12px;
       border: 1px solid var(--border); background: var(--surface2);
       color: var(--text); font-size: 14px; outline: none; font-family: inherit;
-    }
-    .map-input:focus { border-color: var(--accent); }
-    .map-input::placeholder { color: var(--text2); }
-    .map-input-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 16px; cursor: pointer; }
-    .map-mode-row { display: flex; gap: 6px; }
-    .map-mode-btn {
+    } */
+    /* [주석처리됨] .map-input:focus { border-color: var(--accent); } */
+    /* [주석처리됨] .map-input::placeholder { color: var(--text2); } */
+    /* [주석처리됨] .map-input-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 16px; cursor: pointer; } */
+    /* [주석처리됨] .map-mode-row { display: flex; gap: 6px; } */
+    /* [주석처리됨] .map-mode-btn {
       flex: 1; padding: 8px 4px; border-radius: 10px; border: 1px solid var(--border);
       background: var(--surface2); color: var(--text2); font-size: 13px; cursor: pointer;
       transition: all 0.15s; text-align: center;
-    }
+    } */
     .map-mode-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .map-search-btn {
+    /* [주석처리됨] .map-search-btn {
       padding: 10px 16px; border-radius: 12px; border: none;
       background: var(--accent); color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap;
-    }
-    #kakao-map { flex: 1; width: 100%; }
-    .map-result {
+    } */
+    /* [주석처리됨] #kakao-map { flex: 1; width: 100%; } */
+    /* [주석처리됨] .map-result {
       position: absolute; bottom: 0; left: 0; right: 0; max-width: 430px; margin: 0 auto;
       background: var(--surface); border-radius: 20px 20px 0 0;
       padding: 16px 20px 32px; border-top: 1px solid var(--border);
       z-index: 10; max-height: 45vh; overflow-y: auto;
       transform: translateY(100%); transition: transform 0.3s;
-    }
+    } */
     .map-result.show { transform: translateY(0); }
-    .map-result-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 14px; }
-    .map-result-summary { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
-    .map-result-stat { text-align: center; }
-    .map-result-stat-val { font-size: 22px; font-weight: 600; color: var(--accent); }
-    .map-result-stat-label { font-size: 12px; color: var(--text2); margin-top: 2px; }
-    .map-steps { display: flex; flex-direction: column; gap: 0; }
-    .map-step { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .map-step:last-child { border-bottom: none; }
-    .map-step-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; margin-top: 1px; }
-    .map-step-text { font-size: 14px; color: var(--text); flex: 1; line-height: 1.4; }
-    .map-step-dist { font-size: 12px; color: var(--text2); margin-top: 2px; }
-    .map-loading {
+    /* [주석처리됨] .map-result-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 14px; } */
+    /* [주석처리됨] .map-result-summary { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; } */
+    /* [주석처리됨] .map-result-stat { text-align: center; } */
+    /* [주석처리됨] .map-result-stat-val { font-size: 22px; font-weight: 600; color: var(--accent); } */
+    /* [주석처리됨] .map-result-stat-label { font-size: 12px; color: var(--text2); margin-top: 2px; } */
+    /* [주석처리됨] .map-steps { display: flex; flex-direction: column; gap: 0; } */
+    /* [주석처리됨] .map-step { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); } */
+    /* [주석처리됨] .map-step:last-child { border-bottom: none; } */
+    /* [주석처리됨] .map-step-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; margin-top: 1px; } */
+    /* [주석처리됨] .map-step-text { font-size: 14px; color: var(--text); flex: 1; line-height: 1.4; } */
+    /* [주석처리됨] .map-step-dist { font-size: 12px; color: var(--text2); margin-top: 2px; } */
+    /* [주석처리됨] .map-loading {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       background: rgba(15,15,26,0.85); border-radius: 14px;
       padding: 14px 20px; display: flex; align-items: center; gap: 10px;
       font-size: 14px; color: var(--text); z-index: 20;
       backdrop-filter: blur(6px); border: 1px solid var(--border);
       pointer-events: none; white-space: nowrap;
-    }
-    .map-loading-spinner {
+    } */
+    /* [주석처리됨] .map-loading-spinner {
       width: 18px; height: 18px; border-radius: 50%;
       border: 2px solid var(--border); border-top-color: var(--accent);
       animation: spin 0.7s linear infinite; flex-shrink: 0;
-    }
+    } */
     @keyframes spin { to { transform: rotate(360deg); } }
-    .map-my-loc-btn {
+    /* [주석처리됨] .map-my-loc-btn {
       position: absolute; right: 16px; z-index: 5;
       width: 42px; height: 42px; border-radius: 50%; border: none;
       background: var(--surface); color: var(--accent); font-size: 20px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-    }
+    } */
     .screen { display: none; flex: 1; padding: 20px 16px 100px; overflow-x: hidden; }
-    .map-screen { padding: 0 !important; gap: 0 !important; }
-    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    /* [주석처리됨] .map-screen { padding: 0 !important; gap: 0 !important; } */
+    /* [주석처리됨] .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; } */
     .screen.active { display: flex; flex-direction: column; gap: 16px; }
 
     /* Calculator */
@@ -246,183 +246,183 @@
     .btn.zero { grid-column: span 2; border-radius: 36px; text-align: left; padding-left: 28px; }
 
     /* Weather */
-    .search-row { display: flex; gap: 8px; }
-    .search-row input {
+    /* [주석처리됨] .search-row { display: flex; gap: 8px; } */
+    /* [주석처리됨] .search-row input {
       flex: 1; padding: 14px 16px; border-radius: 14px;
       border: 1px solid var(--border); background: var(--surface);
       color: var(--text); font-size: 16px; outline: none;
-    }
-    .search-row input:focus { border-color: var(--accent); }
-    .search-row input::placeholder { color: var(--text2); }
-    .search-btn {
+    } */
+    /* [주석처리됨] .search-row input:focus { border-color: var(--accent); } */
+    /* [주석처리됨] .search-row input::placeholder { color: var(--text2); } */
+    /* [주석처리됨] .search-btn {
       width: 52px; height: 52px; border-radius: 14px; border: none;
       background: var(--accent); color: #fff; font-size: 20px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
-    .weather-card { background: var(--surface); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); }
-    .weather-header { display: flex; justify-content: space-between; align-items: flex-start; }
-    .weather-city { font-size: 20px; font-weight: 600; }
-    .weather-date { font-size: 13px; color: var(--text2); margin-top: 3px; }
-    .weather-icon-big { font-size: 56px; }
-    .weather-temp-big { font-size: 72px; font-weight: 200; letter-spacing: -3px; line-height: 1; margin: 8px 0 4px; }
-    .weather-desc { font-size: 16px; color: var(--text2); }
-    .weather-divider { height: 1px; background: var(--border); margin: 20px 0; }
-    .weather-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .weather-detail { background: var(--surface2); border-radius: 12px; padding: 14px; }
-    .weather-detail-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
-    .weather-detail-val { font-size: 20px; font-weight: 500; }
-    .weather-hint { text-align: center; color: var(--text2); font-size: 15px; padding: 40px 0; }
-    .weather-hint span { display: block; font-size: 40px; margin-bottom: 12px; }
-    .weather-loading { text-align: center; padding: 40px 0; color: var(--text2); }
-    .weather-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3); border-radius: 14px; padding: 16px; color: #ff8080; font-size: 14px; text-align: center; }
+    } */
+    /* [주석처리됨] .weather-card { background: var(--surface); border-radius: var(--radius); padding: 24px; border: 1px solid var(--border); } */
+    /* [주석처리됨] .weather-header { display: flex; justify-content: space-between; align-items: flex-start; } */
+    /* [주석처리됨] .weather-city { font-size: 20px; font-weight: 600; } */
+    /* [주석처리됨] .weather-date { font-size: 13px; color: var(--text2); margin-top: 3px; } */
+    /* [주석처리됨] .weather-icon-big { font-size: 56px; } */
+    /* [주석처리됨] .weather-temp-big { font-size: 72px; font-weight: 200; letter-spacing: -3px; line-height: 1; margin: 8px 0 4px; } */
+    /* [주석처리됨] .weather-desc { font-size: 16px; color: var(--text2); } */
+    /* [주석처리됨] .weather-divider { height: 1px; background: var(--border); margin: 20px 0; } */
+    /* [주석처리됨] .weather-details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } */
+    /* [주석처리됨] .weather-detail { background: var(--surface2); border-radius: 12px; padding: 14px; } */
+    /* [주석처리됨] .weather-detail-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; } */
+    /* [주석처리됨] .weather-detail-val { font-size: 20px; font-weight: 500; } */
+    /* [주석처리됨] .weather-hint { text-align: center; color: var(--text2); font-size: 15px; padding: 40px 0; } */
+    /* [주석처리됨] .weather-hint span { display: block; font-size: 40px; margin-bottom: 12px; } */
+    /* [주석처리됨] .weather-loading { text-align: center; padding: 40px 0; color: var(--text2); } */
+    /* [주석처리됨] .weather-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3); border-radius: 14px; padding: 16px; color: #ff8080; font-size: 14px; text-align: center; } */
 
     /* Alarm */
-    .alarm-add {
+    /* [주석처리됨] .alarm-add {
       background: var(--surface); border-radius: var(--radius);
       padding: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px;
-    }
-    .alarm-add-title { font-size: 15px; font-weight: 500; color: var(--text2); }
-    .alarm-time-row { display: flex; gap: 10px; align-items: center; }
-    .alarm-time-input {
+    } */
+    /* [주석처리됨] .alarm-add-title { font-size: 15px; font-weight: 500; color: var(--text2); } */
+    /* [주석처리됨] .alarm-time-row { display: flex; gap: 10px; align-items: center; } */
+    /* [주석처리됨] .alarm-time-input {
       flex: 1; padding: 14px 16px; border-radius: 14px;
       border: 1px solid var(--border); background: var(--surface2);
       color: var(--text); font-size: 28px; font-weight: 300;
       outline: none; text-align: center; letter-spacing: 2px;
-    }
-    .alarm-time-input:focus { border-color: var(--accent); }
-    .alarm-label-input {
+    } */
+    /* [주석처리됨] .alarm-time-input:focus { border-color: var(--accent); } */
+    /* [주석처리됨] .alarm-label-input {
       padding: 12px 16px; border-radius: 14px;
       border: 1px solid var(--border); background: var(--surface2);
       color: var(--text); font-size: 15px; outline: none; width: 100%;
-    }
-    .alarm-label-input:focus { border-color: var(--accent); }
-    .alarm-label-input::placeholder { color: var(--text2); }
-    .alarm-add-btn {
+    } */
+    /* [주석처리됨] .alarm-label-input:focus { border-color: var(--accent); } */
+    /* [주석처리됨] .alarm-label-input::placeholder { color: var(--text2); } */
+    /* [주석처리됨] .alarm-add-btn {
       padding: 14px; border-radius: 14px; border: none;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #fff; font-size: 16px; cursor: pointer;
       transition: opacity 0.1s;
-    }
-    .alarm-add-btn:active { opacity: 0.8; }
+    } */
+    /* [주석처리됨] .alarm-add-btn:active { opacity: 0.8; } */
 
-    .alarm-list { display: flex; flex-direction: column; gap: 10px; }
-    .alarm-item {
+    /* [주석처리됨] .alarm-list { display: flex; flex-direction: column; gap: 10px; } */
+    /* [주석처리됨] .alarm-item {
       background: var(--surface); border-radius: var(--radius);
       padding: 18px 20px; border: 1px solid var(--border);
       display: flex; align-items: center; gap: 14px;
-    }
-    .alarm-item.inactive { opacity: 0.45; }
-    .alarm-item-time { font-size: 36px; font-weight: 300; letter-spacing: -1px; flex: 1; }
-    .alarm-item-label { font-size: 13px; color: var(--text2); margin-top: 2px; }
-    .alarm-toggle {
+    } */
+    /* [주석처리됨] .alarm-item.inactive { opacity: 0.45; } */
+    /* [주석처리됨] .alarm-item-time { font-size: 36px; font-weight: 300; letter-spacing: -1px; flex: 1; } */
+    /* [주석처리됨] .alarm-item-label { font-size: 13px; color: var(--text2); margin-top: 2px; } */
+    /* [주석처리됨] .alarm-toggle {
       width: 50px; height: 28px; border-radius: 14px;
       background: var(--surface2); border: 1px solid var(--border);
       position: relative; cursor: pointer; transition: background 0.2s;
       flex-shrink: 0;
-    }
+    } */
     .alarm-toggle.on { background: var(--accent); border-color: var(--accent); }
-    .alarm-toggle::after {
+    /* [주석처리됨] .alarm-toggle::after {
       content: ''; position: absolute; top: 3px; left: 3px;
       width: 20px; height: 20px; border-radius: 50%;
       background: #fff; transition: left 0.2s;
-    }
+    } */
     .alarm-toggle.on::after { left: 25px; }
-    .alarm-delete {
+    /* [주석처리됨] .alarm-delete {
       background: none; border: none; color: var(--text2);
       font-size: 18px; cursor: pointer; padding: 4px;
-    }
-    .alarm-empty { text-align: center; color: var(--text2); padding: 30px 0; font-size: 15px; }
-    .alarm-empty span { display: block; font-size: 36px; margin-bottom: 10px; }
-    .alarm-permission {
+    } */
+    /* [주석처리됨] .alarm-empty { text-align: center; color: var(--text2); padding: 30px 0; font-size: 15px; } */
+    /* [주석처리됨] .alarm-empty span { display: block; font-size: 36px; margin-bottom: 10px; } */
+    /* [주석처리됨] .alarm-permission {
 
       background: rgba(124,111,255,0.1); border: 1px solid rgba(124,111,255,0.3);
       border-radius: 14px; padding: 14px 16px; font-size: 14px;
       color: var(--accent); display: flex; align-items: center; gap: 10px;
-    }
-    .alarm-permission button {
+    } */
+    /* [주석처리됨] .alarm-permission button {
       margin-left: auto; padding: 8px 14px; border-radius: 10px;
       border: none; background: var(--accent); color: #fff; font-size: 13px; cursor: pointer;
-    }
+    } */
 
     /* Ringing modal */
-    .alarm-ring {
+    /* [주석처리됨] .alarm-ring {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       display: flex; align-items: center; justify-content: center;
       z-index: 999; flex-direction: column; gap: 20px;
-    }
-    .alarm-ring-inner {
+    } */
+    /* [주석처리됨] .alarm-ring-inner {
       background: var(--surface); border-radius: 24px;
       padding: 40px 32px; text-align: center; border: 1px solid var(--accent);
       box-shadow: 0 0 60px rgba(124,111,255,0.3);
-    }
-    .alarm-ring-emoji { font-size: 60px; animation: ring 0.5s infinite alternate; }
+    } */
+    /* [주석처리됨] .alarm-ring-emoji { font-size: 60px; animation: ring 0.5s infinite alternate; } */
     @keyframes ring { from { transform: rotate(-15deg); } to { transform: rotate(15deg); } }
-    .alarm-ring-time { font-size: 56px; font-weight: 200; letter-spacing: -2px; margin: 12px 0 4px; }
-    .alarm-ring-label { font-size: 18px; color: var(--text2); margin-bottom: 28px; }
-    .alarm-ring-stop {
+    /* [주석처리됨] .alarm-ring-time { font-size: 56px; font-weight: 200; letter-spacing: -2px; margin: 12px 0 4px; } */
+    /* [주석처리됨] .alarm-ring-label { font-size: 18px; color: var(--text2); margin-bottom: 28px; } */
+    /* [주석처리됨] .alarm-ring-stop {
       padding: 16px 48px; border-radius: 50px; border: none;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       color: #fff; font-size: 18px; cursor: pointer;
-    }
+    } */
     /* Timer / Stopwatch */
-    .ts-tab-bar {
+    /* [주석처리됨] .ts-tab-bar {
       display: flex; background: var(--surface2); border-radius: 14px; padding: 4px; gap: 4px;
-    }
-    .ts-tab {
+    } */
+    /* [주석처리됨] .ts-tab {
       flex: 1; padding: 10px; border-radius: 10px; border: none;
       background: none; color: var(--text2); font-size: 15px; cursor: pointer; transition: all 0.2s;
-    }
+    } */
     .ts-tab.active { background: var(--accent); color: #fff; }
-    .ts-panel { display: none; flex-direction: column; align-items: center; gap: 20px; }
+    /* [주석처리됨] .ts-panel { display: none; flex-direction: column; align-items: center; gap: 20px; } */
     .ts-panel.active { display: flex; }
-    .ts-display {
+    /* [주석처리됨] .ts-display {
       font-size: 72px; font-weight: 200; letter-spacing: -3px; text-align: center;
       font-variant-numeric: tabular-nums; line-height: 1; padding: 20px 0 10px;
-    }
-    .ts-display.running { color: var(--accent); }
-    .ts-ms { font-size: 36px; color: var(--text2); }
-    .ts-btn-row { display: flex; gap: 14px; justify-content: center; }
-    .ts-btn {
+    } */
+    /* [주석처리됨] .ts-display.running { color: var(--accent); } */
+    /* [주석처리됨] .ts-ms { font-size: 36px; color: var(--text2); } */
+    /* [주석처리됨] .ts-btn-row { display: flex; gap: 14px; justify-content: center; } */
+    /* [주석처리됨] .ts-btn {
       width: 80px; height: 80px; border-radius: 50%; border: none;
       font-size: 15px; cursor: pointer; font-weight: 500;
       transition: transform 0.1s, opacity 0.1s;
-    }
-    .ts-btn:active { transform: scale(0.92); opacity: 0.8; }
+    } */
+    /* [주석처리됨] .ts-btn:active { transform: scale(0.92); opacity: 0.8; } */
     .ts-btn.start { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
-    .ts-btn.stop  { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); }
+    /* [주석처리됨] .ts-btn.stop  { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); } */
     .ts-btn.reset { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-    .ts-btn.lap   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    /* [주석처리됨] .ts-btn.lap   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); } */
 
     /* Timer input */
-    .timer-input-row { display: flex; align-items: center; gap: 6px; }
-    .timer-input-unit { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .timer-input-unit span { font-size: 12px; color: var(--text2); }
-    .timer-digit {
+    /* [주석처리됨] .timer-input-row { display: flex; align-items: center; gap: 6px; } */
+    /* [주석처리됨] .timer-input-unit { display: flex; flex-direction: column; align-items: center; gap: 4px; } */
+    /* [주석처리됨] .timer-input-unit span { font-size: 12px; color: var(--text2); } */
+    /* [주석처리됨] .timer-digit {
       width: 80px; height: 70px; border-radius: 14px;
       border: 1px solid var(--border); background: var(--surface2);
       color: var(--text); font-size: 32px; font-weight: 300;
       text-align: center; outline: none; font-variant-numeric: tabular-nums;
-    }
-    .timer-digit:focus { border-color: var(--accent); }
-    .timer-colon { font-size: 32px; color: var(--text2); margin-bottom: 20px; }
-    .timer-progress {
+    } */
+    /* [주석처리됨] .timer-digit:focus { border-color: var(--accent); } */
+    /* [주석처리됨] .timer-colon { font-size: 32px; color: var(--text2); margin-bottom: 20px; } */
+    /* [주석처리됨] .timer-progress {
       width: 100%; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden;
-    }
-    .timer-progress-bar {
+    } */
+    /* [주석처리됨] .timer-progress-bar {
       height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
       transition: width 0.5s linear; border-radius: 2px;
-    }
+    } */
 
     /* Lap list */
-    .lap-list { width: 100%; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-    .lap-item {
+    /* [주석처리됨] .lap-list { width: 100%; max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; } */
+    /* [주석처리됨] .lap-item {
       display: flex; justify-content: space-between; padding: 10px 14px;
       background: var(--surface); border-radius: 10px; font-size: 15px;
       border: 1px solid var(--border);
-    }
-    .lap-item .lap-num { color: var(--text2); }
-    .lap-item .lap-best { color: #6fff9e; }
-    .lap-item .lap-worst { color: #ff8080; }
+    } */
+    /* [주석처리됨] .lap-item .lap-num { color: var(--text2); } */
+    /* [주석처리됨] .lap-item .lap-best { color: #6fff9e; } */
+    /* [주석처리됨] .lap-item .lap-worst { color: #ff8080; } */
 
     .install-banner {
       position: fixed; bottom: 80px; left: 16px; right: 16px;
@@ -527,7 +527,7 @@
     }
     .ledger-type-btn.income.active  { background: rgba(111,255,158,0.15); color: #6fff9e; border-color: #6fff9e; }
     .ledger-type-btn.expense.active { background: rgba(255,128,128,0.15); color: #ff8080; border-color: #ff8080; }
-    .ledger-fields { display: flex; gap: 8px; }
+    /* [주석처리됨] .ledger-fields { display: flex; gap: 8px; } */
     .ledger-input {
       width: 100%; min-width: 0; box-sizing: border-box;
       padding: 12px 14px; border-radius: 12px;
@@ -640,12 +640,12 @@
     .pin-back { font-size: 13px; color: var(--text2); cursor: pointer; text-align: center; }
 
     /* Camera */
-    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    /* [주석처리됨] .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; } */
     .camera-screen.active { height: calc(100dvh - 50px); overflow: hidden; display: flex !important; flex-direction: column; }
     .camera-screen.active .camera-viewfinder { position: relative; overflow: hidden; flex-shrink: 1; flex-grow: 1; min-height: 0; max-height: calc(100dvh - 50px - 44px - 64px - 100px); }
-    #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #camera-canvas { display: none; }
-    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    /* [주석처리됨] #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; } */
+    /* [주석처리됨] #camera-canvas { display: none; } */
+    /* [주석처리됨] .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; } */
     .camera-screen.active {
       height: calc(100dvh - 50px); overflow: hidden;
       display: flex !important; flex-direction: column;
@@ -654,9 +654,9 @@
       position: relative; overflow: hidden;
       flex: 1; min-height: 0;
     }
-    #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #camera-canvas { display: none; }
-    .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; }
+    /* [주석처리됨] #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; } */
+    /* [주석처리됨] #camera-canvas { display: none; } */
+    /* [주석처리됨] .camera-screen { padding: 0 !important; gap: 0 !important; background: #000; } */
     .camera-screen.active {
       position: fixed; top: 50px; left: 0; right: 0; bottom: 0;
       overflow: hidden; display: flex !important; flex-direction: column;
@@ -665,84 +665,84 @@
     .camera-screen.active .camera-viewfinder {
       position: relative; overflow: hidden; flex: 1; min-height: 0;
     }
-    #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    #camera-canvas { display: none; }
-    .camera-controls {
+    /* [주석처리됨] #camera-video { width: 100%; height: 100%; object-fit: cover; display: block; } */
+    /* [주석처리됨] #camera-canvas { display: none; } */
+    /* [주석처리됨] .camera-controls {
       display: flex; align-items: center; justify-content: space-around;
       padding: 6px 24px 8px; background: #000; flex-shrink: 0; height: 80px; box-sizing: border-box;
-    }
-    .cam-btn {
+    } */
+    /* [주석처리됨] .cam-btn {
       width: 46px; height: 46px; border-radius: 50%; border: none;
       background: rgba(255,255,255,0.15); color: #fff; font-size: 20px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, transform 0.08s;
-    }
-    .cam-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); }
-    .cam-shutter {
+    } */
+    /* [주석처리됨] .cam-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.25); } */
+    /* [주석처리됨] .cam-shutter {
       width: 64px; height: 64px; border-radius: 50%;
       border: 4px solid #fff; background: rgba(255,255,255,0.2);
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: transform 0.08s, background 0.1s; flex-shrink: 0;
-    }
-    .cam-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.5); }
-    .cam-shutter-inner { width: 48px; height: 48px; border-radius: 50%; background: #fff; transition: border-radius 0.15s, width 0.15s, height 0.15s, background 0.15s; }
-    .camera-gallery {
+    } */
+    /* [주석처리됨] .cam-shutter:active { transform: scale(0.92); background: rgba(255,255,255,0.5); } */
+    /* [주석처리됨] .cam-shutter-inner { width: 48px; height: 48px; border-radius: 50%; background: #fff; transition: border-radius 0.15s, width 0.15s, height 0.15s, background 0.15s; } */
+    /* [주석처리됨] .camera-gallery {
       display: flex; gap: 3px; padding: 2px 4px; background: #000;
       overflow-x: auto; height: 48px; align-items: center; flex-shrink: 0;
-    }
-    .cam-thumb {
+    } */
+    /* [주석처리됨] .cam-thumb {
       width: 44px; height: 44px; object-fit: cover; border-radius: 5px;
       flex-shrink: 0; cursor: pointer; border: 2px solid transparent;
       transition: border-color 0.15s;
-    }
-    .cam-thumb:active { border-color: var(--accent); }
-    .cam-no-photos { color: rgba(255,255,255,0.3); font-size: 11px; padding: 0 10px; }
-    .cam-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.05s; }
+    } */
+    /* [주석처리됨] .cam-thumb:active { border-color: var(--accent); } */
+    /* [주석처리됨] .cam-no-photos { color: rgba(255,255,255,0.3); font-size: 11px; padding: 0 10px; } */
+    /* [주석처리됨] .cam-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.05s; } */
     .cam-flash.on { opacity: 0.8; }
 
-    .cam-zoom-row {
+    /* [주석처리됨] .cam-zoom-row {
       display: flex; justify-content: center; gap: 8px;
       padding: 3px 0; background: #000; flex-shrink: 0; height: 28px; align-items: center;
-    }
-    .cam-zoom-btn {
+    } */
+    /* [주석처리됨] .cam-zoom-btn {
       background: rgba(255,255,255,0.12); border: none; color: rgba(255,255,255,0.7);
       font-size: 11px; font-weight: 500; padding: 3px 9px;
       border-radius: 12px; cursor: pointer; transition: background 0.15s;
-    }
+    } */
     .cam-zoom-btn.active { background: rgba(255,220,100,0.9); color: #000; }
-    .cam-mode-row {
+    /* [주석처리됨] .cam-mode-row {
       display: flex; justify-content: center; gap: 20px;
       padding: 3px 0; background: #000; flex-shrink: 0; height: 26px; align-items: center;
-    }
-    .cam-mode-btn {
+    } */
+    /* [주석처리됨] .cam-mode-btn {
       background: none; border: none; color: rgba(255,255,255,0.5);
       font-size: 12px; padding: 2px 4px; cursor: pointer;
       border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
-    }
+    } */
     .cam-mode-btn.active { color: #ffd166; border-bottom-color: #ffd166; }
-    .cam-rec-timer {
+    /* [주석처리됨] .cam-rec-timer {
       position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
       background: rgba(0,0,0,0.5); color: #fff; font-size: 13px;
       padding: 6px 14px; border-radius: 20px; z-index: 5;
       display: flex; align-items: center; gap: 6px;
-    }
-    .cam-rec-dot {
+    } */
+    /* [주석처리됨] .cam-rec-dot {
       width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d;
       animation: recPulse 1s infinite;
-    }
+    } */
     @keyframes recPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    .cam-shutter.recording { border-color: #ff4d4d; }
-    .cam-shutter.recording .cam-shutter-inner {
+    /* [주석처리됨] .cam-shutter.recording { border-color: #ff4d4d; } */
+    /* [주석처리됨] .cam-shutter.recording .cam-shutter-inner {
       border-radius: 10px; width: 30px; height: 30px; background: #ff4d4d;
-    }
+    } */
 
-    .cam-thumb-wrap { position: relative; flex-shrink: 0; }
-    .cam-thumb-vid-badge {
+    /* [주석처리됨] .cam-thumb-wrap { position: relative; flex-shrink: 0; } */
+    /* [주석처리됨] .cam-thumb-vid-badge {
       position: absolute; bottom: 2px; right: 2px;
       background: rgba(0,0,0,0.6); color: #fff; font-size: 9px;
       padding: 1px 4px; border-radius: 4px;
-    }
+    } */
 
     /* Backup toast */
     .toast {
@@ -829,7 +829,8 @@
   </div>
 </div>
 
-<!-- WEATHER -->
+<!-- [주석처리됨] 사용 안 함 — 복구하려면 이 줄과 아래 닫는 줄의 주석 표시를 제거
+[WEATHER]
 <div class="screen" id="weather">
   <div class="search-row">
     <input type="text" id="city-input" placeholder="도시 이름 입력 (예: Seoul)" onkeydown="if(event.key==='Enter')fetchWeather()" />
@@ -842,8 +843,10 @@
     </div>
   </div>
 </div>
+-->
 
-<!-- ALARM -->
+<!-- [주석처리됨] 사용 안 함 — 복구하려면 이 줄과 아래 닫는 줄의 주석 표시를 제거
+[ALARM]
 <div class="screen" id="alarm">
   <div id="notif-banner" class="alarm-permission" style="display:none">
     <span>🔔 알람 알림 권한이 필요해요</span>
@@ -862,7 +865,7 @@
   </div>
 </div>
 
-<!-- Ringing modal -->
+[Ringing modal]
 <div class="alarm-ring" id="alarm-ring" style="display:none">
   <div class="alarm-ring-inner">
     <div class="alarm-ring-emoji">⏰</div>
@@ -871,15 +874,17 @@
     <button class="alarm-ring-stop" onclick="stopAlarm()">알람 끄기</button>
   </div>
 </div>
+-->
 
-<!-- TIMER / STOPWATCH -->
+<!-- [주석처리됨] 사용 안 함 — 복구하려면 이 줄과 아래 닫는 줄의 주석 표시를 제거
+[TIMER / STOPWATCH]
 <div class="screen" id="timer">
   <div class="ts-tab-bar">
     <button class="ts-tab active" id="ts-tab-timer" onclick="switchTsTab('timer')">⏱ 타이머</button>
     <button class="ts-tab" id="ts-tab-sw" onclick="switchTsTab('sw')">🏃 스톱워치</button>
   </div>
 
-  <!-- 타이머 패널 -->
+  [타이머 패널]
   <div class="ts-panel active" id="ts-timer">
     <div class="timer-input-row" id="timer-input-area">
       <div class="timer-input-unit">
@@ -907,7 +912,7 @@
     </div>
   </div>
 
-  <!-- 스톱워치 패널 -->
+  [스톱워치 패널]
   <div class="ts-panel" id="ts-sw">
     <div class="ts-display" id="sw-display">00:00<span class="ts-ms">.00</span></div>
     <div class="ts-btn-row">
@@ -918,6 +923,7 @@
     <div class="lap-list" id="lap-list"></div>
   </div>
 </div>
+-->
 
 <div class="install-banner" id="install-banner" style="display:none">
   <span>📱</span>
@@ -925,6 +931,7 @@
   <button onclick="installPWA()">설치</button>
   <button class="close-btn" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
 </div>
+
 
 <!-- MEMO + TODO -->
 <div class="screen" id="memo">
@@ -1159,7 +1166,8 @@
   </div>
 </div>
 
-<!-- MAP -->
+<!-- [주석처리됨] 사용 안 함 — 복구하려면 이 줄과 아래 닫는 줄의 주석 표시를 제거
+[MAP]
 <div class="screen map-screen" id="map">
   <div class="map-top">
     <div class="map-input-row">
@@ -1195,6 +1203,7 @@
     </div>
   </div>
 </div>
+-->
 
 <!-- LEDGER EDIT MODAL -->
 <div class="sch-edit-overlay" id="ledger-edit-modal" style="display:none" onclick="if(event.target===this)closeLedgerEdit()">
@@ -1274,7 +1283,8 @@
   </div>
 </div>
 
-<!-- CAMERA -->
+<!-- [주석처리됨] 사용 안 함 — 복구하려면 이 줄과 아래 닫는 줄의 주석 표시를 제거
+[CAMERA]
 <div class="screen camera-screen" id="camera">
   <div class="camera-viewfinder">
     <video id="camera-video" autoplay playsinline muted></video>
@@ -1306,6 +1316,7 @@
     <button class="cam-btn" onclick="downloadLastPhoto()" title="저장">💾</button>
   </div>
 </div>
+-->
 
 <!-- D-DAY -->
 <div class="screen" id="dday">
@@ -1579,15 +1590,15 @@
 const ALL_TABS = [
   { id: 'bday', label: '벙', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.8 0 4.5 2 4.5 5"/></svg>` },
   { id: 'calc',     label: '계산기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="3"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="10" y2="11"/><line x1="14" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="16" y2="15"/><line x1="8" y1="19" x2="10" y2="19"/><line x1="14" y1="19" x2="16" y2="19"/></svg>` },
-  { id: 'weather',  label: '날씨',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 10a6 6 0 10-11.4 2.6A4 4 0 106 20h12a4 4 0 000-8z"/></svg>` },
-  { id: 'alarm',    label: '알람',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M4 4l2 2M20 4l-2 2M9 3h6M12 3v2"/></svg>` },
-  { id: 'timer',    label: '타이머', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M9 3h6M12 3v2"/></svg>` },
+  // { id: 'weather',  label: '날씨',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 10a6 6 0 10-11.4 2.6A4 4 0 106 20h12a4 4 0 000-8z"/></svg>` },
+  // { id: 'alarm',    label: '알람',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M4 4l2 2M20 4l-2 2M9 3h6M12 3v2"/></svg>` },
+  // { id: 'timer',    label: '타이머', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 2"/><path d="M9 3h6M12 3v2"/></svg>` },
   { id: 'memo',     label: '메모',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg>` },
   { id: 'ledger',   label: '가계부', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h2M10 15h4"/></svg>` },
   { id: 'calendar', label: '달력',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>` },
   { id: 'dday',     label: '디데이', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22V4"/><path d="M4 4h14l-3 4 3 4H4"/></svg>` },
-  { id: 'map',      label: '길찾기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>` },
-  { id: 'camera',   label: '카메라', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
+  // { id: 'map',      label: '길찾기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>` },
+  // { id: 'camera',   label: '카메라', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
   { id: 'settings', label: '설정',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` },
 ];
 
@@ -1805,18 +1816,18 @@ function switchTab(id) {
   if (id === 'calendar') renderCal();
   if (id === 'dday') renderDdays();
   if (id === 'bday') bdRenderList();
-  if (id === 'map') {
-    const tryInit = () => {
-      if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
-        initKakaoMap();
-      } else {
-        setTimeout(tryInit, 300);
-      }
-    };
-    tryInit();
-  }
-  if (id === 'camera') initCamera();
-  else stopCamera();
+  // if (id === 'map') {
+  // const tryInit = () => {
+  // if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+  // initKakaoMap();
+  // } else {
+  // setTimeout(tryInit, 300);
+  // }
+  // };
+  // tryInit();
+  // }
+  // if (id === 'camera') initCamera();
+  // else stopCamera();
 }
 
 // ===== Calculator =====
@@ -1939,452 +1950,452 @@ function calcPercent() {
   updateCalc();
 }
 
-// ===== Weather =====
-const wmoMap = {0:'Clear',1:'Clear',2:'Clouds',3:'Clouds',51:'Drizzle',53:'Drizzle',55:'Drizzle',61:'Rain',63:'Rain',65:'Rain',71:'Snow',73:'Snow',75:'Snow',80:'Rain',81:'Rain',82:'Rain',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
-const descMap = {Clear:'맑음',Clouds:'흐림',Drizzle:'이슬비',Rain:'비',Snow:'눈',Thunderstorm:'천둥번개',Mist:'안개'};
-const wIcons = {Clear:'☀️',Clouds:'☁️',Rain:'🌧️',Drizzle:'🌦️',Thunderstorm:'⛈️',Snow:'❄️',Mist:'🌫️'};
+// // ===== Weather =====
+// const wmoMap = {0:'Clear',1:'Clear',2:'Clouds',3:'Clouds',51:'Drizzle',53:'Drizzle',55:'Drizzle',61:'Rain',63:'Rain',65:'Rain',71:'Snow',73:'Snow',75:'Snow',80:'Rain',81:'Rain',82:'Rain',95:'Thunderstorm',96:'Thunderstorm',99:'Thunderstorm'};
+// const descMap = {Clear:'맑음',Clouds:'흐림',Drizzle:'이슬비',Rain:'비',Snow:'눈',Thunderstorm:'천둥번개',Mist:'안개'};
+// const wIcons = {Clear:'☀️',Clouds:'☁️',Rain:'🌧️',Drizzle:'🌦️',Thunderstorm:'⛈️',Snow:'❄️',Mist:'🌫️'};
 
-async function fetchWeather() {
-  const city = document.getElementById('city-input').value.trim();
-  if (!city) return;
-  const el = document.getElementById('weather-result');
-  el.innerHTML = '<div class="weather-loading">⏳ 불러오는 중...</div>';
-  try {
-    const geoRes = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=ko');
-    const geoData = await geoRes.json();
-    if (!geoData.results || !geoData.results.length) throw new Error('도시를 찾을 수 없어요');
-    const { latitude, longitude, name, country } = geoData.results[0];
-    const wRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto');
-    const wData = await wRes.json();
-    const c = wData.current;
-    const condition = wmoMap[c.weather_code] || 'Clouds';
-    const icon = wIcons[condition] || '🌤️';
-    const desc = descMap[condition] || '흐림';
-    const dateStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
-    el.innerHTML = `<div class="weather-card">
-      <div class="weather-header">
-        <div><div class="weather-city">📍 ${name}, ${country}</div><div class="weather-date">${dateStr}</div></div>
-        <div class="weather-icon-big">${icon}</div>
-      </div>
-      <div class="weather-temp-big">${Math.round(c.temperature_2m)}°</div>
-      <div class="weather-desc">${desc}</div>
-      <div class="weather-divider"></div>
-      <div class="weather-details">
-        <div class="weather-detail"><div class="weather-detail-label">체감온도</div><div class="weather-detail-val">${Math.round(c.apparent_temperature)}°C</div></div>
-        <div class="weather-detail"><div class="weather-detail-label">습도</div><div class="weather-detail-val">${c.relative_humidity_2m}%</div></div>
-        <div class="weather-detail"><div class="weather-detail-label">풍속</div><div class="weather-detail-val">${Math.round(c.wind_speed_10m)} km/h</div></div>
-        <div class="weather-detail"><div class="weather-detail-label">날씨</div><div class="weather-detail-val">${icon} ${desc}</div></div>
-      </div>
-    </div>`;
-  } catch(e) {
-    el.innerHTML = '<div class="weather-error">⚠️ ' + (e.message || '오류 발생') + '<br><small>영어로 입력해보세요 (예: Seoul, Tokyo)</small></div>';
-  }
-}
+// async function fetchWeather() {
+//   const city = document.getElementById('city-input').value.trim();
+//   if (!city) return;
+//   const el = document.getElementById('weather-result');
+//   el.innerHTML = '<div class="weather-loading">⏳ 불러오는 중...</div>';
+//   try {
+//     const geoRes = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=ko');
+//     const geoData = await geoRes.json();
+//     if (!geoData.results || !geoData.results.length) throw new Error('도시를 찾을 수 없어요');
+//     const { latitude, longitude, name, country } = geoData.results[0];
+//     const wRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=auto');
+//     const wData = await wRes.json();
+//     const c = wData.current;
+//     const condition = wmoMap[c.weather_code] || 'Clouds';
+//     const icon = wIcons[condition] || '🌤️';
+//     const desc = descMap[condition] || '흐림';
+//     const dateStr = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+//     el.innerHTML = `<div class="weather-card">
+//       <div class="weather-header">
+//         <div><div class="weather-city">📍 ${name}, ${country}</div><div class="weather-date">${dateStr}</div></div>
+//         <div class="weather-icon-big">${icon}</div>
+//       </div>
+//       <div class="weather-temp-big">${Math.round(c.temperature_2m)}°</div>
+//       <div class="weather-desc">${desc}</div>
+//       <div class="weather-divider"></div>
+//       <div class="weather-details">
+//         <div class="weather-detail"><div class="weather-detail-label">체감온도</div><div class="weather-detail-val">${Math.round(c.apparent_temperature)}°C</div></div>
+//         <div class="weather-detail"><div class="weather-detail-label">습도</div><div class="weather-detail-val">${c.relative_humidity_2m}%</div></div>
+//         <div class="weather-detail"><div class="weather-detail-label">풍속</div><div class="weather-detail-val">${Math.round(c.wind_speed_10m)} km/h</div></div>
+//         <div class="weather-detail"><div class="weather-detail-label">날씨</div><div class="weather-detail-val">${icon} ${desc}</div></div>
+//       </div>
+//     </div>`;
+//   } catch(e) {
+//     el.innerHTML = '<div class="weather-error">⚠️ ' + (e.message || '오류 발생') + '<br><small>영어로 입력해보세요 (예: Seoul, Tokyo)</small></div>';
+//   }
+// }
 
-// ===== Alarm (FCM 백그라운드 알람) =====
-let alarms = JSON.parse(localStorage.getItem('pocketbon-alarms') || '[]');
-let alarmTimers = {};
-let ringAudio = null;
+// // ===== Alarm (FCM 백그라운드 알람) =====
+// let alarms = JSON.parse(localStorage.getItem('pocketbon-alarms') || '[]');
+// let alarmTimers = {};
+// let ringAudio = null;
 
-// Firebase 초기화
-const firebaseConfig = {
-  apiKey: "AIzaSyArEEaF-fK6ZPq7mjVdQgDWqCn_zDchsKQ",
-  authDomain: "pocketbon.firebaseapp.com",
-  projectId: "pocketbon",
-  storageBucket: "pocketbon.firebasestorage.app",
-  messagingSenderId: "317305023515",
-  appId: "1:317305023515:web:79fa812518da5d2d665cbe",
-};
-const VAPID_KEY = "BOqR8WAmyR81A-qYpu6fpRBx9hf-Nc1uxet4t8F_Pf52ssoy9IWp2FOx5JiQNkZvgSk4do5JCDDebAfz-74QN7g";
+// // Firebase 초기화
+// const firebaseConfig = {
+//   apiKey: "AIzaSyArEEaF-fK6ZPq7mjVdQgDWqCn_zDchsKQ",
+//   authDomain: "pocketbon.firebaseapp.com",
+//   projectId: "pocketbon",
+//   storageBucket: "pocketbon.firebasestorage.app",
+//   messagingSenderId: "317305023515",
+//   appId: "1:317305023515:web:79fa812518da5d2d665cbe",
+// };
+// const VAPID_KEY = "BOqR8WAmyR81A-qYpu6fpRBx9hf-Nc1uxet4t8F_Pf52ssoy9IWp2FOx5JiQNkZvgSk4do5JCDDebAfz-74QN7g";
 
-let firebaseApp, firebaseMessaging;
+// let firebaseApp, firebaseMessaging;
 
-async function initFirebase() {
-  if (firebaseApp) return;
-  try {
-    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
-    firebaseApp = initializeApp(firebaseConfig);
-    firebaseMessaging = getMessaging(firebaseApp);
+// async function initFirebase() {
+//   if (firebaseApp) return;
+//   try {
+//     const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+//     const { getMessaging, getToken, onMessage } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+//     firebaseApp = initializeApp(firebaseConfig);
+//     firebaseMessaging = getMessaging(firebaseApp);
 
-    // 앱 포그라운드 상태에서 FCM 메시지 수신 → 알람 UI 표시
-    onMessage(firebaseMessaging, payload => {
-      const data = payload.data || {};
-      if (data.type === 'ALARM') {
-        const alarm = { id: data.alarmId, time: data.alarmTime, label: data.alarmLabel };
-        ringAlarm(alarm);
-      }
-    });
-  } catch(e) { console.error('Firebase init error:', e); }
-}
+//     // 앱 포그라운드 상태에서 FCM 메시지 수신 → 알람 UI 표시
+//     onMessage(firebaseMessaging, payload => {
+//       const data = payload.data || {};
+//       if (data.type === 'ALARM') {
+//         const alarm = { id: data.alarmId, time: data.alarmTime, label: data.alarmLabel };
+//         ringAlarm(alarm);
+//       }
+//     });
+//   } catch(e) { console.error('Firebase init error:', e); }
+// }
 
-async function getFCMToken() {
-  await initFirebase();
-  if (!firebaseMessaging) return null;
-  try {
-    const { getToken } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
-    const token = await getToken(firebaseMessaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
-    });
-    return token;
-  } catch(e) { console.error('getToken error:', e); return null; }
-}
+// async function getFCMToken() {
+//   await initFirebase();
+//   if (!firebaseMessaging) return null;
+//   try {
+//     const { getToken } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+//     const token = await getToken(firebaseMessaging, {
+//       vapidKey: VAPID_KEY,
+//       serviceWorkerRegistration: await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
+//     });
+//     return token;
+//   } catch(e) { console.error('getToken error:', e); return null; }
+// }
 
-function saveAlarms() { localStorage.setItem('pocketbon-alarms', JSON.stringify(alarms)); }
+// function saveAlarms() { localStorage.setItem('pocketbon-alarms', JSON.stringify(alarms)); }
 
-async function requestNotifPerm() {
-  const perm = await Notification.requestPermission();
-  if (perm === 'granted') {
-    document.getElementById('notif-banner').style.display = 'none';
-    await registerFCMToken();
-  } else {
-    showToast('❌ 알림 권한이 거부됐어요. 브라우저 설정에서 허용해주세요.');
-  }
-}
+// async function requestNotifPerm() {
+//   const perm = await Notification.requestPermission();
+//   if (perm === 'granted') {
+//     document.getElementById('notif-banner').style.display = 'none';
+//     await registerFCMToken();
+//   } else {
+//     showToast('❌ 알림 권한이 거부됐어요. 브라우저 설정에서 허용해주세요.');
+//   }
+// }
 
-async function registerFCMToken() {
-  const token = await getFCMToken();
-  if (!token) { console.warn('FCM token 없음'); return; }
-  // 서버에 토큰 등록
-  await fetch('/api/register-token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token })
-  });
-  localStorage.setItem('pocketbon-fcm-token', token);
-}
+// async function registerFCMToken() {
+//   const token = await getFCMToken();
+//   if (!token) { console.warn('FCM token 없음'); return; }
+//   // 서버에 토큰 등록
+//   await fetch('/api/register-token', {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ token })
+//   });
+//   localStorage.setItem('pocketbon-fcm-token', token);
+// }
 
-function checkNotifPerm() {
-  if ('Notification' in window && Notification.permission !== 'granted') {
-    document.getElementById('notif-banner').style.display = 'flex';
-  } else if (Notification.permission === 'granted') {
-    // 이미 허용된 경우 토큰 자동 등록
-    registerFCMToken();
-  }
-}
+// function checkNotifPerm() {
+//   if ('Notification' in window && Notification.permission !== 'granted') {
+//     document.getElementById('notif-banner').style.display = 'flex';
+//   } else if (Notification.permission === 'granted') {
+//     // 이미 허용된 경우 토큰 자동 등록
+//     registerFCMToken();
+//   }
+// }
 
-window.addAlarm = async function() {
-  const timeInput = document.getElementById('alarm-time').value;
-  const labelInput = document.getElementById('alarm-label').value || '알람';
+// window.addAlarm = async function() {
+//   const timeInput = document.getElementById('alarm-time').value;
+//   const labelInput = document.getElementById('alarm-label').value || '알람';
 
-  if (!timeInput) {
-    alert('시간을 선택해 주세요.');
-    return;
-  }
+//   if (!timeInput) {
+//     alert('시간을 선택해 주세요.');
+//     return;
+//   }
 
-  const alarmData = {
-    id: Date.now(),
-    time: timeInput,
-    label: labelInput
-  };
+//   const alarmData = {
+//     id: Date.now(),
+//     time: timeInput,
+//     label: labelInput
+//   };
 
-  try {
-    const res = await fetch('/api/schedule-alarm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(alarmData)
-    });
+//   try {
+//     const res = await fetch('/api/schedule-alarm', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(alarmData)
+//     });
 
-    if (!res.ok) {
-      throw new Error('서버 백그라운드 큐 등록 실패');
-    }
+//     if (!res.ok) {
+//       throw new Error('서버 백그라운드 큐 등록 실패');
+//     }
 
-    alarms.push({
-      id: alarmData.id,
-      time: alarmData.time,
-      label: alarmData.label,
-      enabled: true
-    });
-    localStorage.setItem('pb_alarms', JSON.stringify(alarms));
+//     alarms.push({
+//       id: alarmData.id,
+//       time: alarmData.time,
+//       label: alarmData.label,
+//       enabled: true
+//     });
+//     localStorage.setItem('pb_alarms', JSON.stringify(alarms));
 
-    if (navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({
-        type: 'SYNC_ALARMS',
-        alarms: alarms
-      });
-    }
+//     if (navigator.serviceWorker.controller) {
+//       navigator.serviceWorker.controller.postMessage({
+//         type: 'SYNC_ALARMS',
+//         alarms: alarms
+//       });
+//     }
 
-    document.getElementById('alarm-label').value = '';
-    renderAlarms();
+//     document.getElementById('alarm-label').value = '';
+//     renderAlarms();
 
-    if (typeof showToast === 'function') {
-      showToast('⏰ 백그라운드 알람이 설정되었습니다!');
-    } else {
-      alert('⏰ 백그라운드 알람이 설정되었습니다!');
-    }
+//     if (typeof showToast === 'function') {
+//       showToast('⏰ 백그라운드 알람이 설정되었습니다!');
+//     } else {
+//       alert('⏰ 백그라운드 알람이 설정되었습니다!');
+//     }
 
-  } catch (err) {
-    console.error('알람 설정 실패:', err);
-    alert('⚠️ 알람 설정됐지만 백그라운드 알람 오류가 발생했습니다.');
-  }
-};
+//   } catch (err) {
+//     console.error('알람 설정 실패:', err);
+//     alert('⚠️ 알람 설정됐지만 백그라운드 알람 오류가 발생했습니다.');
+//   }
+// };
 
-// 포그라운드용 타이머
-function scheduleAlarmForeground(alarm) {
-  if (!alarm.active) return;
-  if (alarmTimers[alarm.id]) clearTimeout(alarmTimers[alarm.id]);
-  const [h, m] = alarm.time.split(':').map(Number);
-  const now = new Date();
-  const target = new Date();
-  target.setHours(h, m, 0, 0);
-  if (target <= now) target.setDate(target.getDate() + 1);
-  alarmTimers[alarm.id] = setTimeout(() => ringAlarm(alarm), target - now);
-}
+// // 포그라운드용 타이머
+// function scheduleAlarmForeground(alarm) {
+//   if (!alarm.active) return;
+//   if (alarmTimers[alarm.id]) clearTimeout(alarmTimers[alarm.id]);
+//   const [h, m] = alarm.time.split(':').map(Number);
+//   const now = new Date();
+//   const target = new Date();
+//   target.setHours(h, m, 0, 0);
+//   if (target <= now) target.setDate(target.getDate() + 1);
+//   alarmTimers[alarm.id] = setTimeout(() => ringAlarm(alarm), target - now);
+// }
 
-function ringAlarm(alarm) {
-  document.getElementById('ring-time').textContent = alarm.time;
-  document.getElementById('ring-label').textContent = alarm.label;
-  document.getElementById('alarm-ring').style.display = 'flex';
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    function beep() {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = 880; osc.type = 'sine';
-      gain.gain.setValueAtTime(0.4, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
-    }
-    ringAudio = setInterval(beep, 600);
-  } catch(e) {}
-  scheduleAlarmForeground(alarm);
-}
+// function ringAlarm(alarm) {
+//   document.getElementById('ring-time').textContent = alarm.time;
+//   document.getElementById('ring-label').textContent = alarm.label;
+//   document.getElementById('alarm-ring').style.display = 'flex';
+//   try {
+//     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+//     function beep() {
+//       const osc = ctx.createOscillator();
+//       const gain = ctx.createGain();
+//       osc.connect(gain); gain.connect(ctx.destination);
+//       osc.frequency.value = 880; osc.type = 'sine';
+//       gain.gain.setValueAtTime(0.4, ctx.currentTime);
+//       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+//       osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.4);
+//     }
+//     ringAudio = setInterval(beep, 600);
+//   } catch(e) {}
+//   scheduleAlarmForeground(alarm);
+// }
 
-function stopAlarm() {
-  document.getElementById('alarm-ring').style.display = 'none';
-  if (ringAudio) { clearInterval(ringAudio); ringAudio = null; }
-}
+// function stopAlarm() {
+//   document.getElementById('alarm-ring').style.display = 'none';
+//   if (ringAudio) { clearInterval(ringAudio); ringAudio = null; }
+// }
 
-async function toggleAlarm(id) {
-  const alarm = alarms.find(a => a.id === id);
-  if (!alarm) return;
-  alarm.active = !alarm.active;
-  saveAlarms();
-  if (alarm.active) {
-    scheduleAlarmForeground(alarm);
-    await fetch('/api/schedule-alarm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: alarm.id, time: alarm.time, label: alarm.label })
-    }).catch(() => {});
-  } else {
-    clearTimeout(alarmTimers[id]);
-    delete alarmTimers[id];
-    await fetch('/api/delete-alarm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
-    }).catch(() => {});
-  }
-  renderAlarms();
-}
+// async function toggleAlarm(id) {
+//   const alarm = alarms.find(a => a.id === id);
+//   if (!alarm) return;
+//   alarm.active = !alarm.active;
+//   saveAlarms();
+//   if (alarm.active) {
+//     scheduleAlarmForeground(alarm);
+//     await fetch('/api/schedule-alarm', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ id: alarm.id, time: alarm.time, label: alarm.label })
+//     }).catch(() => {});
+//   } else {
+//     clearTimeout(alarmTimers[id]);
+//     delete alarmTimers[id];
+//     await fetch('/api/delete-alarm', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ id })
+//     }).catch(() => {});
+//   }
+//   renderAlarms();
+// }
 
-async function deleteAlarm(id) {
-  if (!confirm('이 알람을 삭제할까요?')) return;
-  clearTimeout(alarmTimers[id]);
-  delete alarmTimers[id];
-  alarms = alarms.filter(a => a.id !== id);
-  saveAlarms();
-  await fetch('/api/delete-alarm', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id })
-  }).catch(() => {});
-  renderAlarms();
-}
+// async function deleteAlarm(id) {
+//   if (!confirm('이 알람을 삭제할까요?')) return;
+//   clearTimeout(alarmTimers[id]);
+//   delete alarmTimers[id];
+//   alarms = alarms.filter(a => a.id !== id);
+//   saveAlarms();
+//   await fetch('/api/delete-alarm', {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ id })
+//   }).catch(() => {});
+//   renderAlarms();
+// }
 
-function renderAlarms() {
-  const el = document.getElementById('alarm-list');
-  if (!alarms.length) { el.innerHTML = '<div class="alarm-empty"><span>⏰</span>알람이 없어요</div>'; return; }
-  el.innerHTML = alarms.map(a => `
-    <div class="alarm-item ${a.active ? '' : 'inactive'}">
-      <div>
-        <div class="alarm-item-time">${a.time}</div>
-        <div class="alarm-item-label">${a.label}</div>
-      </div>
-      <div class="alarm-toggle ${a.active ? 'on' : ''}" onclick="toggleAlarm(${a.id})"></div>
-      <button class="alarm-delete" onclick="deleteAlarm(${a.id})">🗑️</button>
-    </div>`).join('');
-}
+// function renderAlarms() {
+//   const el = document.getElementById('alarm-list');
+//   if (!alarms.length) { el.innerHTML = '<div class="alarm-empty"><span>⏰</span>알람이 없어요</div>'; return; }
+//   el.innerHTML = alarms.map(a => `
+//     <div class="alarm-item ${a.active ? '' : 'inactive'}">
+//       <div>
+//         <div class="alarm-item-time">${a.time}</div>
+//         <div class="alarm-item-label">${a.label}</div>
+//       </div>
+//       <div class="alarm-toggle ${a.active ? 'on' : ''}" onclick="toggleAlarm(${a.id})"></div>
+//       <button class="alarm-delete" onclick="deleteAlarm(${a.id})">🗑️</button>
+//     </div>`).join('');
+// }
 
-// Init alarms
-checkNotifPerm();
-renderAlarms();
-alarms.forEach(a => scheduleAlarmForeground(a));
-initFirebase();
+// // Init alarms
+// checkNotifPerm();
+// renderAlarms();
+// alarms.forEach(a => scheduleAlarmForeground(a));
+// initFirebase();
 
-// Set default time
-const defTime = new Date(Date.now() + 60000);
-document.getElementById('alarm-time').value = defTime.getHours().toString().padStart(2,'0') + ':' + defTime.getMinutes().toString().padStart(2,'0');
+// // Set default time
+// const defTime = new Date(Date.now() + 60000);
+// document.getElementById('alarm-time').value = defTime.getHours().toString().padStart(2,'0') + ':' + defTime.getMinutes().toString().padStart(2,'0');
 
-// ===== Timer / Stopwatch =====
-function switchTsTab(which) {
-  document.querySelectorAll('.ts-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.ts-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('ts-tab-' + which).classList.add('active');
-  document.getElementById('ts-' + which).classList.add('active');
-}
+// // ===== Timer / Stopwatch =====
+// function switchTsTab(which) {
+//   document.querySelectorAll('.ts-tab').forEach(t => t.classList.remove('active'));
+//   document.querySelectorAll('.ts-panel').forEach(p => p.classList.remove('active'));
+//   document.getElementById('ts-tab-' + which).classList.add('active');
+//   document.getElementById('ts-' + which).classList.add('active');
+// }
 
-// --- Timer ---
-let timerTotal = 0, timerRemain = 0, timerRunning = false, timerInterval = null;
+// // --- Timer ---
+// let timerTotal = 0, timerRemain = 0, timerRunning = false, timerInterval = null;
 
-function timerStartStop() {
-  if (!timerRunning) {
-    if (timerRemain === 0) {
-      const hh = parseInt(document.getElementById('t-hh').value) || 0;
-      const mm = parseInt(document.getElementById('t-mm').value) || 0;
-      const ss = parseInt(document.getElementById('t-ss').value) || 0;
-      timerTotal = hh * 3600 + mm * 60 + ss;
-      timerRemain = timerTotal;
-      if (timerRemain === 0) { alert('시간을 입력해주세요'); return; }
-      document.getElementById('timer-input-area').style.display = 'none';
-      document.getElementById('timer-display').style.display = 'block';
-      document.getElementById('timer-progress-wrap').style.display = 'block';
-    }
-    timerRunning = true;
-    document.getElementById('timer-start-btn').textContent = '일시정지';
-    document.getElementById('timer-start-btn').className = 'ts-btn stop';
-    timerInterval = setInterval(() => {
-      timerRemain--;
-      timerUpdateDisplay();
-      if (timerRemain <= 0) { timerDone(); }
-    }, 1000);
-  } else {
-    timerRunning = false;
-    clearInterval(timerInterval);
-    document.getElementById('timer-start-btn').textContent = '계속';
-    document.getElementById('timer-start-btn').className = 'ts-btn start';
-  }
-}
+// function timerStartStop() {
+//   if (!timerRunning) {
+//     if (timerRemain === 0) {
+//       const hh = parseInt(document.getElementById('t-hh').value) || 0;
+//       const mm = parseInt(document.getElementById('t-mm').value) || 0;
+//       const ss = parseInt(document.getElementById('t-ss').value) || 0;
+//       timerTotal = hh * 3600 + mm * 60 + ss;
+//       timerRemain = timerTotal;
+//       if (timerRemain === 0) { alert('시간을 입력해주세요'); return; }
+//       document.getElementById('timer-input-area').style.display = 'none';
+//       document.getElementById('timer-display').style.display = 'block';
+//       document.getElementById('timer-progress-wrap').style.display = 'block';
+//     }
+//     timerRunning = true;
+//     document.getElementById('timer-start-btn').textContent = '일시정지';
+//     document.getElementById('timer-start-btn').className = 'ts-btn stop';
+//     timerInterval = setInterval(() => {
+//       timerRemain--;
+//       timerUpdateDisplay();
+//       if (timerRemain <= 0) { timerDone(); }
+//     }, 1000);
+//   } else {
+//     timerRunning = false;
+//     clearInterval(timerInterval);
+//     document.getElementById('timer-start-btn').textContent = '계속';
+//     document.getElementById('timer-start-btn').className = 'ts-btn start';
+//   }
+// }
 
-function timerUpdateDisplay() {
-  const h = Math.floor(timerRemain / 3600);
-  const m = Math.floor((timerRemain % 3600) / 60);
-  const s = timerRemain % 60;
-  const txt = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
-  document.getElementById('timer-display').textContent = txt;
-  const pct = timerTotal > 0 ? (timerRemain / timerTotal * 100) : 0;
-  document.getElementById('timer-progress-bar').style.width = pct + '%';
-}
+// function timerUpdateDisplay() {
+//   const h = Math.floor(timerRemain / 3600);
+//   const m = Math.floor((timerRemain % 3600) / 60);
+//   const s = timerRemain % 60;
+//   const txt = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+//   document.getElementById('timer-display').textContent = txt;
+//   const pct = timerTotal > 0 ? (timerRemain / timerTotal * 100) : 0;
+//   document.getElementById('timer-progress-bar').style.width = pct + '%';
+// }
 
-function timerDone() {
-  timerRunning = false;
-  clearInterval(timerInterval);
-  timerRemain = 0;
-  timerUpdateDisplay();
-  document.getElementById('timer-start-btn').textContent = '시작';
-  document.getElementById('timer-start-btn').className = 'ts-btn start';
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [0, 0.35, 0.7].forEach(t => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.connect(g); g.connect(ctx.destination);
-      osc.frequency.value = 660; osc.type = 'sine';
-      g.gain.setValueAtTime(0.5, ctx.currentTime + t);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
-      osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.3);
-    });
-  } catch(e) {}
-  document.getElementById('timer-display').style.color = 'var(--accent2)';
-  setTimeout(() => { document.getElementById('timer-display').style.color = ''; }, 1500);
-}
+// function timerDone() {
+//   timerRunning = false;
+//   clearInterval(timerInterval);
+//   timerRemain = 0;
+//   timerUpdateDisplay();
+//   document.getElementById('timer-start-btn').textContent = '시작';
+//   document.getElementById('timer-start-btn').className = 'ts-btn start';
+//   try {
+//     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+//     [0, 0.35, 0.7].forEach(t => {
+//       const osc = ctx.createOscillator();
+//       const g = ctx.createGain();
+//       osc.connect(g); g.connect(ctx.destination);
+//       osc.frequency.value = 660; osc.type = 'sine';
+//       g.gain.setValueAtTime(0.5, ctx.currentTime + t);
+//       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+//       osc.start(ctx.currentTime + t); osc.stop(ctx.currentTime + t + 0.3);
+//     });
+//   } catch(e) {}
+//   document.getElementById('timer-display').style.color = 'var(--accent2)';
+//   setTimeout(() => { document.getElementById('timer-display').style.color = ''; }, 1500);
+// }
 
-function timerReset() {
-  timerRunning = false;
-  clearInterval(timerInterval);
-  timerRemain = 0; timerTotal = 0;
-  document.getElementById('timer-input-area').style.display = 'flex';
-  document.getElementById('timer-display').style.display = 'none';
-  document.getElementById('timer-progress-wrap').style.display = 'none';
-  document.getElementById('timer-start-btn').textContent = '시작';
-  document.getElementById('timer-start-btn').className = 'ts-btn start';
-  document.getElementById('t-hh').value = 0;
-  document.getElementById('t-mm').value = 0;
-  document.getElementById('t-ss').value = 0;
-}
+// function timerReset() {
+//   timerRunning = false;
+//   clearInterval(timerInterval);
+//   timerRemain = 0; timerTotal = 0;
+//   document.getElementById('timer-input-area').style.display = 'flex';
+//   document.getElementById('timer-display').style.display = 'none';
+//   document.getElementById('timer-progress-wrap').style.display = 'none';
+//   document.getElementById('timer-start-btn').textContent = '시작';
+//   document.getElementById('timer-start-btn').className = 'ts-btn start';
+//   document.getElementById('t-hh').value = 0;
+//   document.getElementById('t-mm').value = 0;
+//   document.getElementById('t-ss').value = 0;
+// }
 
-// --- Stopwatch ---
-let swRunning = false, swStart = 0, swElapsed = 0, swInterval = null;
-let swLaps = [];
+// // --- Stopwatch ---
+// let swRunning = false, swStart = 0, swElapsed = 0, swInterval = null;
+// let swLaps = [];
 
-function swStartStop() {
-  if (!swRunning) {
-    swRunning = true;
-    swStart = Date.now() - swElapsed;
-    swInterval = setInterval(swTick, 30);
-    document.getElementById('sw-start-btn').textContent = '정지';
-    document.getElementById('sw-start-btn').className = 'ts-btn stop';
-    document.getElementById('sw-lap-btn').disabled = false;
-    document.getElementById('sw-display').classList.add('running');
-  } else {
-    swRunning = false;
-    swElapsed = Date.now() - swStart;
-    clearInterval(swInterval);
-    document.getElementById('sw-start-btn').textContent = '계속';
-    document.getElementById('sw-start-btn').className = 'ts-btn start';
-    document.getElementById('sw-display').classList.remove('running');
-  }
-}
+// function swStartStop() {
+//   if (!swRunning) {
+//     swRunning = true;
+//     swStart = Date.now() - swElapsed;
+//     swInterval = setInterval(swTick, 30);
+//     document.getElementById('sw-start-btn').textContent = '정지';
+//     document.getElementById('sw-start-btn').className = 'ts-btn stop';
+//     document.getElementById('sw-lap-btn').disabled = false;
+//     document.getElementById('sw-display').classList.add('running');
+//   } else {
+//     swRunning = false;
+//     swElapsed = Date.now() - swStart;
+//     clearInterval(swInterval);
+//     document.getElementById('sw-start-btn').textContent = '계속';
+//     document.getElementById('sw-start-btn').className = 'ts-btn start';
+//     document.getElementById('sw-display').classList.remove('running');
+//   }
+// }
 
-function swTick() {
-  swElapsed = Date.now() - swStart;
-  swUpdateDisplay();
-}
+// function swTick() {
+//   swElapsed = Date.now() - swStart;
+//   swUpdateDisplay();
+// }
 
-function swUpdateDisplay() {
-  const ms = swElapsed % 1000;
-  const s  = Math.floor(swElapsed / 1000) % 60;
-  const m  = Math.floor(swElapsed / 60000) % 60;
-  const h  = Math.floor(swElapsed / 3600000);
-  const timeStr = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
-  document.getElementById('sw-display').innerHTML = timeStr + '<span class="ts-ms">.' + pad(Math.floor(ms/10)) + '</span>';
-}
+// function swUpdateDisplay() {
+//   const ms = swElapsed % 1000;
+//   const s  = Math.floor(swElapsed / 1000) % 60;
+//   const m  = Math.floor(swElapsed / 60000) % 60;
+//   const h  = Math.floor(swElapsed / 3600000);
+//   const timeStr = (h > 0 ? pad(h)+':' : '') + pad(m) + ':' + pad(s);
+//   document.getElementById('sw-display').innerHTML = timeStr + '<span class="ts-ms">.' + pad(Math.floor(ms/10)) + '</span>';
+// }
 
-function swLap() {
-  if (!swRunning) return;
-  const lapTime = swElapsed;
-  const prev = swLaps.length ? swLaps[swLaps.length-1].cumul : 0;
-  swLaps.push({ n: swLaps.length+1, split: lapTime - prev, cumul: lapTime });
-  swRenderLaps();
-}
+// function swLap() {
+//   if (!swRunning) return;
+//   const lapTime = swElapsed;
+//   const prev = swLaps.length ? swLaps[swLaps.length-1].cumul : 0;
+//   swLaps.push({ n: swLaps.length+1, split: lapTime - prev, cumul: lapTime });
+//   swRenderLaps();
+// }
 
-function swRenderLaps() {
-  if (!swLaps.length) { document.getElementById('lap-list').innerHTML = ''; return; }
-  const splits = swLaps.map(l => l.split);
-  const best = Math.min(...splits), worst = Math.max(...splits);
-  document.getElementById('lap-list').innerHTML = [...swLaps].reverse().map(l => {
-    let cls = '';
-    if (swLaps.length > 1 && l.split === best)  cls = 'lap-best';
-    if (swLaps.length > 1 && l.split === worst) cls = 'lap-worst';
-    return `<div class="lap-item">
-      <span class="lap-num">랩 ${l.n}</span>
-      <span class="${cls}">${fmtMs(l.split)}</span>
-      <span style="color:var(--text2)">${fmtMs(l.cumul)}</span>
-    </div>`;
-  }).join('');
-}
+// function swRenderLaps() {
+//   if (!swLaps.length) { document.getElementById('lap-list').innerHTML = ''; return; }
+//   const splits = swLaps.map(l => l.split);
+//   const best = Math.min(...splits), worst = Math.max(...splits);
+//   document.getElementById('lap-list').innerHTML = [...swLaps].reverse().map(l => {
+//     let cls = '';
+//     if (swLaps.length > 1 && l.split === best)  cls = 'lap-best';
+//     if (swLaps.length > 1 && l.split === worst) cls = 'lap-worst';
+//     return `<div class="lap-item">
+//       <span class="lap-num">랩 ${l.n}</span>
+//       <span class="${cls}">${fmtMs(l.split)}</span>
+//       <span style="color:var(--text2)">${fmtMs(l.cumul)}</span>
+//     </div>`;
+//   }).join('');
+// }
 
-function swReset() {
-  swRunning = false;
-  clearInterval(swInterval);
-  swElapsed = 0; swStart = 0; swLaps = [];
-  swUpdateDisplay();
-  document.getElementById('sw-start-btn').textContent = '시작';
-  document.getElementById('sw-start-btn').className = 'ts-btn start';
-  document.getElementById('sw-lap-btn').disabled = true;
-  document.getElementById('sw-display').classList.remove('running');
-  document.getElementById('lap-list').innerHTML = '';
-}
+// function swReset() {
+//   swRunning = false;
+//   clearInterval(swInterval);
+//   swElapsed = 0; swStart = 0; swLaps = [];
+//   swUpdateDisplay();
+//   document.getElementById('sw-start-btn').textContent = '시작';
+//   document.getElementById('sw-start-btn').className = 'ts-btn start';
+//   document.getElementById('sw-lap-btn').disabled = true;
+//   document.getElementById('sw-display').classList.remove('running');
+//   document.getElementById('lap-list').innerHTML = '';
+// }
 
-function pad(n) { return String(n).padStart(2,'0'); }
-function fmtMs(ms) {
-  const s = Math.floor(ms/1000)%60, m = Math.floor(ms/60000)%60, h = Math.floor(ms/3600000);
-  const cs = Math.floor((ms%1000)/10);
-  return (h>0?pad(h)+':':'') + pad(m)+':'+pad(s)+'.'+pad(cs);
-}
+// function pad(n) { return String(n).padStart(2,'0'); }
+// function fmtMs(ms) {
+//   const s = Math.floor(ms/1000)%60, m = Math.floor(ms/60000)%60, h = Math.floor(ms/3600000);
+//   const cs = Math.floor((ms%1000)/10);
+//   return (h>0?pad(h)+':':'') + pad(m)+':'+pad(s)+'.'+pad(cs);
+// }
 
 // ===== Memo =====
 let memos = JSON.parse(localStorage.getItem('pocketbon-memos') || '[]');
@@ -4203,645 +4214,645 @@ calInit();
 renderTabBar();
 switchTab('calc');
 </script>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=dccb14fb604dd641939de28221277303&libraries=services,clusterer"></script>
+<!-- <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=dccb14fb604dd641939de28221277303&libraries=services,clusterer"></script> -->
 <script>
-// ===== MAP =====
-const KAKAO_REST_KEY = '1468ea325312af45cfb69691aa9bd0a6';
-let kakaoMap = null, mapMode = 'walk';
-let myMarker = null, watchId = null;
-let fromCoords = null, toCoords = null;
-let routePolylines = [];
-let isNavigating = false;
-
-function initKakaoMap() {
-  if (kakaoMap) return;
-  const container = document.getElementById('kakao-map');
-  if (!container || !window.kakao) return;
-  kakaoMap = new kakao.maps.Map(container, {
-    center: new kakao.maps.LatLng(35.1796, 129.0756),
-    level: 5
-  });
-  startWatchLocation();
-}
-
-function startWatchLocation() {
-  if (!navigator.geolocation) return;
-  if (watchId) navigator.geolocation.clearWatch(watchId);
-  watchId = navigator.geolocation.watchPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
-    const latlng = new kakao.maps.LatLng(lat, lng);
-
-    if (!myMarker) {
-      const img = new kakao.maps.MarkerImage(
-        'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
-        new kakao.maps.Size(30, 42)
-      );
-      myMarker = new kakao.maps.Marker({ position: latlng, map: kakaoMap, image: img, title: '내 위치' });
-      kakaoMap.setCenter(latlng);
-      kakaoMap.setLevel(4);
-    } else {
-      myMarker.setPosition(latlng);
-      if (isNavigating) kakaoMap.setCenter(latlng);
-    }
-  }, err => {
-    console.log('위치 오류:', err.message);
-  }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 });
-}
-
-function moveToMyLocation() {
-  isNavigating = false;
-  if (myMarker) {
-    kakaoMap.setCenter(myMarker.getPosition());
-    kakaoMap.setLevel(3);
-  } else if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      kakaoMap.setCenter(new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
-      kakaoMap.setLevel(3);
-    });
-  }
-}
-
-function setMapMode(mode) {
-  mapMode = mode;
-  document.querySelectorAll('.map-mode-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('mode-' + mode).classList.add('active');
-}
-
-function useMyLocation(field) {
-  navigator.geolocation.getCurrentPosition(pos => {
-    fromCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    document.getElementById('map-from').value = '현재 위치';
-    showToast('현재 위치를 출발지로 설정했어요 📍');
-  });
-}
-
-async function geocode(address) {
-  return new Promise((resolve, reject) => {
-    const geocoder = new kakao.maps.services.Geocoder();
-    geocoder.addressSearch(address, (result, status) => {
-      if (status === kakao.maps.services.Status.OK) {
-        resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
-      } else {
-        const places = new kakao.maps.services.Places();
-        places.keywordSearch(address, (res, st) => {
-          if (st === kakao.maps.services.Status.OK) {
-            resolve({ lat: parseFloat(res[0].y), lng: parseFloat(res[0].x) });
-          } else reject(new Error('장소를 찾을 수 없어요'));
-        });
-      }
-    });
-  });
-}
-
-function clearRoutePolylines() {
-  routePolylines.forEach(p => p.setMap(null));
-  routePolylines = [];
-}
-
-function drawPolyline(vertexes, color, weight = 5) {
-  const path = [];
-  for (let i = 0; i < vertexes.length; i += 2) {
-    path.push(new kakao.maps.LatLng(vertexes[i+1], vertexes[i]));
-  }
-  const poly = new kakao.maps.Polyline({ path, strokeColor: color, strokeWeight: weight, strokeOpacity: 0.85, map: kakaoMap });
-  routePolylines.push(poly);
-}
-
-async function searchRoute() {
-  if (!kakaoMap) {
-    const tryInit = () => {
-      if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
-        initKakaoMap();
-        setTimeout(searchRoute, 500);
-      } else { setTimeout(tryInit, 300); }
-    };
-    tryInit();
-    showToast('지도 초기화 중...');
-    return;
-  }
-
-  const fromVal = document.getElementById('map-from').value.trim();
-  const toVal = document.getElementById('map-to').value.trim();
-  if (!toVal) { showToast('도착지를 입력해주세요'); return; }
-
-  const loadingEl = document.getElementById('map-loading');
-  loadingEl.style.display = 'flex';
-  clearRoutePolylines();
-  isNavigating = false;
-
-  const hideLoading = () => { loadingEl.style.display = 'none'; };
-
-  try {
-    if (fromVal && fromVal !== '현재 위치') {
-      fromCoords = await geocode(fromVal);
-    } else if (!fromCoords) {
-      await new Promise((res, rej) => {
-        navigator.geolocation.getCurrentPosition(pos => {
-          fromCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          res();
-        }, rej, { enableHighAccuracy: true, timeout: 8000 });
-      });
-    }
-    toCoords = await geocode(toVal);
-
-    new kakao.maps.Marker({ position: new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng), map: kakaoMap });
-    const destMarker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(toCoords.lat, toCoords.lng), map: kakaoMap });
-
-    const bounds = new kakao.maps.LatLngBounds();
-    bounds.extend(new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng));
-    bounds.extend(new kakao.maps.LatLng(toCoords.lat, toCoords.lng));
-
-    if (mapMode === 'walk') {
-      const walkDist = Math.round(Math.sqrt(
-        Math.pow((toCoords.lat - fromCoords.lat) * 111000, 2) +
-        Math.pow((toCoords.lng - fromCoords.lng) * 88000, 2)
-      ));
-      const walkTime = Math.ceil(walkDist / 67);
-
-      const path = [
-        new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng),
-        new kakao.maps.LatLng(toCoords.lat, toCoords.lng)
-      ];
-      const poly = new kakao.maps.Polyline({ path, strokeColor: '#7c6fff', strokeWeight: 5, strokeOpacity: 0.8, strokeStyle: 'dashed', map: kakaoMap });
-      routePolylines.push(poly);
-      kakaoMap.setBounds(bounds);
-
-      showRouteResult('walk', walkDist, walkTime, 0, [
-        { icon: '🚶', text: '도보로 이동', dist: walkDist },
-        { icon: '🏁', text: toVal + ' 도착', dist: 0 }
-      ]);
-
-    } else if (mapMode === 'car') {
-      const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${fromCoords.lng},${fromCoords.lat}&destination=${toCoords.lng},${toCoords.lat}&priority=RECOMMEND`;
-      const res = await fetch(url, { headers: { Authorization: 'KakaoAK ' + KAKAO_REST_KEY } });
-      const data = await res.json();
-
-      if (data.routes && data.routes[0] && data.routes[0].result_code === 0) {
-        const route = data.routes[0];
-        route.sections.forEach(section => {
-          section.roads.forEach(road => drawPolyline(road.vertexes, '#ff6fa8'));
-        });
-        kakaoMap.setBounds(bounds);
-
-        const dist = route.summary.distance;
-        const time = Math.ceil(route.summary.duration / 60);
-        const toll = route.summary.fare?.toll || 0;
-        const guides = route.sections[0]?.guides || [];
-
-        showRouteResult('car', dist, time, toll, guides.slice(0, 8).map(g => ({
-          icon: guideIcon(g.type), text: g.name || g.guidance, dist: g.distance
-        })));
-      } else {
-        showToast('자동차 경로를 찾을 수 없어요');
-      }
-
-    } else {
-      await searchTransitRoute(fromCoords, toCoords, toVal, bounds);
-    }
-
-    isNavigating = true;
-    hideLoading();
-
-  } catch(e) {
-    hideLoading();
-    showToast('오류: ' + (e.message || '경로 탐색 실패'));
-  }
-}
-
-function showRouteResult(mode, dist, time, toll, steps) {
-  const distStr = dist >= 1000 ? (dist/1000).toFixed(1) + 'km' : dist + 'm';
-  const timeStr = time >= 60 ? Math.floor(time/60) + '시간 ' + (time%60) + '분' : time + '분';
-
-  let summaryHTML = `
-    <div class="map-result-stat"><div class="map-result-stat-val">${timeStr}</div><div class="map-result-stat-label">소요시간</div></div>
-    <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">거리</div></div>
-  `;
-  if (mode === 'car' && toll > 0) {
-    summaryHTML += `<div class="map-result-stat"><div class="map-result-stat-val">${toll.toLocaleString()}원</div><div class="map-result-stat-label">통행료</div></div>`;
-  }
-
-  document.getElementById('map-result-summary').innerHTML = summaryHTML;
-  document.getElementById('map-steps').innerHTML = steps.map(s => `
-    <div class="map-step">
-      <div class="map-step-icon">${s.icon}</div>
-      <div class="map-step-text">${s.text}
-        ${s.dist > 0 ? `<div class="map-step-dist">${s.dist >= 1000 ? (s.dist/1000).toFixed(1)+'km' : s.dist+'m'}</div>` : ''}
-      </div>
-    </div>`).join('');
-
-  document.getElementById('map-result').classList.add('show');
-}
-
-function drawStraightLine(from, to, color) {
-  const path = [new kakao.maps.LatLng(from.lat, from.lng), new kakao.maps.LatLng(to.lat, to.lng)];
-  const poly = new kakao.maps.Polyline({ path, strokeColor: color, strokeWeight: 4, strokeOpacity: 0.7, strokeStyle: 'dashed', map: kakaoMap });
-  routePolylines.push(poly);
-}
-
-const ODSAY_KEY = encodeURIComponent('ahMdwx/DtlETqFOkZlWXwQ');
-
-async function searchTransitRoute(from, to, toName, bounds) {
-  try {
-    const url = `https://api.odsay.com/v1/api/searchPubTransPathT?SX=${from.lng}&SY=${from.lat}&EX=${to.lng}&EY=${to.lat}&apiKey=${ODSAY_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (!data.result || !data.result.path || !data.result.path.length) {
-      drawStraightLine(from, to, '#6fdfff');
-      kakaoMap.setBounds(bounds);
-      showTransitFallback(from, to, toName);
-      return;
-    }
-
-    const path = data.result.path[0];
-    const info = path.info;
-    const subPaths = path.subPath;
-
-    for (const sub of subPaths) {
-      if (sub.trafficType === 1) {
-        const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
-        if (sub.passStopList?.stations) {
-          const coords = sub.passStopList.stations.map(s =>
-            new kakao.maps.LatLng(s.y, s.x)
-          );
-          if (coords.length > 1) {
-            const poly = new kakao.maps.Polyline({ path: coords, strokeColor: color, strokeWeight: 6, strokeOpacity: 0.9, map: kakaoMap });
-            routePolylines.push(poly);
-          }
-        }
-      } else if (sub.trafficType === 2) {
-        if (sub.passStopList?.stations) {
-          const coords = sub.passStopList.stations.map(s =>
-            new kakao.maps.LatLng(s.y, s.x)
-          );
-          if (coords.length > 1) {
-            const poly = new kakao.maps.Polyline({ path: coords, strokeColor: '#ff6fa8', strokeWeight: 5, strokeOpacity: 0.85, map: kakaoMap });
-            routePolylines.push(poly);
-          }
-        }
-      }
-    }
-
-    kakaoMap.setBounds(bounds);
-
-    const totalTime = info.totalTime;
-    const totalFare = info.payment;
-    const totalDist = info.totalDistance;
-
-    const steps = [];
-    for (const sub of subPaths) {
-      if (sub.trafficType === 3) {
-        if (sub.distance > 0) {
-          steps.push({ icon: '🚶', text: `도보 ${sub.sectionTime}분`, dist: sub.distance, color: null });
-        }
-      } else if (sub.trafficType === 1) {
-        const lineName = sub.lane?.[0]?.name || '지하철';
-        const stationCnt = sub.stationCount;
-        const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
-        steps.push({
-          icon: '🚇',
-          text: `${sub.startName} 승차 → ${lineName} → ${sub.endName} 하차 (${stationCnt}정거장, ${sub.sectionTime}분)`,
-          dist: sub.distance,
-          lineColor: color
-        });
-      } else if (sub.trafficType === 2) {
-        const busNo = sub.lane?.[0]?.busNo || '버스';
-        const stationCnt = sub.stationCount;
-        steps.push({
-          icon: '🚌',
-          text: `${sub.startName} 승차 → ${busNo}번 버스 → ${sub.endName} 하차 (${stationCnt}정거장, ${sub.sectionTime}분)`,
-          dist: sub.distance,
-          lineColor: '#ff6fa8'
-        });
-      }
-    }
-    steps.push({ icon: '🏁', text: toName + ' 도착', dist: 0, lineColor: null });
-
-    const timeStr = totalTime >= 60 ? Math.floor(totalTime/60) + '시간 ' + (totalTime%60) + '분' : totalTime + '분';
-    const distStr = totalDist >= 1000 ? (totalDist/1000).toFixed(1) + 'km' : totalDist + 'm';
-
-    document.getElementById('map-result-summary').innerHTML = `
-      <div class="map-result-stat"><div class="map-result-stat-val">${timeStr}</div><div class="map-result-stat-label">소요시간</div></div>
-      <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">거리</div></div>
-      <div class="map-result-stat"><div class="map-result-stat-val">${totalFare.toLocaleString()}원</div><div class="map-result-stat-label">요금</div></div>
-    `;
-
-    document.getElementById('map-steps').innerHTML = steps.map(s => `
-      <div class="map-step">
-        <div class="map-step-icon" style="${s.lineColor ? `color:${s.lineColor}` : ''}">${s.icon}</div>
-        <div class="map-step-text">${s.text}
-          ${s.dist > 0 ? `<div class="map-step-dist">${s.dist >= 1000 ? (s.dist/1000).toFixed(1)+'km' : s.dist+'m'}</div>` : ''}
-        </div>
-      </div>`).join('');
-
-    document.getElementById('map-result').classList.add('show');
-
-  } catch(e) {
-    drawStraightLine(from, to, '#6fdfff');
-    kakaoMap.setBounds(bounds);
-    showTransitFallback(from, to, toName);
-  }
-}
-
-function getSubwayColor(code) {
-  const colors = {
-    1: '#0052A4', 2: '#00A84D', 3: '#EF7C1C', 4: '#00A5DE',
-    5: '#996CAC', 6: '#CD7C2F', 7: '#747F00', 8: '#E6186C',
-    9: '#BDB092', 21: '#F5A200', 22: '#F5A200'
-  };
-  return colors[code] || '#7c6fff';
-}
-
-function showTransitFallback(from, to, toName) {
-  const dist = Math.round(Math.sqrt(Math.pow((to.lat-from.lat)*111000,2) + Math.pow((to.lng-from.lng)*88000,2)));
-  const time = Math.ceil(dist / 300);
-  const timeStr = time >= 60 ? Math.floor(time/60) + '시간 ' + (time%60) + '분' : time + '분';
-  const distStr = dist >= 1000 ? (dist/1000).toFixed(1) + 'km' : dist + 'm';
-  document.getElementById('map-result-summary').innerHTML = `
-    <div class="map-result-stat"><div class="map-result-stat-val">약 ${timeStr}</div><div class="map-result-stat-label">예상시간</div></div>
-    <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">직선거리</div></div>
-  `;
-  document.getElementById('map-steps').innerHTML = `
-    <div class="map-step"><div class="map-step-icon">ℹ️</div><div class="map-step-text">경로 정보를 불러올 수 없어요<div class="map-step-dist">카카오맵 앱에서 확인해보세요</div></div></div>
-  `;
-  document.getElementById('map-result').classList.add('show');
-}
-
-function guideIcon(type) {
-  const icons = { 1:'↑', 2:'↖', 3:'←', 5:'↙', 6:'↓', 7:'↘', 8:'→', 9:'↗', 11:'⤴', 12:'⤵', 16:'🏁', 17:'🏁' };
-  return icons[type] || '•';
-}
-
-// kakao SDK가 이미 로드된 경우 맵 화면이 활성화되면 바로 초기화
-window.addEventListener('load', () => {
-  if (currentTab === 'map' && window.kakao && window.kakao.maps) {
-    initKakaoMap();
-  }
-});
-
-// ===== CAMERA (사진 + 동영상) =====
-let cameraStream = null;
-let cameraFacing = 'environment';
-let cameraPhotos = [];
-let lastPhoto = null;
-let cameraMode = 'photo';
-let mediaRecorder = null;
-let recordedChunks = [];
-let isRecording = false;
-let recTimerInterval = null;
-let recSeconds = 0;
-let cameraZoom = 1;
-let supportedZoom = [1];
-let cameraRatio = '4:3';
-
-async function initCamera() {
-  if (cameraStream) return;
-  try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: cameraFacing, width: { ideal: 4096 }, height: { ideal: 3072 } },
-      audio: cameraMode === 'video'
-    });
-    const video = document.getElementById('camera-video');
-    video.srcObject = cameraStream;
-    await video.play();
-
-    // 줌 지원 여부 확인
-    const track = cameraStream.getVideoTracks()[0];
-    const caps = track.getCapabilities?.() || {};
-    if (caps.zoom) {
-      // 하드웨어 줌 지원
-      supportedZoom = [0.5, 1, 2, 3];
-    } else {
-      // 소프트웨어 줌만 가능
-      supportedZoom = [1, 2, 3];
-    }
-    updateZoomButtons();
-    applyCameraZoom(cameraZoom);
-  } catch(e) {
-    showToast('카메라/마이크 권한이 필요해요 📷');
-  }
-}
-
-function updateZoomButtons() {
-  const btns = { 1: 'zoom-1', 2: 'zoom-2', 3: 'zoom-3', 4: 'zoom-4', 5: 'zoom-5' };
-  Object.entries(btns).forEach(([z, id]) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.toggle('active', parseFloat(z) === cameraZoom);
-  });
-}
-
-function setCameraRatio(ratio) {
-  cameraRatio = ratio;
-  document.querySelectorAll('.cam-ratio-btn').forEach(b => b.classList.remove('active'));
-  const ids = { '1:1': 'ratio-11', '4:3': 'ratio-43', '16:9': 'ratio-169', 'full': 'ratio-full' };
-  document.getElementById(ids[ratio])?.classList.add('active');
-  const video = document.getElementById('camera-video');
-  const ratioMap = { '1:1': '1/1', '4:3': '4/3', '16:9': '16/9', 'full': '' };
-  video.style.aspectRatio = ratioMap[ratio] || '';
-  video.style.objectFit = 'cover';
-}
-
-async function applyCameraZoom(zoom) {
-  if (!cameraStream) return;
-  const track = cameraStream.getVideoTracks()[0];
-  const caps = track.getCapabilities?.() || {};
-  if (caps.zoom) {
-    // 하드웨어 줌
-    const min = caps.zoom.min || 1;
-    const max = caps.zoom.max || 1;
-    const z = Math.min(Math.max(zoom, min), max);
-    await track.applyConstraints({ advanced: [{ zoom: z }] });
-  }
-  // 소프트웨어 줌은 takePhoto 시 canvas 크롭으로 처리
-}
-
-async function setCameraZoom(zoom) {
-  cameraZoom = zoom;
-  updateZoomButtons();
-  await applyCameraZoom(zoom);
-}
-
-function stopCamera() {
-  if (isRecording) stopRecording();
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(t => t.stop());
-    cameraStream = null;
-    document.getElementById('camera-video').srcObject = null;
-  }
-}
-
-async function toggleCameraFacing() {
-  stopCamera();
-  cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
-  cameraZoom = 1;
-  await initCamera();
-}
-
-function setCameraMode(mode) {
-  if (isRecording) { showToast('녹화 중에는 전환할 수 없어요'); return; }
-  cameraMode = mode;
-  document.getElementById('cam-mode-photo').classList.toggle('active', mode === 'photo');
-  document.getElementById('cam-mode-video').classList.toggle('active', mode === 'video');
-  stopCamera();
-  initCamera();
-}
-
-function handleShutter() {
-  if (cameraMode === 'photo') {
-    takePhoto();
-  } else {
-    isRecording ? stopRecording() : startRecording();
-  }
-}
-
-// --- 사진 ---
-function takePhoto() {
-  const video = document.getElementById('camera-video');
-  const canvas = document.getElementById('camera-canvas');
-  if (!video.srcObject) { showToast('카메라가 준비되지 않았어요'); return; }
-
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
-
-  // 소프트웨어 줌 크롭
-  const track = cameraStream?.getVideoTracks()[0];
-  const caps = track?.getCapabilities?.() || {};
-  const useSwZoom = !caps.zoom && cameraZoom !== 1;
-
-  let sx = 0, sy = 0, sw = vw, sh = vh;
-  if (useSwZoom && cameraZoom > 1) {
-    sw = Math.round(vw / cameraZoom);
-    sh = Math.round(vh / cameraZoom);
-    sx = Math.round((vw - sw) / 2);
-    sy = Math.round((vh - sh) / 2);
-  }
-
-  // 비율 크롭 적용
-  const ratioMap = { '1:1': 1/1, '4:3': 4/3, '16:9': 16/9, 'full': sw/sh };
-  const targetRatio = ratioMap[cameraRatio] || sw/sh;
-  const srcRatio = sw / sh;
-  let cx = sx, cy = sy, cw = sw, ch = sh;
-  if (Math.abs(targetRatio - srcRatio) > 0.01) {
-    if (targetRatio > srcRatio) {
-      ch = Math.round(cw / targetRatio);
-      cy = sy + Math.round((sh - ch) / 2);
-    } else {
-      cw = Math.round(ch * targetRatio);
-      cx = sx + Math.round((sw - cw) / 2);
-    }
-  }
-
-  canvas.width = cw;
-  canvas.height = ch;
-  const ctx = canvas.getContext('2d');
-
-  if (cameraFacing === 'user') {
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-  } else {
-    ctx.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
-  }
-
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
-  lastPhoto = { type: 'photo', url: dataUrl };
-  cameraPhotos.unshift(lastPhoto);
-
-  const flash = document.getElementById('cam-flash');
-  flash.classList.add('on');
-  setTimeout(() => flash.classList.remove('on'), 100);
-
-  renderCameraGallery();
-  showToast('📷 촬영됐어요!');
-}
-
-// --- 동영상 ---
-function startRecording() {
-  if (!cameraStream) { showToast('카메라가 준비되지 않았어요'); return; }
-
-  recordedChunks = [];
-  const mimeType = (window.MediaRecorder && MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus'))
-    ? 'video/webm;codecs=vp9,opus' : 'video/webm';
-
-  try {
-    mediaRecorder = new MediaRecorder(cameraStream, { mimeType });
-  } catch(e) {
-    showToast('이 기기에서는 동영상 녹화를 지원하지 않아요');
-    return;
-  }
-
-  mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-  mediaRecorder.onstop = () => {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const item = { type: 'video', url, blob };
-    lastPhoto = item;
-    cameraPhotos.unshift(item);
-    renderCameraGallery();
-    showToast('🎬 녹화가 저장됐어요!');
-  };
-
-  mediaRecorder.start();
-  isRecording = true;
-  recSeconds = 0;
-
-  const shutter = document.getElementById('cam-shutter');
-  shutter.classList.add('recording');
-  const timerEl = document.getElementById('cam-rec-timer');
-  timerEl.style.display = 'flex';
-  updateRecTimer();
-  recTimerInterval = setInterval(() => { recSeconds++; updateRecTimer(); }, 1000);
-}
-
-function stopRecording() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-  isRecording = false;
-  clearInterval(recTimerInterval);
-  document.getElementById('cam-shutter').classList.remove('recording');
-  document.getElementById('cam-rec-timer').style.display = 'none';
-}
-
-function updateRecTimer() {
-  const m = Math.floor(recSeconds / 60), s = recSeconds % 60;
-  document.getElementById('cam-rec-time').textContent = pad(m) + ':' + pad(s);
-}
-
-// --- 갤러리 ---
-function renderCameraGallery() {
-  const el = document.getElementById('camera-gallery');
-  if (!cameraPhotos.length) {
-    el.innerHTML = '<span class="cam-no-photos">촬영한 사진/영상이 없어요</span>';
-    return;
-  }
-  el.innerHTML = cameraPhotos.map((p, i) => {
-    if (p.type === 'video') {
-      return `<div class="cam-thumb-wrap" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요">
-        <video class="cam-thumb" src="${p.url}" muted></video>
-        <span class="cam-thumb-vid-badge">▶ 영상</span>
-      </div>`;
-    }
-    return `<div class="cam-thumb-wrap">
-      <img class="cam-thumb" src="${p.url}" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요" />
-    </div>`;
-  }).join('');
-}
-
-function downloadPhoto(idx) {
-  const item = cameraPhotos[idx];
-  const a = document.createElement('a');
-  const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
-  a.href = item.url;
-  a.download = item.type === 'video' ? `pocketbon_${ts}.webm` : `pocketbon_${ts}.jpg`;
-  a.click();
-}
-
-function downloadLastPhoto() {
-  if (!lastPhoto) { showToast('먼저 촬영해주세요'); return; }
-  downloadPhoto(0);
-}
+// // ===== MAP =====
+// const KAKAO_REST_KEY = '1468ea325312af45cfb69691aa9bd0a6';
+// let kakaoMap = null, mapMode = 'walk';
+// let myMarker = null, watchId = null;
+// let fromCoords = null, toCoords = null;
+// let routePolylines = [];
+// let isNavigating = false;
+
+// function initKakaoMap() {
+//   if (kakaoMap) return;
+//   const container = document.getElementById('kakao-map');
+//   if (!container || !window.kakao) return;
+//   kakaoMap = new kakao.maps.Map(container, {
+//     center: new kakao.maps.LatLng(35.1796, 129.0756),
+//     level: 5
+//   });
+//   startWatchLocation();
+// }
+
+// function startWatchLocation() {
+//   if (!navigator.geolocation) return;
+//   if (watchId) navigator.geolocation.clearWatch(watchId);
+//   watchId = navigator.geolocation.watchPosition(pos => {
+//     const lat = pos.coords.latitude;
+//     const lng = pos.coords.longitude;
+//     const latlng = new kakao.maps.LatLng(lat, lng);
+
+//     if (!myMarker) {
+//       const img = new kakao.maps.MarkerImage(
+//         'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+//         new kakao.maps.Size(30, 42)
+//       );
+//       myMarker = new kakao.maps.Marker({ position: latlng, map: kakaoMap, image: img, title: '내 위치' });
+//       kakaoMap.setCenter(latlng);
+//       kakaoMap.setLevel(4);
+//     } else {
+//       myMarker.setPosition(latlng);
+//       if (isNavigating) kakaoMap.setCenter(latlng);
+//     }
+//   }, err => {
+//     console.log('위치 오류:', err.message);
+//   }, { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 });
+// }
+
+// function moveToMyLocation() {
+//   isNavigating = false;
+//   if (myMarker) {
+//     kakaoMap.setCenter(myMarker.getPosition());
+//     kakaoMap.setLevel(3);
+//   } else if (navigator.geolocation) {
+//     navigator.geolocation.getCurrentPosition(pos => {
+//       kakaoMap.setCenter(new kakao.maps.LatLng(pos.coords.latitude, pos.coords.longitude));
+//       kakaoMap.setLevel(3);
+//     });
+//   }
+// }
+
+// function setMapMode(mode) {
+//   mapMode = mode;
+//   document.querySelectorAll('.map-mode-btn').forEach(b => b.classList.remove('active'));
+//   document.getElementById('mode-' + mode).classList.add('active');
+// }
+
+// function useMyLocation(field) {
+//   navigator.geolocation.getCurrentPosition(pos => {
+//     fromCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+//     document.getElementById('map-from').value = '현재 위치';
+//     showToast('현재 위치를 출발지로 설정했어요 📍');
+//   });
+// }
+
+// async function geocode(address) {
+//   return new Promise((resolve, reject) => {
+//     const geocoder = new kakao.maps.services.Geocoder();
+//     geocoder.addressSearch(address, (result, status) => {
+//       if (status === kakao.maps.services.Status.OK) {
+//         resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
+//       } else {
+//         const places = new kakao.maps.services.Places();
+//         places.keywordSearch(address, (res, st) => {
+//           if (st === kakao.maps.services.Status.OK) {
+//             resolve({ lat: parseFloat(res[0].y), lng: parseFloat(res[0].x) });
+//           } else reject(new Error('장소를 찾을 수 없어요'));
+//         });
+//       }
+//     });
+//   });
+// }
+
+// function clearRoutePolylines() {
+//   routePolylines.forEach(p => p.setMap(null));
+//   routePolylines = [];
+// }
+
+// function drawPolyline(vertexes, color, weight = 5) {
+//   const path = [];
+//   for (let i = 0; i < vertexes.length; i += 2) {
+//     path.push(new kakao.maps.LatLng(vertexes[i+1], vertexes[i]));
+//   }
+//   const poly = new kakao.maps.Polyline({ path, strokeColor: color, strokeWeight: weight, strokeOpacity: 0.85, map: kakaoMap });
+//   routePolylines.push(poly);
+// }
+
+// async function searchRoute() {
+//   if (!kakaoMap) {
+//     const tryInit = () => {
+//       if (window.kakao && window.kakao.maps && window.kakao.maps.Map) {
+//         initKakaoMap();
+//         setTimeout(searchRoute, 500);
+//       } else { setTimeout(tryInit, 300); }
+//     };
+//     tryInit();
+//     showToast('지도 초기화 중...');
+//     return;
+//   }
+
+//   const fromVal = document.getElementById('map-from').value.trim();
+//   const toVal = document.getElementById('map-to').value.trim();
+//   if (!toVal) { showToast('도착지를 입력해주세요'); return; }
+
+//   const loadingEl = document.getElementById('map-loading');
+//   loadingEl.style.display = 'flex';
+//   clearRoutePolylines();
+//   isNavigating = false;
+
+//   const hideLoading = () => { loadingEl.style.display = 'none'; };
+
+//   try {
+//     if (fromVal && fromVal !== '현재 위치') {
+//       fromCoords = await geocode(fromVal);
+//     } else if (!fromCoords) {
+//       await new Promise((res, rej) => {
+//         navigator.geolocation.getCurrentPosition(pos => {
+//           fromCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+//           res();
+//         }, rej, { enableHighAccuracy: true, timeout: 8000 });
+//       });
+//     }
+//     toCoords = await geocode(toVal);
+
+//     new kakao.maps.Marker({ position: new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng), map: kakaoMap });
+//     const destMarker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(toCoords.lat, toCoords.lng), map: kakaoMap });
+
+//     const bounds = new kakao.maps.LatLngBounds();
+//     bounds.extend(new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng));
+//     bounds.extend(new kakao.maps.LatLng(toCoords.lat, toCoords.lng));
+
+//     if (mapMode === 'walk') {
+//       const walkDist = Math.round(Math.sqrt(
+//         Math.pow((toCoords.lat - fromCoords.lat) * 111000, 2) +
+//         Math.pow((toCoords.lng - fromCoords.lng) * 88000, 2)
+//       ));
+//       const walkTime = Math.ceil(walkDist / 67);
+
+//       const path = [
+//         new kakao.maps.LatLng(fromCoords.lat, fromCoords.lng),
+//         new kakao.maps.LatLng(toCoords.lat, toCoords.lng)
+//       ];
+//       const poly = new kakao.maps.Polyline({ path, strokeColor: '#7c6fff', strokeWeight: 5, strokeOpacity: 0.8, strokeStyle: 'dashed', map: kakaoMap });
+//       routePolylines.push(poly);
+//       kakaoMap.setBounds(bounds);
+
+//       showRouteResult('walk', walkDist, walkTime, 0, [
+//         { icon: '🚶', text: '도보로 이동', dist: walkDist },
+//         { icon: '🏁', text: toVal + ' 도착', dist: 0 }
+//       ]);
+
+//     } else if (mapMode === 'car') {
+//       const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${fromCoords.lng},${fromCoords.lat}&destination=${toCoords.lng},${toCoords.lat}&priority=RECOMMEND`;
+//       const res = await fetch(url, { headers: { Authorization: 'KakaoAK ' + KAKAO_REST_KEY } });
+//       const data = await res.json();
+
+//       if (data.routes && data.routes[0] && data.routes[0].result_code === 0) {
+//         const route = data.routes[0];
+//         route.sections.forEach(section => {
+//           section.roads.forEach(road => drawPolyline(road.vertexes, '#ff6fa8'));
+//         });
+//         kakaoMap.setBounds(bounds);
+
+//         const dist = route.summary.distance;
+//         const time = Math.ceil(route.summary.duration / 60);
+//         const toll = route.summary.fare?.toll || 0;
+//         const guides = route.sections[0]?.guides || [];
+
+//         showRouteResult('car', dist, time, toll, guides.slice(0, 8).map(g => ({
+//           icon: guideIcon(g.type), text: g.name || g.guidance, dist: g.distance
+//         })));
+//       } else {
+//         showToast('자동차 경로를 찾을 수 없어요');
+//       }
+
+//     } else {
+//       await searchTransitRoute(fromCoords, toCoords, toVal, bounds);
+//     }
+
+//     isNavigating = true;
+//     hideLoading();
+
+//   } catch(e) {
+//     hideLoading();
+//     showToast('오류: ' + (e.message || '경로 탐색 실패'));
+//   }
+// }
+
+// function showRouteResult(mode, dist, time, toll, steps) {
+//   const distStr = dist >= 1000 ? (dist/1000).toFixed(1) + 'km' : dist + 'm';
+//   const timeStr = time >= 60 ? Math.floor(time/60) + '시간 ' + (time%60) + '분' : time + '분';
+
+//   let summaryHTML = `
+//     <div class="map-result-stat"><div class="map-result-stat-val">${timeStr}</div><div class="map-result-stat-label">소요시간</div></div>
+//     <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">거리</div></div>
+//   `;
+//   if (mode === 'car' && toll > 0) {
+//     summaryHTML += `<div class="map-result-stat"><div class="map-result-stat-val">${toll.toLocaleString()}원</div><div class="map-result-stat-label">통행료</div></div>`;
+//   }
+
+//   document.getElementById('map-result-summary').innerHTML = summaryHTML;
+//   document.getElementById('map-steps').innerHTML = steps.map(s => `
+//     <div class="map-step">
+//       <div class="map-step-icon">${s.icon}</div>
+//       <div class="map-step-text">${s.text}
+//         ${s.dist > 0 ? `<div class="map-step-dist">${s.dist >= 1000 ? (s.dist/1000).toFixed(1)+'km' : s.dist+'m'}</div>` : ''}
+//       </div>
+//     </div>`).join('');
+
+//   document.getElementById('map-result').classList.add('show');
+// }
+
+// function drawStraightLine(from, to, color) {
+//   const path = [new kakao.maps.LatLng(from.lat, from.lng), new kakao.maps.LatLng(to.lat, to.lng)];
+//   const poly = new kakao.maps.Polyline({ path, strokeColor: color, strokeWeight: 4, strokeOpacity: 0.7, strokeStyle: 'dashed', map: kakaoMap });
+//   routePolylines.push(poly);
+// }
+
+// const ODSAY_KEY = encodeURIComponent('ahMdwx/DtlETqFOkZlWXwQ');
+
+// async function searchTransitRoute(from, to, toName, bounds) {
+//   try {
+//     const url = `https://api.odsay.com/v1/api/searchPubTransPathT?SX=${from.lng}&SY=${from.lat}&EX=${to.lng}&EY=${to.lat}&apiKey=${ODSAY_KEY}`;
+//     const res = await fetch(url);
+//     const data = await res.json();
+
+//     if (!data.result || !data.result.path || !data.result.path.length) {
+//       drawStraightLine(from, to, '#6fdfff');
+//       kakaoMap.setBounds(bounds);
+//       showTransitFallback(from, to, toName);
+//       return;
+//     }
+
+//     const path = data.result.path[0];
+//     const info = path.info;
+//     const subPaths = path.subPath;
+
+//     for (const sub of subPaths) {
+//       if (sub.trafficType === 1) {
+//         const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
+//         if (sub.passStopList?.stations) {
+//           const coords = sub.passStopList.stations.map(s =>
+//             new kakao.maps.LatLng(s.y, s.x)
+//           );
+//           if (coords.length > 1) {
+//             const poly = new kakao.maps.Polyline({ path: coords, strokeColor: color, strokeWeight: 6, strokeOpacity: 0.9, map: kakaoMap });
+//             routePolylines.push(poly);
+//           }
+//         }
+//       } else if (sub.trafficType === 2) {
+//         if (sub.passStopList?.stations) {
+//           const coords = sub.passStopList.stations.map(s =>
+//             new kakao.maps.LatLng(s.y, s.x)
+//           );
+//           if (coords.length > 1) {
+//             const poly = new kakao.maps.Polyline({ path: coords, strokeColor: '#ff6fa8', strokeWeight: 5, strokeOpacity: 0.85, map: kakaoMap });
+//             routePolylines.push(poly);
+//           }
+//         }
+//       }
+//     }
+
+//     kakaoMap.setBounds(bounds);
+
+//     const totalTime = info.totalTime;
+//     const totalFare = info.payment;
+//     const totalDist = info.totalDistance;
+
+//     const steps = [];
+//     for (const sub of subPaths) {
+//       if (sub.trafficType === 3) {
+//         if (sub.distance > 0) {
+//           steps.push({ icon: '🚶', text: `도보 ${sub.sectionTime}분`, dist: sub.distance, color: null });
+//         }
+//       } else if (sub.trafficType === 1) {
+//         const lineName = sub.lane?.[0]?.name || '지하철';
+//         const stationCnt = sub.stationCount;
+//         const color = getSubwayColor(sub.lane?.[0]?.subwayCode);
+//         steps.push({
+//           icon: '🚇',
+//           text: `${sub.startName} 승차 → ${lineName} → ${sub.endName} 하차 (${stationCnt}정거장, ${sub.sectionTime}분)`,
+//           dist: sub.distance,
+//           lineColor: color
+//         });
+//       } else if (sub.trafficType === 2) {
+//         const busNo = sub.lane?.[0]?.busNo || '버스';
+//         const stationCnt = sub.stationCount;
+//         steps.push({
+//           icon: '🚌',
+//           text: `${sub.startName} 승차 → ${busNo}번 버스 → ${sub.endName} 하차 (${stationCnt}정거장, ${sub.sectionTime}분)`,
+//           dist: sub.distance,
+//           lineColor: '#ff6fa8'
+//         });
+//       }
+//     }
+//     steps.push({ icon: '🏁', text: toName + ' 도착', dist: 0, lineColor: null });
+
+//     const timeStr = totalTime >= 60 ? Math.floor(totalTime/60) + '시간 ' + (totalTime%60) + '분' : totalTime + '분';
+//     const distStr = totalDist >= 1000 ? (totalDist/1000).toFixed(1) + 'km' : totalDist + 'm';
+
+//     document.getElementById('map-result-summary').innerHTML = `
+//       <div class="map-result-stat"><div class="map-result-stat-val">${timeStr}</div><div class="map-result-stat-label">소요시간</div></div>
+//       <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">거리</div></div>
+//       <div class="map-result-stat"><div class="map-result-stat-val">${totalFare.toLocaleString()}원</div><div class="map-result-stat-label">요금</div></div>
+//     `;
+
+//     document.getElementById('map-steps').innerHTML = steps.map(s => `
+//       <div class="map-step">
+//         <div class="map-step-icon" style="${s.lineColor ? `color:${s.lineColor}` : ''}">${s.icon}</div>
+//         <div class="map-step-text">${s.text}
+//           ${s.dist > 0 ? `<div class="map-step-dist">${s.dist >= 1000 ? (s.dist/1000).toFixed(1)+'km' : s.dist+'m'}</div>` : ''}
+//         </div>
+//       </div>`).join('');
+
+//     document.getElementById('map-result').classList.add('show');
+
+//   } catch(e) {
+//     drawStraightLine(from, to, '#6fdfff');
+//     kakaoMap.setBounds(bounds);
+//     showTransitFallback(from, to, toName);
+//   }
+// }
+
+// function getSubwayColor(code) {
+//   const colors = {
+//     1: '#0052A4', 2: '#00A84D', 3: '#EF7C1C', 4: '#00A5DE',
+//     5: '#996CAC', 6: '#CD7C2F', 7: '#747F00', 8: '#E6186C',
+//     9: '#BDB092', 21: '#F5A200', 22: '#F5A200'
+//   };
+//   return colors[code] || '#7c6fff';
+// }
+
+// function showTransitFallback(from, to, toName) {
+//   const dist = Math.round(Math.sqrt(Math.pow((to.lat-from.lat)*111000,2) + Math.pow((to.lng-from.lng)*88000,2)));
+//   const time = Math.ceil(dist / 300);
+//   const timeStr = time >= 60 ? Math.floor(time/60) + '시간 ' + (time%60) + '분' : time + '분';
+//   const distStr = dist >= 1000 ? (dist/1000).toFixed(1) + 'km' : dist + 'm';
+//   document.getElementById('map-result-summary').innerHTML = `
+//     <div class="map-result-stat"><div class="map-result-stat-val">약 ${timeStr}</div><div class="map-result-stat-label">예상시간</div></div>
+//     <div class="map-result-stat"><div class="map-result-stat-val">${distStr}</div><div class="map-result-stat-label">직선거리</div></div>
+//   `;
+//   document.getElementById('map-steps').innerHTML = `
+//     <div class="map-step"><div class="map-step-icon">ℹ️</div><div class="map-step-text">경로 정보를 불러올 수 없어요<div class="map-step-dist">카카오맵 앱에서 확인해보세요</div></div></div>
+//   `;
+//   document.getElementById('map-result').classList.add('show');
+// }
+
+// function guideIcon(type) {
+//   const icons = { 1:'↑', 2:'↖', 3:'←', 5:'↙', 6:'↓', 7:'↘', 8:'→', 9:'↗', 11:'⤴', 12:'⤵', 16:'🏁', 17:'🏁' };
+//   return icons[type] || '•';
+// }
+
+// // kakao SDK가 이미 로드된 경우 맵 화면이 활성화되면 바로 초기화
+// window.addEventListener('load', () => {
+//   if (currentTab === 'map' && window.kakao && window.kakao.maps) {
+//     initKakaoMap();
+//   }
+// });
+
+// // ===== CAMERA (사진 + 동영상) =====
+// let cameraStream = null;
+// let cameraFacing = 'environment';
+// let cameraPhotos = [];
+// let lastPhoto = null;
+// let cameraMode = 'photo';
+// let mediaRecorder = null;
+// let recordedChunks = [];
+// let isRecording = false;
+// let recTimerInterval = null;
+// let recSeconds = 0;
+// let cameraZoom = 1;
+// let supportedZoom = [1];
+// let cameraRatio = '4:3';
+
+// async function initCamera() {
+//   if (cameraStream) return;
+//   try {
+//     cameraStream = await navigator.mediaDevices.getUserMedia({
+//       video: { facingMode: cameraFacing, width: { ideal: 4096 }, height: { ideal: 3072 } },
+//       audio: cameraMode === 'video'
+//     });
+//     const video = document.getElementById('camera-video');
+//     video.srcObject = cameraStream;
+//     await video.play();
+
+//     // 줌 지원 여부 확인
+//     const track = cameraStream.getVideoTracks()[0];
+//     const caps = track.getCapabilities?.() || {};
+//     if (caps.zoom) {
+//       // 하드웨어 줌 지원
+//       supportedZoom = [0.5, 1, 2, 3];
+//     } else {
+//       // 소프트웨어 줌만 가능
+//       supportedZoom = [1, 2, 3];
+//     }
+//     updateZoomButtons();
+//     applyCameraZoom(cameraZoom);
+//   } catch(e) {
+//     showToast('카메라/마이크 권한이 필요해요 📷');
+//   }
+// }
+
+// function updateZoomButtons() {
+//   const btns = { 1: 'zoom-1', 2: 'zoom-2', 3: 'zoom-3', 4: 'zoom-4', 5: 'zoom-5' };
+//   Object.entries(btns).forEach(([z, id]) => {
+//     const el = document.getElementById(id);
+//     if (!el) return;
+//     el.classList.toggle('active', parseFloat(z) === cameraZoom);
+//   });
+// }
+
+// function setCameraRatio(ratio) {
+//   cameraRatio = ratio;
+//   document.querySelectorAll('.cam-ratio-btn').forEach(b => b.classList.remove('active'));
+//   const ids = { '1:1': 'ratio-11', '4:3': 'ratio-43', '16:9': 'ratio-169', 'full': 'ratio-full' };
+//   document.getElementById(ids[ratio])?.classList.add('active');
+//   const video = document.getElementById('camera-video');
+//   const ratioMap = { '1:1': '1/1', '4:3': '4/3', '16:9': '16/9', 'full': '' };
+//   video.style.aspectRatio = ratioMap[ratio] || '';
+//   video.style.objectFit = 'cover';
+// }
+
+// async function applyCameraZoom(zoom) {
+//   if (!cameraStream) return;
+//   const track = cameraStream.getVideoTracks()[0];
+//   const caps = track.getCapabilities?.() || {};
+//   if (caps.zoom) {
+//     // 하드웨어 줌
+//     const min = caps.zoom.min || 1;
+//     const max = caps.zoom.max || 1;
+//     const z = Math.min(Math.max(zoom, min), max);
+//     await track.applyConstraints({ advanced: [{ zoom: z }] });
+//   }
+//   // 소프트웨어 줌은 takePhoto 시 canvas 크롭으로 처리
+// }
+
+// async function setCameraZoom(zoom) {
+//   cameraZoom = zoom;
+//   updateZoomButtons();
+//   await applyCameraZoom(zoom);
+// }
+
+// function stopCamera() {
+//   if (isRecording) stopRecording();
+//   if (cameraStream) {
+//     cameraStream.getTracks().forEach(t => t.stop());
+//     cameraStream = null;
+//     document.getElementById('camera-video').srcObject = null;
+//   }
+// }
+
+// async function toggleCameraFacing() {
+//   stopCamera();
+//   cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+//   cameraZoom = 1;
+//   await initCamera();
+// }
+
+// function setCameraMode(mode) {
+//   if (isRecording) { showToast('녹화 중에는 전환할 수 없어요'); return; }
+//   cameraMode = mode;
+//   document.getElementById('cam-mode-photo').classList.toggle('active', mode === 'photo');
+//   document.getElementById('cam-mode-video').classList.toggle('active', mode === 'video');
+//   stopCamera();
+//   initCamera();
+// }
+
+// function handleShutter() {
+//   if (cameraMode === 'photo') {
+//     takePhoto();
+//   } else {
+//     isRecording ? stopRecording() : startRecording();
+//   }
+// }
+
+// // --- 사진 ---
+// function takePhoto() {
+//   const video = document.getElementById('camera-video');
+//   const canvas = document.getElementById('camera-canvas');
+//   if (!video.srcObject) { showToast('카메라가 준비되지 않았어요'); return; }
+
+//   const vw = video.videoWidth;
+//   const vh = video.videoHeight;
+
+//   // 소프트웨어 줌 크롭
+//   const track = cameraStream?.getVideoTracks()[0];
+//   const caps = track?.getCapabilities?.() || {};
+//   const useSwZoom = !caps.zoom && cameraZoom !== 1;
+
+//   let sx = 0, sy = 0, sw = vw, sh = vh;
+//   if (useSwZoom && cameraZoom > 1) {
+//     sw = Math.round(vw / cameraZoom);
+//     sh = Math.round(vh / cameraZoom);
+//     sx = Math.round((vw - sw) / 2);
+//     sy = Math.round((vh - sh) / 2);
+//   }
+
+//   // 비율 크롭 적용
+//   const ratioMap = { '1:1': 1/1, '4:3': 4/3, '16:9': 16/9, 'full': sw/sh };
+//   const targetRatio = ratioMap[cameraRatio] || sw/sh;
+//   const srcRatio = sw / sh;
+//   let cx = sx, cy = sy, cw = sw, ch = sh;
+//   if (Math.abs(targetRatio - srcRatio) > 0.01) {
+//     if (targetRatio > srcRatio) {
+//       ch = Math.round(cw / targetRatio);
+//       cy = sy + Math.round((sh - ch) / 2);
+//     } else {
+//       cw = Math.round(ch * targetRatio);
+//       cx = sx + Math.round((sw - cw) / 2);
+//     }
+//   }
+
+//   canvas.width = cw;
+//   canvas.height = ch;
+//   const ctx = canvas.getContext('2d');
+
+//   if (cameraFacing === 'user') {
+//     ctx.translate(canvas.width, 0);
+//     ctx.scale(-1, 1);
+//     ctx.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
+//     ctx.setTransform(1, 0, 0, 1, 0, 0);
+//   } else {
+//     ctx.drawImage(video, cx, cy, cw, ch, 0, 0, cw, ch);
+//   }
+
+//   const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+//   lastPhoto = { type: 'photo', url: dataUrl };
+//   cameraPhotos.unshift(lastPhoto);
+
+//   const flash = document.getElementById('cam-flash');
+//   flash.classList.add('on');
+//   setTimeout(() => flash.classList.remove('on'), 100);
+
+//   renderCameraGallery();
+//   showToast('📷 촬영됐어요!');
+// }
+
+// // --- 동영상 ---
+// function startRecording() {
+//   if (!cameraStream) { showToast('카메라가 준비되지 않았어요'); return; }
+
+//   recordedChunks = [];
+//   const mimeType = (window.MediaRecorder && MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus'))
+//     ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+
+//   try {
+//     mediaRecorder = new MediaRecorder(cameraStream, { mimeType });
+//   } catch(e) {
+//     showToast('이 기기에서는 동영상 녹화를 지원하지 않아요');
+//     return;
+//   }
+
+//   mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+//   mediaRecorder.onstop = () => {
+//     const blob = new Blob(recordedChunks, { type: 'video/webm' });
+//     const url = URL.createObjectURL(blob);
+//     const item = { type: 'video', url, blob };
+//     lastPhoto = item;
+//     cameraPhotos.unshift(item);
+//     renderCameraGallery();
+//     showToast('🎬 녹화가 저장됐어요!');
+//   };
+
+//   mediaRecorder.start();
+//   isRecording = true;
+//   recSeconds = 0;
+
+//   const shutter = document.getElementById('cam-shutter');
+//   shutter.classList.add('recording');
+//   const timerEl = document.getElementById('cam-rec-timer');
+//   timerEl.style.display = 'flex';
+//   updateRecTimer();
+//   recTimerInterval = setInterval(() => { recSeconds++; updateRecTimer(); }, 1000);
+// }
+
+// function stopRecording() {
+//   if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+//   isRecording = false;
+//   clearInterval(recTimerInterval);
+//   document.getElementById('cam-shutter').classList.remove('recording');
+//   document.getElementById('cam-rec-timer').style.display = 'none';
+// }
+
+// function updateRecTimer() {
+//   const m = Math.floor(recSeconds / 60), s = recSeconds % 60;
+//   document.getElementById('cam-rec-time').textContent = pad(m) + ':' + pad(s);
+// }
+
+// // --- 갤러리 ---
+// function renderCameraGallery() {
+//   const el = document.getElementById('camera-gallery');
+//   if (!cameraPhotos.length) {
+//     el.innerHTML = '<span class="cam-no-photos">촬영한 사진/영상이 없어요</span>';
+//     return;
+//   }
+//   el.innerHTML = cameraPhotos.map((p, i) => {
+//     if (p.type === 'video') {
+//       return `<div class="cam-thumb-wrap" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요">
+//         <video class="cam-thumb" src="${p.url}" muted></video>
+//         <span class="cam-thumb-vid-badge">▶ 영상</span>
+//       </div>`;
+//     }
+//     return `<div class="cam-thumb-wrap">
+//       <img class="cam-thumb" src="${p.url}" onclick="downloadPhoto(${i})" title="클릭하면 저장돼요" />
+//     </div>`;
+//   }).join('');
+// }
+
+// function downloadPhoto(idx) {
+//   const item = cameraPhotos[idx];
+//   const a = document.createElement('a');
+//   const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+//   a.href = item.url;
+//   a.download = item.type === 'video' ? `pocketbon_${ts}.webm` : `pocketbon_${ts}.jpg`;
+//   a.click();
+// }
+
+// function downloadLastPhoto() {
+//   if (!lastPhoto) { showToast('먼저 촬영해주세요'); return; }
+//   downloadPhoto(0);
+// }
 </script>
 </body>
 </html>
