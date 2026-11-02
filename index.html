@@ -1372,7 +1372,7 @@
 
   <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);flex-wrap:wrap">
     <span>마감(참석 다음 달 같은 날)</span>
-    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" value="7" oninput="bdPrefChanged()">
+    <input type="number" id="bd-days" class="ledger-input" style="width:70px" min="0" max="28" value="7" oninput="bdPrefChanged()">
     <span>일 전부터 알림</span>
   </div>
   <div style="display:flex;gap:8px;align-items:center">
@@ -1432,7 +1432,7 @@
     검색·필터를 켠 상태에서 [전체 선택]을 누르면 화면에 보이는 사람만 선택돼요.</div>
 
     <div style="font-weight:600;margin-top:12px">6. 참석 안내 메시지 만들기</div>
-    <div style="color:var(--text2)">① <b>알림 시작일</b>: 마감 며칠 전부터 대상에 넣을지 정해요. (기본 7일)<br>
+    <div style="color:var(--text2)">① <b>알림 시작일</b>: 마감 며칠 전부터 대상에 넣을지 정해요. (기본 7일, 최대 28일)<br>
     ② <b>마감 지난 사람도 포함</b>: 체크하면 마감이 지난 사람도 메시지에 들어가요.<br>
     ③ <b>안내 문구</b>: 메시지 맨 위에 들어가는 문구예요. 자유롭게 고치면 자동 저장돼요. (비우면 기본 문구)<br>
     ④ <b>맺음 문구</b>: 메시지 맨 아래에 들어가는 문구예요. (기본 "함께해요 🙌") 고치면 자동 저장되고, 비우면 아무것도 붙지 않아요.<br>
@@ -3904,13 +3904,24 @@ function bdLoad() {
   if (bdMembers.length) bdSaveMembers();
 }
 
+// 마감 주기가 한 달(최소 28일)이라 알림 시작일은 0~28일로 제한
+const BD_MAX_BEFORE = 28;
 function bdBefore() {
   const n = parseInt(document.getElementById('bd-days').value);
-  return isNaN(n) ? 7 : n;
+  if (isNaN(n)) return 7;
+  return Math.min(BD_MAX_BEFORE, Math.max(0, n));
 }
 
 function bdPrefChanged() {
-  localStorage.setItem('pb-bday-before', document.getElementById('bd-days').value || 7);
+  const inp = document.getElementById('bd-days');
+  const raw = parseInt(inp.value);
+  if (!isNaN(raw) && raw > BD_MAX_BEFORE) {
+    inp.value = BD_MAX_BEFORE;
+    showToast('💡 알림 시작일은 최대 ' + BD_MAX_BEFORE + '일까지예요');
+  } else if (!isNaN(raw) && raw < 0) {
+    inp.value = 0;
+  }
+  localStorage.setItem('pb-bday-before', inp.value || 7);
   localStorage.setItem('pb-bday-over', document.getElementById('bd-over').checked ? '1' : '0');
   bdRenderList();
 }
@@ -4203,7 +4214,10 @@ async function bdCopy() {
 }
 
 // 저장된 값 불러오기 (메시지는 버튼을 눌러야 생성)
-document.getElementById('bd-days').value = localStorage.getItem('pb-bday-before') || 7;
+{
+  const saved = parseInt(localStorage.getItem('pb-bday-before'));
+  document.getElementById('bd-days').value = isNaN(saved) ? 7 : Math.min(28, Math.max(0, saved));
+}
 document.getElementById('bd-over').checked = localStorage.getItem('pb-bday-over') !== '0';
 document.getElementById('bd-head').value = localStorage.getItem('pb-bday-head') ?? BD_DEFAULT_HEAD;
 document.getElementById('bd-foot').value = localStorage.getItem('pb-bday-foot') ?? BD_DEFAULT_FOOT;
