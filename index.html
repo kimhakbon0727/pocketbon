@@ -3309,7 +3309,9 @@ function showStorageInfo() {
     'pocketbon-song-cats': '🏷️ 노래 카테고리',
     'pocketbon-tasks':  '✅ 할일',
     'pocketbon-ledger': '💰 가계부',
-    'pocketbon-ddays':  '📅 디데이'
+    'pocketbon-schedules': '🗓️ 일정',
+    'pocketbon-recurring': '📌 고정 항목',
+    'pocketbon-ddays':  '🚩 디데이'
   };
   BACKUP_KEYS.forEach(k => {
     const v = localStorage.getItem(k);
@@ -3317,9 +3319,10 @@ function showStorageInfo() {
       const bytes = new Blob([v]).size;
       totalBytes += bytes;
       const arr = JSON.parse(v);
-      lines.push('<strong>' + labels[k] + ':</strong> ' + arr.length + '개 (' + (bytes/1024).toFixed(1) + ' KB)');
+      const cnt = Array.isArray(arr) ? arr.length : Object.keys(arr).length;   // 일정은 날짜별 객체
+      lines.push('<strong>' + (labels[k] || k) + ':</strong> ' + cnt + '개 (' + (bytes/1024).toFixed(1) + ' KB)');
     } else {
-      lines.push('<strong>' + labels[k] + ':</strong> 없음');
+      lines.push('<strong>' + (labels[k] || k) + ':</strong> 없음');
     }
   });
   lines.push('<strong>👥 벙 명단:</strong> ' + bdMembers.length + '명');
