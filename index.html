@@ -968,6 +968,10 @@
         <input type="text" inputmode="numeric" class="memo-input" id="song-tj" placeholder="태진 번호" maxlength="10" style="min-width:0;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-ky').focus()">
         <input type="text" inputmode="numeric" class="memo-input" id="song-ky" placeholder="금영 번호" maxlength="10" style="min-width:0;height:46px" onkeydown="if(event.key==='Enter')addTodo()">
       </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="ledger-input" id="song-cat" style="flex:1;min-width:0;height:46px"></select>
+        <button class="item-edit" style="font-size:14px;padding:10px 12px;width:auto;white-space:nowrap" onclick="songOpenCatModal()">🏷️ 관리</button>
+      </div>
       <button class="add-btn" onclick="addTodo()" style="width:100%;align-self:stretch;font-size:16px">+ 노래 등록</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:4px">
@@ -979,6 +983,7 @@
       <input type="text" id="todo-search" placeholder="제목 / 가수 / 번호 검색..." oninput="renderTodos()"/>
       <button class="search-bar-clear" onclick="clearTodoSearch()">✕</button>
     </div>
+    <div id="song-cat-chips" style="display:none;gap:6px;overflow-x:auto;padding-bottom:4px"></div>
     <div class="ledger-filter-row" style="margin-bottom:4px">
       <button class="filter-btn active" id="todo-filter-all"     onclick="setTodoFilter('all')">전체</button>
       <button class="filter-btn"        id="todo-filter-active"  onclick="setTodoFilter('active')">미완료</button>
@@ -999,6 +1004,10 @@
       <div style="display:flex;gap:8px;align-items:center">
         <input type="checkbox" id="song-out-num" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
         <label for="song-out-num" style="font-size:14px;color:var(--text2);cursor:pointer">앞에 번호 붙이기 (1. 2. 3. …)</label>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="checkbox" id="song-out-group" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+        <label for="song-out-group" style="font-size:14px;color:var(--text2);cursor:pointer">카테고리별로 묶어서 뽑기</label>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <input type="checkbox" id="song-out-code" checked style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
@@ -1501,6 +1510,17 @@
     </div>
     <button class="sch-add-btn" onclick="bdSaveEdit()">저장</button>
     <button class="sch-modal-close" onclick="bdCloseEdit()">취소</button>
+  </div>
+</div>
+
+<!-- 노래 카테고리 관리 -->
+<div class="sch-edit-overlay" id="song-cat-modal" style="display:none" onclick="if(event.target===this)songCloseCatModal()">
+  <div class="sch-edit-box" style="max-height:85vh;overflow-y:auto">
+    <div class="sch-edit-title">🏷️ 노래 카테고리 관리</div>
+    <div id="song-cat-list" style="margin-bottom:10px"></div>
+    <input class="sch-input" id="song-cat-new" placeholder="새 카테고리 이름 (예: 발라드, 락, J-POP)" maxlength="12" onkeydown="if(event.key==='Enter')songAddCat()"/>
+    <button class="sch-add-btn" onclick="songAddCat()">+ 카테고리 추가</button>
+    <button class="sch-modal-close" onclick="songCloseCatModal()">닫기</button>
   </div>
 </div>
 
@@ -2522,6 +2542,87 @@ todos.forEach(t => {
 });
 function saveTodos() { localStorage.setItem('pocketbon-todos', JSON.stringify(todos)); }
 
+// ----- 노래 카테고리 -----
+let songCats = JSON.parse(localStorage.getItem('pocketbon-song-cats') || '[]');   // [{id, name}]
+let songCatFilter = 'all';   // 'all' | 'none' | 카테고리 id
+function saveSongCats() { localStorage.setItem('pocketbon-song-cats', JSON.stringify(songCats)); }
+// 노래의 카테고리 id (삭제된 카테고리면 미분류)
+function songCatOf(t) { return songCats.some(c => c.id === t.cat) ? t.cat : ''; }
+function songCatName(id) { const c = songCats.find(c => c.id === id); return c ? c.name : ''; }
+function songCatOptions(selected) {
+  return '<option value="">🏷️ 카테고리 없음 (미분류)</option>' +
+    songCats.map(c => `<option value="${c.id}" ${c.id === selected ? 'selected' : ''}>${escHtml(c.name)}</option>`).join('');
+}
+function renderSongCatSelect() {
+  const sel = document.getElementById('song-cat');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = songCatOptions(songCats.some(c => c.id === cur) ? cur : '');
+}
+function renderSongCatChips() {
+  const el = document.getElementById('song-cat-chips');
+  if (!el) return;
+  if (!songCats.length) { el.style.display = 'none'; el.innerHTML = ''; songCatFilter = 'all'; return; }
+  if (songCatFilter !== 'all' && songCatFilter !== 'none' && !songCats.some(c => c.id === songCatFilter)) songCatFilter = 'all';
+  const chip = (key, label, n) => `<button class="filter-btn ${songCatFilter === key ? 'active' : ''}" style="flex-shrink:0;white-space:nowrap" onclick="setSongCatFilter('${key}')">${label} ${n}</button>`;
+  el.style.display = 'flex';
+  el.innerHTML = chip('all', '전체', todos.length) +
+    songCats.map(c => chip(c.id, escHtml(c.name), todos.filter(t => songCatOf(t) === c.id).length)).join('') +
+    chip('none', '미분류', todos.filter(t => !songCatOf(t)).length);
+}
+function setSongCatFilter(key) {
+  songCatFilter = key;
+  // 카테고리를 보고 있으면 등록할 때도 그 카테고리가 기본 선택되게
+  const sel = document.getElementById('song-cat');
+  if (sel) sel.value = songCats.some(c => c.id === key) ? key : '';
+  renderTodos();
+}
+function songOpenCatModal() { songRenderCatModal(); document.getElementById('song-cat-modal').style.display = 'flex'; }
+function songCloseCatModal() { document.getElementById('song-cat-modal').style.display = 'none'; }
+function songRenderCatModal() {
+  const el = document.getElementById('song-cat-list');
+  if (!songCats.length) { el.innerHTML = '<div style="color:var(--text2);font-size:14px;padding:6px 2px">아직 카테고리가 없어요</div>'; return; }
+  el.innerHTML = songCats.map(c => `
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:12px;padding:8px 12px;margin-bottom:6px">
+      <div style="flex:1;min-width:0;overflow-wrap:anywhere">🏷️ ${escHtml(c.name)} <span style="font-size:12px;color:var(--text2)">${todos.filter(t => songCatOf(t) === c.id).length}곡</span></div>
+      <button class="item-edit" onclick="songRenameCat('${c.id}')">✏️</button>
+      <button class="item-del" onclick="songDeleteCat('${c.id}')">✕</button>
+    </div>`).join('');
+}
+function songRefreshCats() { saveSongCats(); renderSongCatSelect(); renderTodos(); songRenderCatModal(); }
+function songAddCat() {
+  const inp = document.getElementById('song-cat-new');
+  const name = inp.value.trim();
+  if (!name) { showToast('💡 카테고리 이름을 입력해주세요'); return; }
+  if (songCats.some(c => songKey(c.name) === songKey(name))) { alert('⚠️ 이미 있는 카테고리예요\n\n· ' + name); return; }
+  songCats.push({ id: 'c' + Date.now() + Math.floor(Math.random() * 1000), name });
+  inp.value = '';
+  songRefreshCats();
+  showToast('🏷️ "' + name + '" 카테고리를 추가했어요');
+}
+function songRenameCat(id) {
+  const c = songCats.find(c => c.id === id);
+  if (!c) return;
+  const r = prompt('카테고리 이름 수정', c.name);
+  if (r === null) return;
+  const name = r.trim();
+  if (!name) { showToast('💡 이름을 입력해주세요'); return; }
+  if (songCats.some(x => x.id !== id && songKey(x.name) === songKey(name))) { alert('⚠️ 이미 있는 카테고리예요\n\n· ' + name); return; }
+  c.name = name;
+  songRefreshCats();
+}
+function songDeleteCat(id) {
+  const c = songCats.find(c => c.id === id);
+  if (!c) return;
+  const n = todos.filter(t => songCatOf(t) === id).length;
+  if (!confirm('"' + c.name + '" 카테고리를 삭제할까요?' + (n ? '\n\n(노래 ' + n + '곡은 삭제되지 않고 미분류로 바뀌어요)' : ''))) return;
+  todos.forEach(t => { if (t.cat === id) t.cat = ''; });
+  songCats = songCats.filter(x => x.id !== id);
+  if (songCatFilter === id) songCatFilter = 'all';
+  saveTodos();
+  songRefreshCats();
+}
+
 // 중복 비교용: 공백 제거 + 소문자
 function songKey(v) { return String(v || '').replace(/\s+/g, '').toLowerCase(); }
 function findSongDup(title, artist, exceptId) {
@@ -2534,6 +2635,7 @@ function addTodo() {
   const artist = document.getElementById('song-artist').value.trim();
   const tj = document.getElementById('song-tj').value.trim();
   const ky = document.getElementById('song-ky').value.trim();
+  const cat = document.getElementById('song-cat').value;
   if (!title) { showToast('💡 노래제목을 입력해주세요'); document.getElementById('song-title').focus(); return; }
   const dup = findSongDup(title, artist);
   if (dup) {
@@ -2542,7 +2644,7 @@ function addTodo() {
     return;
   }
   const pinned = document.getElementById('todo-pinned').checked;
-  todos.unshift({ id: Date.now(), title, artist, tj, ky, text: title + (artist ? ' - ' + artist : ''), done: false, date: new Date().toISOString(), pinned });
+  todos.unshift({ id: Date.now(), title, artist, tj, ky, cat, text: title + (artist ? ' - ' + artist : ''), done: false, date: new Date().toISOString(), pinned });
   saveTodos(); renderTodos();
   ['song-title', 'song-artist', 'song-tj', 'song-ky'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('todo-pinned').checked = false;
@@ -2574,6 +2676,7 @@ function editTodo(id) {
         <input class="memo-edit-area" id="song-e-tj-${id}" inputmode="numeric" value="${escHtml(t.tj)}" placeholder="태진" style="${st};min-width:0" />
         <input class="memo-edit-area" id="song-e-ky-${id}" inputmode="numeric" value="${escHtml(t.ky)}" placeholder="금영" style="${st};min-width:0" />
       </div>
+      <select class="memo-edit-area" id="song-e-cat-${id}" style="${st}">${songCatOptions(songCatOf(t))}</select>
       <div class="memo-edit-btns">
         <button class="memo-edit-save" onclick="saveTodoEdit(${id})">저장</button>
         <button class="memo-edit-cancel" onclick="renderTodos()">취소</button>
@@ -2589,13 +2692,14 @@ function saveTodoEdit(id) {
   const artist = document.getElementById(`song-e-artist-${id}`).value.trim();
   const tj = document.getElementById(`song-e-tj-${id}`).value.trim();
   const ky = document.getElementById(`song-e-ky-${id}`).value.trim();
+  const cat = document.getElementById(`song-e-cat-${id}`).value;
   if (!title) { showToast('💡 노래제목을 입력해주세요'); return; }
   const dup = findSongDup(title, artist, id);
   if (dup) {
     alert('⚠️ 이미 등록된 노래예요\n\n· ' + dup.title + (dup.artist ? ' - ' + dup.artist : ''));
     return;
   }
-  Object.assign(t, { title, artist, tj, ky, text: title + (artist ? ' - ' + artist : '') });
+  Object.assign(t, { title, artist, tj, ky, cat, text: title + (artist ? ' - ' + artist : '') });
   saveTodos(); renderTodos();
 }
 
@@ -2614,7 +2718,9 @@ function setTodoFilter(f) {
 function songVisible() {
   const q = (document.getElementById('todo-search')?.value || '').toLowerCase().trim();
   let list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
-  if (q) list = list.filter(t => [t.title, t.artist, t.tj, t.ky].join(' ').toLowerCase().includes(q));
+  if (q) list = list.filter(t => [t.title, t.artist, t.tj, t.ky, songCatName(songCatOf(t))].join(' ').toLowerCase().includes(q));
+  if (songCatFilter === 'none') list = list.filter(t => !songCatOf(t));
+  else if (songCatFilter !== 'all') list = list.filter(t => songCatOf(t) === songCatFilter);
   list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
   return list;
 }
@@ -2632,12 +2738,17 @@ function songLine(t, withCode) {
 }
 
 function songMakeList() {
-  let list = songVisible();
+  const list = songVisible();
   const sort = document.getElementById('song-out-sort').value;
-  if (sort === 'title') list = list.slice().sort((a, b) => a.title.localeCompare(b.title, 'ko'));
-  if (sort === 'artist') list = list.slice().sort((a, b) => (a.artist || '힣').localeCompare(b.artist || '힣', 'ko') || a.title.localeCompare(b.title, 'ko'));
   const numbered = document.getElementById('song-out-num').checked;
   const withCode = document.getElementById('song-out-code').checked;
+  const group = document.getElementById('song-out-group').checked;
+  const sortList = arr => {
+    if (sort === 'title') return arr.slice().sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+    if (sort === 'artist') return arr.slice().sort((a, b) => (a.artist || '힣').localeCompare(b.artist || '힣', 'ko') || a.title.localeCompare(b.title, 'ko'));
+    return arr;
+  };
+  const fmt = arr => arr.map((t, i) => (numbered ? (i + 1) + '. ' : '') + songLine(t, withCode)).join('\n');
   const out = document.getElementById('song-out');
   const view = document.getElementById('song-out-view');
   if (!list.length) {
@@ -2645,7 +2756,16 @@ function songMakeList() {
     view.innerHTML = '<span style="color:var(--text2)">뽑을 노래가 없어요</span>';
     return;
   }
-  out.value = list.map((t, i) => (numbered ? (i + 1) + '. ' : '') + songLine(t, withCode)).join('\n');
+  if (group) {
+    const blocks = [];
+    songCats.map(c => ({ id: c.id, name: c.name })).concat([{ id: '', name: '미분류' }]).forEach(g => {
+      const arr = sortList(list.filter(t => songCatOf(t) === g.id));
+      if (arr.length) blocks.push('■ ' + g.name + ' (' + arr.length + '곡)\n' + fmt(arr));
+    });
+    out.value = blocks.join('\n\n');
+  } else {
+    out.value = fmt(sortList(list));
+  }
   view.textContent = out.value;
   showToast('📋 ' + list.length + '곡 목록을 만들었어요');
 }
@@ -2663,6 +2783,7 @@ async function songCopyList() {
 }
 
 function renderTodos() {
+  renderSongCatChips();
   const el = document.getElementById('todo-list');
   const q = (document.getElementById('todo-search')?.value || '').toLowerCase().trim();
   const list = songVisible();
@@ -2676,6 +2797,7 @@ function renderTodos() {
       <div style="flex:1;min-width:0">
         <div class="todo-text ${t.done ? 'done' : ''}" style="word-break:keep-all;overflow-wrap:anywhere">${t.pinned ? '📌 ' : ''}${escHtml(t.title)}</div>
         ${t.artist ? `<div style="font-size:13px;color:var(--text2);margin-top:2px;overflow-wrap:anywhere">🎤 ${escHtml(t.artist)}</div>` : ''}
+        ${songCatOf(t) ? `<div style="margin-top:4px"><span style="font-size:12px;background:rgba(124,111,255,0.15);color:var(--accent);border-radius:8px;padding:2px 8px">🏷️ ${escHtml(songCatName(songCatOf(t)))}</span></div>` : ''}
         ${(t.tj || t.ky) ? `<div style="font-size:12px;margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
           ${t.tj ? `<span style="background:var(--surface2);border-radius:8px;padding:2px 8px;color:var(--accent)">태진 ${escHtml(t.tj)}</span>` : ''}
           ${t.ky ? `<span style="background:var(--surface2);border-radius:8px;padding:2px 8px;color:var(--accent2)">금영 ${escHtml(t.ky)}</span>` : ''}
@@ -2691,6 +2813,7 @@ function clearTodoSearch() {
   const el = document.getElementById('todo-search');
   if (el) { el.value = ''; renderTodos(); }
 }
+renderSongCatSelect();
 renderTodos();
 
 // ===== 할일 (새로 추가된 탭) =====
@@ -3072,6 +3195,7 @@ const BACKUP_KEYS = [
   'pocketbon-alarms',
   'pocketbon-memos',
   'pocketbon-todos',
+  'pocketbon-song-cats',
   'pocketbon-tasks',
   'pocketbon-ledger',
   'pocketbon-schedules',
@@ -3133,6 +3257,7 @@ function restoreData(e) {
       if (d['pocketbon-alarms'])    lines.push('<strong>알람:</strong> ' + d['pocketbon-alarms'].length + '개');
       if (d['pocketbon-memos'])     lines.push('<strong>메모:</strong> ' + d['pocketbon-memos'].length + '개');
       if (d['pocketbon-todos'])     lines.push('<strong>노래:</strong> ' + d['pocketbon-todos'].length + '개');
+      if (d['pocketbon-song-cats']) lines.push('<strong>노래 카테고리:</strong> ' + d['pocketbon-song-cats'].length + '개');
       if (d['pocketbon-tasks'])     lines.push('<strong>할일:</strong> ' + d['pocketbon-tasks'].length + '개');
       if (d['pocketbon-ledger'])    lines.push('<strong>가계부:</strong> ' + d['pocketbon-ledger'].length + '건');
       if (d['pocketbon-schedules']) lines.push('<strong>일정:</strong> ' + Object.keys(d['pocketbon-schedules']).length + '일');
@@ -3181,6 +3306,7 @@ function showStorageInfo() {
     'pocketbon-alarms': '⏰ 알람',
     'pocketbon-memos':  '📝 메모',
     'pocketbon-todos':  '🎤 노래',
+    'pocketbon-song-cats': '🏷️ 노래 카테고리',
     'pocketbon-tasks':  '✅ 할일',
     'pocketbon-ledger': '💰 가계부',
     'pocketbon-ddays':  '📅 디데이'
