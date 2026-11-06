@@ -959,19 +959,24 @@
     <div class="memo-list" id="memo-list"></div>
   </div>
 
-  <!-- 노래 패널 (예전 할일 탭) -->
+  <!-- 노래 패널 -->
   <div class="memo-panel" id="mpanel-todo">
-    <div class="memo-input-row">
-      <input type="text" class="memo-input" id="todo-input" placeholder="노래를 입력하세요..." onkeydown="if(event.key==='Enter')addTodo()" style="height:48px">
-      <button class="add-btn" onclick="addTodo()">+</button>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <input type="text" class="memo-input" id="song-title" placeholder="🎵 노래제목" maxlength="60" style="flex:none;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-artist').focus()">
+      <input type="text" class="memo-input" id="song-artist" placeholder="🎤 가수" maxlength="40" style="flex:none;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-tj').focus()">
+      <div style="display:flex;gap:8px">
+        <input type="text" inputmode="numeric" class="memo-input" id="song-tj" placeholder="태진 번호" maxlength="10" style="min-width:0;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-ky').focus()">
+        <input type="text" inputmode="numeric" class="memo-input" id="song-ky" placeholder="금영 번호" maxlength="10" style="min-width:0;height:46px" onkeydown="if(event.key==='Enter')addTodo()">
+      </div>
+      <button class="add-btn" onclick="addTodo()" style="width:100%;align-self:stretch;font-size:16px">+ 노래 등록</button>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:4px">
       <input type="checkbox" id="todo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
       <label for="todo-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
     </div>
     <div class="search-bar">
       <span class="search-bar-icon">🔍</span>
-      <input type="text" id="todo-search" placeholder="노래 검색..." oninput="renderTodos()"/>
+      <input type="text" id="todo-search" placeholder="제목 / 가수 / 번호 검색..." oninput="renderTodos()"/>
       <button class="search-bar-clear" onclick="clearTodoSearch()">✕</button>
     </div>
     <div class="ledger-filter-row" style="margin-bottom:4px">
@@ -1439,6 +1444,7 @@
     ⑤ [📢 참석 안내 메시지 만들기]를 누르면 미리보기가 나와요.<br>
     ⑥ 미리보기 아래 <b>칩에서 체크를 해제</b>하면 그 사람만 이번 메시지에서 빠져요. (새로고침하면 초기화)<br>
     ⑦ [📋 메시지 복사] 후 단톡방에 붙여넣으세요.<br>
+    · <b>항상 제외</b>하고 싶은 사람은 명단의 🔔 버튼을 누르거나 ✏️ 수정에서 <b>🔕 참석 안내 메시지에서 항상 제외</b>를 체크하세요. 새로고침해도 유지돼요.<br>
     · 연장 중인 사람은 별도 구역("🙏 연장 중")으로 나뉘고, <b>원래 마감일</b>과 <b>연장 마감일</b>, 사유가 함께 나와요.<br>
     · 앱 미리보기에서는 연장자가 분홍색으로 보이지만, 카톡에서는 색이 안 나와서 구역 제목으로 구분해요.</div>
 
@@ -1460,6 +1466,7 @@
     <input class="sch-input" id="bd-e-info" placeholder="추가 정보 (예: 92 동구 남)" maxlength="30"/>
     <div class="sch-allday-row"><input type="checkbox" id="bd-e-staff" onchange="bdToggleEditStaff()"/><label for="bd-e-staff">👑 운영진 (참석 마감 없음)</label></div>
     <div id="bd-e-member-fields">
+    <div class="sch-allday-row"><input type="checkbox" id="bd-e-exclude"/><label for="bd-e-exclude">🔕 참석 안내 메시지에서 항상 제외</label></div>
     <div class="sch-section-label">📅 마지막 참석일</div>
     <input class="sch-input" id="bd-e-date" type="date"/>
     <div class="sch-section-label">⏳ 사유 연장 (개월, 0이면 연장 없음)</div>
@@ -2482,19 +2489,41 @@ function clearMemoSearch() {
 }
 renderMemos();
 
-// ===== Todo =====
+// ===== 노래 (제목 / 가수 / 태진 / 금영) =====
 let todos = JSON.parse(localStorage.getItem('pocketbon-todos') || '[]');
 let todoFilter = 'all';
+// 예전 데이터(text만 있던 것) → 제목으로 이전
+todos.forEach(t => {
+  if (t.title === undefined) { t.title = t.text || ''; t.artist = t.artist || ''; t.tj = t.tj || ''; t.ky = t.ky || ''; }
+});
 function saveTodos() { localStorage.setItem('pocketbon-todos', JSON.stringify(todos)); }
 
+// 중복 비교용: 공백 제거 + 소문자
+function songKey(v) { return String(v || '').replace(/\s+/g, '').toLowerCase(); }
+function findSongDup(title, artist, exceptId) {
+  const tk = songKey(title), ak = songKey(artist);
+  return todos.find(t => t.id !== exceptId && songKey(t.title) === tk && songKey(t.artist) === ak);
+}
+
 function addTodo() {
-  const val = document.getElementById('todo-input').value.trim();
-  if (!val) return;
+  const title = document.getElementById('song-title').value.trim();
+  const artist = document.getElementById('song-artist').value.trim();
+  const tj = document.getElementById('song-tj').value.trim();
+  const ky = document.getElementById('song-ky').value.trim();
+  if (!title) { showToast('💡 노래제목을 입력해주세요'); document.getElementById('song-title').focus(); return; }
+  const dup = findSongDup(title, artist);
+  if (dup) {
+    alert('⚠️ 이미 등록된 노래예요\n\n· ' + dup.title + (dup.artist ? ' - ' + dup.artist : '') +
+      (dup.tj ? '\n  태진 ' + dup.tj : '') + (dup.ky ? '\n  금영 ' + dup.ky : ''));
+    return;
+  }
   const pinned = document.getElementById('todo-pinned').checked;
-  todos.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString(), pinned });
+  todos.unshift({ id: Date.now(), title, artist, tj, ky, text: title + (artist ? ' - ' + artist : ''), done: false, date: new Date().toISOString(), pinned });
   saveTodos(); renderTodos();
-  document.getElementById('todo-input').value = '';
+  ['song-title', 'song-artist', 'song-tj', 'song-ky'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('todo-pinned').checked = false;
+  document.getElementById('song-title').focus();
+  showToast('🎤 노래를 등록했어요');
 }
 
 function toggleTodo(id) {
@@ -2509,25 +2538,40 @@ function deleteTodo(id) {
 }
 
 function editTodo(id) {
-  const todo = todos.find(t => t.id === id);
-  if (!todo) return;
+  const t = todos.find(t => t.id === id);
+  if (!t) return;
   const el = document.getElementById(`todo-item-${id}`);
+  const st = 'height:42px;resize:none;margin-bottom:6px';
   el.innerHTML = `
-    <div style="flex:1">
-      <input class="memo-edit-area" id="todo-edit-${id}" value="${escHtml(todo.text)}" style="height:42px;resize:none" />
+    <div style="flex:1;min-width:0">
+      <input class="memo-edit-area" id="song-e-title-${id}" value="${escHtml(t.title)}" placeholder="노래제목" style="${st}" />
+      <input class="memo-edit-area" id="song-e-artist-${id}" value="${escHtml(t.artist)}" placeholder="가수" style="${st}" />
+      <div style="display:flex;gap:6px">
+        <input class="memo-edit-area" id="song-e-tj-${id}" inputmode="numeric" value="${escHtml(t.tj)}" placeholder="태진" style="${st};min-width:0" />
+        <input class="memo-edit-area" id="song-e-ky-${id}" inputmode="numeric" value="${escHtml(t.ky)}" placeholder="금영" style="${st};min-width:0" />
+      </div>
       <div class="memo-edit-btns">
         <button class="memo-edit-save" onclick="saveTodoEdit(${id})">저장</button>
         <button class="memo-edit-cancel" onclick="renderTodos()">취소</button>
       </div>
     </div>`;
-  document.getElementById(`todo-edit-${id}`).focus();
+  document.getElementById(`song-e-title-${id}`).focus();
 }
 
 function saveTodoEdit(id) {
-  const val = document.getElementById(`todo-edit-${id}`).value.trim();
-  if (!val) return;
-  const todo = todos.find(t => t.id === id);
-  if (todo) todo.text = val;
+  const t = todos.find(t => t.id === id);
+  if (!t) return;
+  const title = document.getElementById(`song-e-title-${id}`).value.trim();
+  const artist = document.getElementById(`song-e-artist-${id}`).value.trim();
+  const tj = document.getElementById(`song-e-tj-${id}`).value.trim();
+  const ky = document.getElementById(`song-e-ky-${id}`).value.trim();
+  if (!title) { showToast('💡 노래제목을 입력해주세요'); return; }
+  const dup = findSongDup(title, artist, id);
+  if (dup) {
+    alert('⚠️ 이미 등록된 노래예요\n\n· ' + dup.title + (dup.artist ? ' - ' + dup.artist : ''));
+    return;
+  }
+  Object.assign(t, { title, artist, tj, ky, text: title + (artist ? ' - ' + artist : '') });
   saveTodos(); renderTodos();
 }
 
@@ -2546,7 +2590,7 @@ function renderTodos() {
   const el = document.getElementById('todo-list');
   const q = (document.getElementById('todo-search')?.value || '').toLowerCase().trim();
   let list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
-  if (q) list = list.filter(t => t.text.toLowerCase().includes(q));
+  if (q) list = list.filter(t => [t.title, t.artist, t.tj, t.ky].join(' ').toLowerCase().includes(q));
   // 고정 항목 상단 정렬
   list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
   if (!list.length) {
@@ -2556,7 +2600,14 @@ function renderTodos() {
   el.innerHTML = list.map(t => `
     <div class="todo-item" id="todo-item-${t.id}" style="${t.pinned ? 'border:1px solid var(--accent);background:rgba(124,111,255,0.06);border-radius:14px;' : ''}">
       <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTodo(${t.id})"></div>
-      <div class="todo-text ${t.done ? 'done' : ''}" style="flex:1">${t.pinned ? '📌 ' : ''}${escHtml(t.text)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="todo-text ${t.done ? 'done' : ''}" style="word-break:keep-all;overflow-wrap:anywhere">${t.pinned ? '📌 ' : ''}${escHtml(t.title)}</div>
+        ${t.artist ? `<div style="font-size:13px;color:var(--text2);margin-top:2px;overflow-wrap:anywhere">🎤 ${escHtml(t.artist)}</div>` : ''}
+        ${(t.tj || t.ky) ? `<div style="font-size:12px;margin-top:4px;display:flex;gap:6px;flex-wrap:wrap">
+          ${t.tj ? `<span style="background:var(--surface2);border-radius:8px;padding:2px 8px;color:var(--accent)">태진 ${escHtml(t.tj)}</span>` : ''}
+          ${t.ky ? `<span style="background:var(--surface2);border-radius:8px;padding:2px 8px;color:var(--accent2)">금영 ${escHtml(t.ky)}</span>` : ''}
+        </div>` : ''}
+      </div>
       <button class="item-edit" onclick="toggleTodoPinned(${t.id})" title="${t.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${t.pinned ? '📍' : '📌'}</button>
       <button class="item-edit" onclick="editTodo(${t.id})">✏️</button>
       <button class="item-del" onclick="deleteTodo(${t.id})">✕</button>
@@ -3824,6 +3875,14 @@ function bdUndoDelete() {
   clearTimeout(bdUndoTimer); bdUndoData = null;
 }
 
+function bdToggleExclude(id) {
+  const m = bdMembers.find(x => x.id === id);
+  if (!m || m.staff) return;
+  m.exclude = !m.exclude;
+  if (m.exclude) bdMsgSkip.delete(id);
+  bdSaveMembers(); bdRenderList();
+  showToast(m.exclude ? '🔕 ' + m.name + '님을 안내 메시지에서 항상 제외해요' : '🔔 ' + m.name + '님을 안내 메시지에 다시 포함해요');
+}
 function bdMsgToggle(id) {
   if (bdMsgSkip.has(id)) bdMsgSkip.delete(id); else bdMsgSkip.add(id);
   bdRender();
@@ -4030,6 +4089,7 @@ function bdOpenEdit(id) {
   document.getElementById('bd-e-ext').value = bdExt(m);
   document.getElementById('bd-e-hist').innerHTML = bdHistHtml(m);
   document.getElementById('bd-e-staff').checked = !!m.staff;
+  document.getElementById('bd-e-exclude').checked = !!m.exclude;
   bdToggleEditStaff();
   document.getElementById('bd-edit-modal').style.display = 'flex';
 }
@@ -4059,10 +4119,12 @@ function bdSaveEdit() {
   m.info = document.getElementById('bd-e-info').value.trim();
   m.staff = isStaff;
   if (isStaff) {
-    m.last = ''; m.ext = 0; m.excuse = '';
+    m.last = ''; m.ext = 0; m.excuse = ''; m.exclude = false;
     bdSaveMembers(); bdCloseEdit(); bdRenderList(); showToast('수정됐어요 ✅');
     return;
   }
+  m.exclude = document.getElementById('bd-e-exclude').checked;
+  if (m.exclude) bdMsgSkip.delete(m.id);
   m.last = date;
   m.ext = Math.max(0, parseInt(document.getElementById('bd-e-ext').value) || 0);
   m.excuse = m.ext > 0 ? document.getElementById('bd-e-reason').value.trim() : '';
@@ -4115,11 +4177,13 @@ function bdRenderList() {
     return `<div class="dd-item" style="${border}">
       ${bdSelMode ? `<input type="checkbox" ${bdSel.has(m.id) ? 'checked' : ''} onchange="bdSelToggleOne(${m.id})" style="width:20px;height:20px;accent-color:var(--accent);flex-shrink:0;cursor:pointer">` : ''}
       <div class="dd-info">
-        <div class="dd-title" style="white-space:normal;overflow:visible;text-overflow:clip;word-break:keep-all;overflow-wrap:anywhere">${escHtml(m.name)} <span style="font-size:12px;color:var(--text2);font-weight:400">${escHtml(m.info || '')}</span></div>
+        <div class="dd-title" style="white-space:normal;overflow:visible;text-overflow:clip;word-break:keep-all;overflow-wrap:anywhere">${m.exclude ? '🔕 ' : ''}${escHtml(m.name)} <span style="font-size:12px;color:var(--text2);font-weight:400">${escHtml(m.info || '')}</span></div>
+        ${m.exclude ? '<div class="dd-date" style="color:var(--text2)">안내 메시지 고정 제외</div>' : ''}
         <div class="dd-date" style="overflow-wrap:anywhere">마지막 참석 ${d.getMonth() + 1}/${d.getDate()} · 마감 ${m.dl.getMonth() + 1}/${m.dl.getDate()}${(m.hist || []).length ? ' · 참석 ' + m.hist.filter(h => h.t === 'attend').length + '회' : ''}</div>
         ${m.ext > 0 ? '<div class="dd-date" style="color:var(--accent);overflow-wrap:anywhere">⏳ +' + m.ext + '개월 연장 → ' + (m.edl.getMonth() + 1) + '/' + m.edl.getDate() + '까지' + (m.excuse ? ' (' + escHtml(m.excuse) + ')' : '') + '</div>' : ''}
       </div>
       <div class="dd-badge" style="font-size:16px;color:${color}">${badge}</div>
+      <button class="item-edit" onclick="bdToggleExclude(${m.id})" title="${m.exclude ? '안내 메시지 제외 해제' : '안내 메시지에서 항상 제외'}" style="${m.exclude ? '' : 'opacity:.45'}">${m.exclude ? '🔕' : '🔔'}</button>
       <button class="item-edit" onclick="bdAttend(${m.id})" title="오늘 참석">✅</button>
       <button class="item-edit" onclick="bdExcuse(${m.id})" title="사유로 1개월 연장">⏳</button>${m.ext > 0 ? `
       <button class="item-edit" onclick="bdUnextend(${m.id})" title="연장 취소">↩️</button>` : ''}
@@ -4133,7 +4197,7 @@ function bdRender() {
   const before = bdBefore();
   const incl = document.getElementById('bd-over').checked;
   // 기존(원래) 마감일 기준으로 대상/정렬 — 연장자도 원래 마감이 임박했으면 포함 (운영진 제외)
-  const list = bdMembers.filter(m => !m.staff).map(m => {
+  const list = bdMembers.filter(m => !m.staff && !m.exclude).map(m => {
     const st = bdStatus(m);
     const baseLeft = Math.round((st.dl - bdToday()) / 86400000);
     return { ...m, ...st, baseLeft };
@@ -4151,6 +4215,11 @@ function bdRender() {
         '<input type="checkbox" ' + (bdMsgSkip.has(m.id) ? '' : 'checked') + ' onchange="bdMsgToggle(' + m.id + ')" style="accent-color:var(--accent)">' +
         (m.ext > 0 ? '⏳ ' : '') + escHtml(m.name) + '</label>').join('') + '</div>';
   } else { box.style.display = 'none'; box.innerHTML = ''; }
+  const fixed = bdMembers.filter(m => !m.staff && m.exclude);
+  if (fixed.length) {
+    box.style.display = '';
+    box.innerHTML += '<div style="font-size:13px;color:var(--text2);margin:8px 4px 0">🔕 고정 제외 ' + fixed.length + '명: ' + fixed.map(m => escHtml(m.name)).join(', ') + ' (명단의 🔕 버튼으로 해제)</div>';
+  }
 
   const md = d => (d.getMonth() + 1) + '/' + d.getDate();
   const leftText = n => n > 0 ? n + '일 남음' : n === 0 ? '오늘까지!' : Math.abs(n) + '일 지남';
