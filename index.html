@@ -985,6 +985,30 @@
       <button class="filter-btn"        id="todo-filter-done"    onclick="setTodoFilter('done')">완료</button>
     </div>
     <div class="memo-list" id="todo-list"></div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+      <div style="font-size:16px;font-weight:600;padding:0 4px">📋 노래 목록 뽑기</div>
+      <div style="font-size:13px;color:var(--text2);padding:0 4px">위 검색·필터에 보이는 노래만 한 줄씩 뽑아요</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select class="ledger-input" id="song-out-sort" style="width:auto">
+          <option value="list">목록 순서 그대로</option>
+          <option value="title">제목 가나다순</option>
+          <option value="artist">가수 가나다순</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="checkbox" id="song-out-num" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+        <label for="song-out-num" style="font-size:14px;color:var(--text2);cursor:pointer">앞에 번호 붙이기 (1. 2. 3. …)</label>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="checkbox" id="song-out-code" checked style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+        <label for="song-out-code" style="font-size:14px;color:var(--text2);cursor:pointer">태진/금영 번호 포함</label>
+      </div>
+      <button class="ledger-add-btn" onclick="songMakeList()">📋 노래 목록 만들기</button>
+      <div class="memo-input" id="song-out-view" style="flex:none;min-height:160px;max-height:60vh;white-space:pre-wrap;overflow-y:auto;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere"><span style="color:var(--text2)">버튼을 누르면 여기에 노래 목록이 나와요</span></div>
+      <textarea id="song-out" style="display:none" readonly></textarea>
+      <button class="ledger-add-btn" onclick="songCopyList()">📋 목록 복사</button>
+    </div>
   </div>
 
   <!-- 할일 패널 (새로 추가) -->
@@ -2586,13 +2610,62 @@ function setTodoFilter(f) {
   renderTodos();
 }
 
-function renderTodos() {
-  const el = document.getElementById('todo-list');
+// 지금 화면에 보이는 노래 (필터 + 검색 + 고정 우선)
+function songVisible() {
   const q = (document.getElementById('todo-search')?.value || '').toLowerCase().trim();
   let list = todos.filter(t => todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done);
   if (q) list = list.filter(t => [t.title, t.artist, t.tj, t.ky].join(' ').toLowerCase().includes(q));
-  // 고정 항목 상단 정렬
   list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  return list;
+}
+
+// 한 줄 텍스트: 제목 - 가수 (태진 : 12345 / 금영 : 67890)
+function songLine(t, withCode) {
+  let line = t.title + (t.artist ? ' - ' + t.artist : '');
+  if (withCode) {
+    const codes = [];
+    if (t.tj) codes.push('태진 : ' + t.tj);
+    if (t.ky) codes.push('금영 : ' + t.ky);
+    if (codes.length) line += ' (' + codes.join(' / ') + ')';
+  }
+  return line;
+}
+
+function songMakeList() {
+  let list = songVisible();
+  const sort = document.getElementById('song-out-sort').value;
+  if (sort === 'title') list = list.slice().sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+  if (sort === 'artist') list = list.slice().sort((a, b) => (a.artist || '힣').localeCompare(b.artist || '힣', 'ko') || a.title.localeCompare(b.title, 'ko'));
+  const numbered = document.getElementById('song-out-num').checked;
+  const withCode = document.getElementById('song-out-code').checked;
+  const out = document.getElementById('song-out');
+  const view = document.getElementById('song-out-view');
+  if (!list.length) {
+    out.value = '';
+    view.innerHTML = '<span style="color:var(--text2)">뽑을 노래가 없어요</span>';
+    return;
+  }
+  out.value = list.map((t, i) => (numbered ? (i + 1) + '. ' : '') + songLine(t, withCode)).join('\n');
+  view.textContent = out.value;
+  showToast('📋 ' + list.length + '곡 목록을 만들었어요');
+}
+
+async function songCopyList() {
+  const out = document.getElementById('song-out');
+  if (!out.value) { showToast('먼저 노래 목록을 만들어주세요'); return; }
+  try { await navigator.clipboard.writeText(out.value); }
+  catch (e) {
+    const t = document.createElement('textarea');
+    t.value = out.value; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); t.remove();
+  }
+  showToast('📋 복사됐어요! 붙여넣으세요');
+}
+
+function renderTodos() {
+  const el = document.getElementById('todo-list');
+  const q = (document.getElementById('todo-search')?.value || '').toLowerCase().trim();
+  const list = songVisible();
   if (!list.length) {
     el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '🎤'}</span>${q ? '검색 결과가 없어요' : '노래가 없어요'}</div>`;
     return;
