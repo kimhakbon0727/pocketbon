@@ -1428,6 +1428,14 @@
   <textarea id="bd-output" style="display:none" readonly></textarea>
   <div id="bd-msg-targets" style="display:none"></div>
   <button class="ledger-add-btn" onclick="bdCopy()">📋 메시지 복사</button>
+
+  <div style="border-top:1px solid var(--border);margin:14px 0 2px"></div>
+  <div style="font-size:16px;font-weight:600;padding:0 4px">👥 운영진 단톡방용 남은 일수</div>
+  <div style="font-size:13px;color:var(--text2);padding:0 4px;margin-top:-6px">운영진 단톡방에서 멤버별 남은 일수를 간단히 확인하는 용도예요. 연장한 사람은 ⏳연장으로 표시돼요.</div>
+  <button class="ledger-add-btn" onclick="bdOpRender()">📅 남은 일수 메시지 만들기</button>
+  <div class="memo-input" id="bd-op-view" style="flex:none;min-height:200px;white-space:pre-wrap;overflow-y:auto;line-height:1.6"><span style="color:var(--text2)">버튼을 누르면 여기에 남은 일수 메시지가 나와요</span></div>
+  <textarea id="bd-op-output" style="display:none" readonly></textarea>
+  <button class="ledger-add-btn" onclick="bdOpCopy()">📋 남은 일수 메시지 복사</button>
 </div>
 
 <!-- 벙 메뉴얼 -->
@@ -1480,6 +1488,11 @@
     · <b>항상 제외</b>하고 싶은 사람은 명단의 🔔 버튼을 누르거나 ✏️ 수정에서 <b>🔕 참석 안내 메시지에서 항상 제외</b>를 체크하세요. 새로고침해도 유지돼요.<br>
     · 연장 중인 사람은 별도 구역("🙏 연장 중")으로 나뉘고, <b>원래 마감일</b>과 <b>연장 마감일</b>, 사유가 함께 나와요.<br>
     · 앱 미리보기에서는 연장자가 분홍색으로 보이지만, 카톡에서는 색이 안 나와서 구역 제목으로 구분해요.</div>
+
+    <div style="font-weight:600;margin-top:12px">6-1. 운영진 단톡방용 남은 일수 메시지</div>
+    <div style="color:var(--text2)">참석 안내 메시지 아래 <b>👥 운영진 단톡방용 남은 일수</b>에서 [📅 남은 일수 메시지 만들기] → [복사]해 운영진 단톡방에 붙여넣으세요.<br>
+    · 날짜가 있는 멤버만, 남은 일수 적은 순으로 한 줄씩 나와요. (운영진 제외)<br>
+    · 연장한 사람은 <b>⏳연장</b>이 붙고, 연장 마감일 기준 남은 일수가 나와요.</div>
 
     <div style="font-weight:600;margin-top:12px">7. 이력</div>
     <div style="color:var(--text2)">참석·연장·연장 취소가 날짜와 함께 자동 기록돼요. 명단에 <b>참석 N회</b>가 표시되고, ✏️ 수정 창에서 최근 이력을 볼 수 있어요.</div>
@@ -4482,6 +4495,44 @@ async function bdCopy() {
     document.execCommand('copy'); t.remove();
   }
   showToast('📋 복사됐어요! 채팅방에 붙여넣으세요');
+}
+
+// ===== 운영자 단톡방 현황 메시지 =====
+function bdOpRender() {
+  const out = document.getElementById('bd-op-output');
+  const view = document.getElementById('bd-op-view');
+  const t = bdToday();
+  const leftText = n => n > 0 ? n + '일 남음' : n === 0 ? '오늘까지' : Math.abs(n) + '일 지남';
+
+  // 운영진 제외, 남은 일수 적은 순 (연장자는 연장 마감일 기준)
+  const list = bdMembers.filter(m => !m.staff).map(m => ({ ...m, ...bdStatus(m) }))
+    .sort((a, b) => a.left - b.left || a.name.localeCompare(b.name, 'ko'));
+
+  if (!list.length) {
+    out.value = '등록된 멤버가 없어요';
+    view.textContent = out.value;
+    return;
+  }
+
+  const head = '📋 남은 일수 (' + (t.getMonth() + 1) + '/' + t.getDate() + ' 기준)';
+  const lines = list.map(m => ({ ext: m.ext > 0, text: m.name + ' ' + leftText(m.left) + (m.ext > 0 ? ' ⏳연장' : '') }));
+
+  out.value = head + '\n' + lines.map(l => l.text).join('\n');
+  view.innerHTML = '<b>' + escHtml(head) + '</b>\n' + lines.map(l =>
+    l.ext ? '<span style="color:var(--accent2);font-weight:600">' + escHtml(l.text) + '</span>' : escHtml(l.text)
+  ).join('\n');
+}
+
+async function bdOpCopy() {
+  const out = document.getElementById('bd-op-output');
+  if (!out.value) { showToast('먼저 남은 일수 메시지를 만들어주세요'); return; }
+  try { await navigator.clipboard.writeText(out.value); }
+  catch (e) {
+    const t = document.createElement('textarea');
+    t.value = out.value; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); t.remove();
+  }
+  showToast('📋 복사됐어요! 운영진 단톡방에 붙여넣으세요');
 }
 
 // 저장된 값 불러오기 (메시지는 버튼을 눌러야 생성)
