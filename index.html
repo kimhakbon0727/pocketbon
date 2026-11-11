@@ -1410,11 +1410,13 @@
     <!-- 칸 나눠 입력 (기본) -->
     <div id="bd-add-split" style="display:flex;flex-direction:column;gap:8px">
       <input class="ledger-input" id="bd-n-name" placeholder="닉네임 (필수)" maxlength="20" autocomplete="off" onkeydown="bdNext(event,'bd-n-age')">
-      <div style="display:flex;gap:8px">
-        <input class="ledger-input" id="bd-n-age" placeholder="나이 (예: 91)" maxlength="6" autocomplete="off" style="flex:1;min-width:0;width:auto" onkeydown="bdNext(event,'bd-n-region')">
-        <input class="ledger-input" id="bd-n-region" placeholder="지역 (예: 영도구)" maxlength="12" autocomplete="off" style="flex:1.4;min-width:0;width:auto" onkeydown="bdNext(event,'bd-n-gender')">
-        <input class="ledger-input" id="bd-n-gender" placeholder="성별" maxlength="4" autocomplete="off" style="flex:.8;min-width:0;width:auto" onkeydown="bdNext(event,'bd-n-month')">
-      </div>
+      <input class="ledger-input" id="bd-n-age" placeholder="나이 (예: 91)" maxlength="6" autocomplete="off" onkeydown="bdNext(event,'bd-n-region')">
+      <input class="ledger-input" id="bd-n-region" placeholder="지역 (예: 영도구)" maxlength="12" autocomplete="off" onkeydown="bdNext(event,'bd-n-gender')">
+      <select class="ledger-input" id="bd-n-gender" onkeydown="bdNext(event,'bd-n-month')">
+        <option value="">성별 선택</option>
+        <option value="남">남</option>
+        <option value="여">여</option>
+      </select>
       <div id="bd-n-date-row">
         <div style="font-size:13px;color:var(--text2);margin:0 4px 4px">마지막 참석일 (월 · 일)</div>
         <div style="display:flex;gap:8px;align-items:center">
@@ -1476,7 +1478,7 @@
 
     <div style="font-weight:600;margin-top:6px">1. 멤버 추가</div>
     <div style="color:var(--text2)">추가 영역 위쪽 버튼으로 입력 방식을 고를 수 있어요. (선택한 방식은 기억돼요)<br>
-    · <b>칸 나눠 입력</b>(기본): 닉네임 / 나이 / 지역 / 성별 / 마지막 참석일(월·일) 5칸을 각각 입력하고 [+ 추가]. 나이·지역·성별은 비워도 되고, 참석일은 오늘로 미리 채워져 있어요. Enter를 누르면 다음 칸으로 넘어가고, 추가 후엔 닉네임칸으로 커서가 돌아와요.<br>
+    · <b>칸 나눠 입력</b>(기본): 닉네임 / 나이 / 지역 / 성별(남·여 선택) / 마지막 참석일(월·일)을 각각 입력하고 [+ 추가]. 나이·지역·성별은 비워도 되고, 참석일은 오늘로 미리 채워져 있어요. Enter를 누르면 다음 칸으로 넘어가고, 추가 후엔 닉네임칸으로 커서가 돌아와요.<br>
     · <b>한 줄로 입력</b>: 아래 형식으로 <b>한 줄에 한 명</b>씩 적고 [+ 추가]. 여러 명을 한꺼번에 붙여넣을 때 편해요.<br>
     형식: <b>닉네임 추가정보 월.일</b> (마지막 참석일)<br>
     예) <code>사마봉 91 영도구 남 10.20</code><br>
