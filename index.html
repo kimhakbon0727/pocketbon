@@ -1399,10 +1399,41 @@
   <div class="dd-list" id="bd-list" style="max-height:60vh;overflow-y:auto"></div>
 
   <div class="dd-form">
-    <div style="font-size:14px;color:var(--text2)">➕ 멤버 추가 (한 줄에 한 명)</div>
-    <textarea class="memo-input" id="bd-add" rows="4" style="flex:none;resize:vertical" placeholder="ex) 사마봉 91 영도구 남 10.20"></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+      <div style="font-size:14px;color:var(--text2)">➕ 멤버 추가</div>
+      <div style="display:flex;gap:6px">
+        <button type="button" class="item-edit" id="bd-mode-split" style="width:auto;font-size:13px;padding:6px 10px" onclick="bdSetAddMode('split')">칸 나눠 입력</button>
+        <button type="button" class="item-edit" id="bd-mode-line" style="width:auto;font-size:13px;padding:6px 10px" onclick="bdSetAddMode('line')">한 줄로 입력</button>
+      </div>
+    </div>
+
+    <!-- 칸 나눠 입력 (기본) -->
+    <div id="bd-add-split" style="display:flex;flex-direction:column;gap:8px">
+      <input class="ledger-input" id="bd-n-name" placeholder="닉네임 (필수)" maxlength="20" autocomplete="off" onkeydown="bdNext(event,'bd-n-age')">
+      <div style="display:flex;gap:8px">
+        <input class="ledger-input" id="bd-n-age" placeholder="나이 (예: 91)" maxlength="6" autocomplete="off" style="flex:1;min-width:0;width:auto" onkeydown="bdNext(event,'bd-n-region')">
+        <input class="ledger-input" id="bd-n-region" placeholder="지역 (예: 영도구)" maxlength="12" autocomplete="off" style="flex:1.4;min-width:0;width:auto" onkeydown="bdNext(event,'bd-n-gender')">
+        <input class="ledger-input" id="bd-n-gender" placeholder="성별" maxlength="4" autocomplete="off" style="flex:.8;min-width:0;width:auto" onkeydown="bdNext(event,'bd-n-month')">
+      </div>
+      <div id="bd-n-date-row">
+        <div style="font-size:13px;color:var(--text2);margin:0 4px 4px">마지막 참석일 (월 · 일)</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="ledger-input" id="bd-n-month" type="number" inputmode="numeric" min="1" max="12" placeholder="월" style="flex:1;min-width:0;width:auto" onkeydown="bdNext(event,'bd-n-day')">
+          <span style="color:var(--text2)">월</span>
+          <input class="ledger-input" id="bd-n-day" type="number" inputmode="numeric" min="1" max="31" placeholder="일" style="flex:1;min-width:0;width:auto" onkeydown="bdNext(event,null)">
+          <span style="color:var(--text2)">일</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 한 줄로 입력 (기존 방식) -->
+    <div id="bd-add-line" style="display:none">
+      <div style="font-size:13px;color:var(--text2);margin:0 4px 6px">한 줄에 한 명씩 · 닉네임 추가정보 월.일</div>
+      <textarea class="memo-input" id="bd-add" rows="4" style="flex:none;resize:vertical;width:100%" placeholder="ex) 사마봉 91 영도구 남 10.20"></textarea>
+    </div>
+
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="checkbox" id="bd-add-staff" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <input type="checkbox" id="bd-add-staff" onchange="bdAddStaffChanged()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
       <label for="bd-add-staff" style="font-size:14px;color:var(--text2);cursor:pointer">👑 운영진으로 추가 (날짜 없이 닉네임만)</label>
     </div>
     <button class="ledger-add-btn" onclick="bdAdd()">+ 추가</button>
@@ -1444,15 +1475,17 @@
     <div class="sch-edit-title">📖 벙 참석 관리 메뉴얼</div>
 
     <div style="font-weight:600;margin-top:6px">1. 멤버 추가</div>
-    <div style="color:var(--text2)">하단 입력칸에 <b>한 줄에 한 명</b>씩 적고 [+ 추가]를 눌러요.<br>
+    <div style="color:var(--text2)">추가 영역 위쪽 버튼으로 입력 방식을 고를 수 있어요. (선택한 방식은 기억돼요)<br>
+    · <b>칸 나눠 입력</b>(기본): 닉네임 / 나이 / 지역 / 성별 / 마지막 참석일(월·일) 5칸을 각각 입력하고 [+ 추가]. 나이·지역·성별은 비워도 되고, 참석일은 오늘로 미리 채워져 있어요. Enter를 누르면 다음 칸으로 넘어가고, 추가 후엔 닉네임칸으로 커서가 돌아와요.<br>
+    · <b>한 줄로 입력</b>: 아래 형식으로 <b>한 줄에 한 명</b>씩 적고 [+ 추가]. 여러 명을 한꺼번에 붙여넣을 때 편해요.<br>
     형식: <b>닉네임 추가정보 월.일</b> (마지막 참석일)<br>
     예) <code>사마봉 91 영도구 남 10.20</code><br>
     · 추가정보는 없어도 돼요. 날짜는 <code>10.20</code> / <code>10/20</code> 모두 가능해요.<br>
     · 닉네임이 이미 있으면 등록되지 않고 알림창이 떠요.<br>
-    · 날짜를 못 읽은 줄은 입력칸에 남아서 고칠 수 있어요.</div>
+    · (한 줄 입력) 날짜를 못 읽은 줄은 입력칸에 남아서 고칠 수 있어요.</div>
 
     <div style="font-weight:600;margin-top:12px">1-1. 운영진 등록</div>
-    <div style="color:var(--text2)">추가 입력칸 아래 <b>👑 운영진으로 추가</b>를 체크하고 <b>닉네임 추가정보</b>만 적으면 돼요. (날짜 없음)<br>
+    <div style="color:var(--text2)">추가 입력칸 아래 <b>👑 운영진으로 추가</b>를 체크하고 <b>닉네임 · 추가정보</b>만 적으면 돼요. (날짜 없음, 칸 나눠 입력에서는 날짜칸이 숨겨져요)<br>
     · 운영진은 마감일·알림·참석 안내 메시지에서 제외되고 목록 맨 위에 👑로 표시돼요.<br>
     · 필터의 <b>운영진만</b>으로 따로 볼 수 있어요. ✏️ 수정에서 운영진 ↔ 일반 멤버 전환도 가능해요.</div>
 
@@ -4201,7 +4234,71 @@ function bdPrefChanged() {
   bdRenderList();
 }
 
+// ===== 멤버 추가: 칸 나눠 입력(기본) / 한 줄로 입력 =====
+let bdAddMode = 'split';
+function bdSetAddMode(mode) {
+  bdAddMode = mode === 'line' ? 'line' : 'split';
+  localStorage.setItem('pb-bday-addmode', bdAddMode);
+  document.getElementById('bd-add-split').style.display = bdAddMode === 'split' ? 'flex' : 'none';
+  document.getElementById('bd-add-line').style.display = bdAddMode === 'line' ? '' : 'none';
+  const on = 'background:var(--accent);color:#fff;', off = 'opacity:.6;';
+  document.getElementById('bd-mode-split').style.cssText = 'width:auto;font-size:13px;padding:6px 10px;' + (bdAddMode === 'split' ? on : off);
+  document.getElementById('bd-mode-line').style.cssText = 'width:auto;font-size:13px;padding:6px 10px;' + (bdAddMode === 'line' ? on : off);
+  bdAddStaffChanged();
+}
+function bdAddStaffChanged() {
+  // 운영진은 날짜가 없으니 날짜칸 숨김
+  document.getElementById('bd-n-date-row').style.display = document.getElementById('bd-add-staff').checked ? 'none' : '';
+}
+// Enter: 다음 칸으로 이동 (마지막 칸이면 추가)
+function bdNext(e, nextId) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  if (nextId && document.getElementById(nextId).offsetParent !== null) document.getElementById(nextId).focus();
+  else bdAdd();
+}
+function bdResetNewDate() {
+  const t = bdToday();
+  document.getElementById('bd-n-month').value = t.getMonth() + 1;
+  document.getElementById('bd-n-day').value = t.getDate();
+}
+function bdAddSplit() {
+  const val = id => document.getElementById(id).value.trim();
+  const isStaff = document.getElementById('bd-add-staff').checked;
+  const name = val('bd-n-name');
+  // 나이·지역·성별을 공백으로 이어서 추가 정보로 저장 (한 줄 입력과 같은 형태)
+  const info = [val('bd-n-age'), val('bd-n-region'), val('bd-n-gender')].filter(Boolean).join(' ');
+  if (!name) { showToast('💡 닉네임을 입력해주세요'); document.getElementById('bd-n-name').focus(); return; }
+  if (bdMembers.some(x => bdNameKey(x.name) === bdNameKey(name))) {
+    alert('⚠️ 이미 등록된 멤버라 추가하지 않았어요\n\n· ' + name);
+    return;
+  }
+  if (isStaff) {
+    bdMembers.push({ id: bdNewId(), name, info, staff: true });
+  } else {
+    const month = parseInt(val('bd-n-month')), day = parseInt(val('bd-n-day'));
+    if (!(month >= 1 && month <= 12) || !(day >= 1 && day <= 31)) {
+      showToast('💡 마지막 참석일(월·일)을 확인해주세요');
+      document.getElementById(month >= 1 && month <= 12 ? 'bd-n-day' : 'bd-n-month').focus();
+      return;
+    }
+    const last = bdYmd(bdLast(month, day));
+    const nm = { id: bdNewId(), name, info, last };
+    bdLog(nm, 'attend', '', last);
+    bdMembers.push(nm);
+  }
+  bdSaveMembers();
+  ['bd-n-name', 'bd-n-age', 'bd-n-region', 'bd-n-gender'].forEach(id => document.getElementById(id).value = '');
+  bdResetNewDate();
+  document.getElementById('bd-add-staff').checked = false;
+  bdAddStaffChanged();
+  bdRenderList();
+  showToast('✅ ' + name + '님 추가');
+  document.getElementById('bd-n-name').focus();   // 이어서 바로 다음 사람 입력
+}
+
 function bdAdd() {
+  if (bdAddMode === 'split') { bdAddSplit(); return; }
   const ta = document.getElementById('bd-add');
   const isStaff = document.getElementById('bd-add-staff').checked;
   const lines = ta.value.split('\n').filter(l => l.trim());
@@ -4233,6 +4330,7 @@ function bdAdd() {
   bdSaveMembers();
   ta.value = bad.join('\n'); // 못 읽은 줄은 남겨서 고칠 수 있게
   document.getElementById('bd-add-staff').checked = false;
+  bdAddStaffChanged();
   bdRenderList();
   let msg = '✅ ' + added + '명 추가';
   if (bad.length) msg += ' · ⚠️ 날짜를 못 읽은 ' + bad.length + '줄은 남겨뒀어요';
@@ -4547,6 +4645,8 @@ document.getElementById('bd-head').value = localStorage.getItem('pb-bday-head') 
 document.getElementById('bd-foot').value = localStorage.getItem('pb-bday-foot') ?? BD_DEFAULT_FOOT;
 bdLoad();
 bdRenderList();
+bdResetNewDate();
+bdSetAddMode(localStorage.getItem('pb-bday-addmode') || 'split');
 
 calInit();
 renderTabBar();
