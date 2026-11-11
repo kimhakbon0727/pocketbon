@@ -1491,7 +1491,8 @@
 
     <div style="font-weight:600;margin-top:12px">6-1. 운영진 단톡방용 남은 일수 메시지</div>
     <div style="color:var(--text2)">참석 안내 메시지 아래 <b>👥 운영진 단톡방용 남은 일수</b>에서 [📅 남은 일수 메시지 만들기] → [복사]해 운영진 단톡방에 붙여넣으세요.<br>
-    · 날짜가 있는 멤버만, 남은 일수 적은 순으로 한 줄씩 나와요. (운영진 제외)<br>
+    · 날짜가 있는 멤버만, 남은 일수 적은 순으로 한 줄씩 나오고 <b>마지막 참석일</b>도 함께 표시돼요.<br>
+    · 운영진과 🔕로 <b>고정 제외</b>한 사람은 나오지 않아요.<br>
     · 연장한 사람은 <b>⏳연장</b>이 붙고, 연장 마감일 기준 남은 일수가 나와요.</div>
 
     <div style="font-weight:600;margin-top:12px">7. 이력</div>
@@ -4504,8 +4505,8 @@ function bdOpRender() {
   const t = bdToday();
   const leftText = n => n > 0 ? n + '일 남음' : n === 0 ? '오늘까지' : Math.abs(n) + '일 지남';
 
-  // 운영진 제외, 남은 일수 적은 순 (연장자는 연장 마감일 기준)
-  const list = bdMembers.filter(m => !m.staff).map(m => ({ ...m, ...bdStatus(m) }))
+  // 운영진·🔕고정 제외자 빼고, 남은 일수 적은 순 (연장자는 연장 마감일 기준)
+  const list = bdMembers.filter(m => !m.staff && !m.exclude).map(m => ({ ...m, ...bdStatus(m) }))
     .sort((a, b) => a.left - b.left || a.name.localeCompare(b.name, 'ko'));
 
   if (!list.length) {
@@ -4515,7 +4516,8 @@ function bdOpRender() {
   }
 
   const head = '📋 남은 일수 (' + (t.getMonth() + 1) + '/' + t.getDate() + ' 기준)';
-  const lines = list.map(m => ({ ext: m.ext > 0, text: m.name + ' ' + leftText(m.left) + (m.ext > 0 ? ' ⏳연장' : '') }));
+  const md = d => (d.getMonth() + 1) + '/' + d.getDate();
+  const lines = list.map(m => ({ ext: m.ext > 0, text: m.name + ' ' + leftText(m.left) + ' (마지막 참석 ' + md(bdToDate(m.last)) + ')' + (m.ext > 0 ? ' -⏳연장' : '') }));
 
   out.value = head + '\n' + lines.map(l => l.text).join('\n');
   view.innerHTML = '<b>' + escHtml(head) + '</b>\n' + lines.map(l =>
