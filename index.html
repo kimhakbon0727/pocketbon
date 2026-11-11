@@ -1493,7 +1493,7 @@
     <div style="color:var(--text2)">참석 안내 메시지 아래 <b>👥 운영진 단톡방용 남은 일수</b>에서 [📅 남은 일수 메시지 만들기] → [복사]해 운영진 단톡방에 붙여넣으세요.<br>
     · 날짜가 있는 멤버만, 남은 일수 적은 순으로 한 줄씩 나오고 <b>마지막 참석일</b>도 함께 표시돼요.<br>
     · 운영진과 🔕로 <b>고정 제외</b>한 사람은 나오지 않아요.<br>
-    · 연장한 사람은 <b>⏳연장</b>이 붙고, 연장 마감일 기준 남은 일수가 나와요.</div>
+    · 연장한 사람은 <b>⏳연장 (사유)</b>가 붙고, 연장 마감일 기준 남은 일수가 나와요.</div>
 
     <div style="font-weight:600;margin-top:12px">7. 이력</div>
     <div style="color:var(--text2)">참석·연장·연장 취소가 날짜와 함께 자동 기록돼요. 명단에 <b>참석 N회</b>가 표시되고, ✏️ 수정 창에서 최근 이력을 볼 수 있어요.</div>
@@ -4517,12 +4517,12 @@ function bdOpRender() {
 
   const head = '📋 남은 일수 (' + (t.getMonth() + 1) + '/' + t.getDate() + ' 기준)';
   const md = d => (d.getMonth() + 1) + '/' + d.getDate();
-  const lines = list.map(m => ({ ext: m.ext > 0, text: m.name + ' ' + leftText(m.left) + ' (마지막 참석 ' + md(bdToDate(m.last)) + ')' + (m.ext > 0 ? ' -⏳연장' : '') }));
+  const lines = list.map(m => ({ ext: m.ext > 0, text: m.name + ' ' + leftText(m.left) + ' (마지막 참석 ' + md(bdToDate(m.last)) + ')' + (m.ext > 0 ? '\n -⏳연장' + (m.excuse ? ' (' + m.excuse + ')' : '') : '') }));
 
-  out.value = head + '\n' + lines.map(l => l.text).join('\n');
-  view.innerHTML = '<b>' + escHtml(head) + '</b>\n' + lines.map(l =>
+  out.value = head + '\n\n' + lines.map(l => l.text).join('\n\n');
+  view.innerHTML = '<b>' + escHtml(head) + '</b>\n\n' + lines.map(l =>
     l.ext ? '<span style="color:var(--accent2);font-weight:600">' + escHtml(l.text) + '</span>' : escHtml(l.text)
-  ).join('\n');
+  ).join('\n\n');
 }
 
 async function bdOpCopy() {
