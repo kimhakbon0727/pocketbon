@@ -1498,8 +1498,8 @@
     마감이 임박한 사람은 <span style="color:var(--accent2)">분홍 테두리</span>, 지난 사람은 <span style="color:#ff8080">빨간색</span>으로 표시돼요.</div>
 
     <div style="font-weight:600;margin-top:12px">3. 명단 버튼</div>
-    <div style="color:var(--text2)">✅ <b>오늘 참석</b> — 마지막 참석일을 오늘로 바꾸고 연장을 초기화해요.<br>
-    ⏳ <b>사유 연장</b> — 사유를 적으면 마감이 1개월 늘어나요. 누를 때마다 한 달씩 추가돼요. 원래 마감일은 그대로 표시돼요.<br>
+    <div style="color:var(--text2)">✅ <b>참석</b> — 날짜를 입력하는 팝업이 떠요(기본값 오늘). 확인하면 마지막 참석일이 그 날짜로 바뀌고 연장이 초기화돼요.<br>
+    ⏳ <b>사유 연장</b> — 날짜와 사유를 입력하면 마감이 1개월 늘어나요. 누를 때마다 한 달씩 추가돼요. 원래 마감일은 그대로 표시돼요.<br>
     ↩️ <b>연장 취소</b> — 연장 중인 사람에게만 보여요. 원래 마감일로 되돌려요.<br>
     ✏️ <b>수정</b> — 닉네임, 정보, 참석일, 연장 개월·사유를 직접 고치고 이력도 볼 수 있어요.<br>
     ✕ <b>삭제</b> — 확인창 후 삭제돼요. 직후 8초 동안 아래에 뜨는 [되돌리기]로 복구할 수 있어요.</div>
@@ -1559,6 +1559,21 @@
     </div>
     <button class="sch-add-btn" onclick="bdSaveEdit()">저장</button>
     <button class="sch-modal-close" onclick="bdCloseEdit()">취소</button>
+  </div>
+</div>
+
+<!-- 참석/연장 날짜 입력 -->
+<div class="sch-edit-overlay" id="bd-date-modal" style="display:none" onclick="if(event.target===this)bdCloseDate()">
+  <div class="sch-edit-box">
+    <div class="sch-edit-title" id="bd-d-title">✅ 참석 처리</div>
+    <div class="sch-section-label" id="bd-d-label">📅 참석 날짜</div>
+    <input class="sch-input" id="bd-d-date" type="date"/>
+    <div id="bd-d-reason-wrap" style="display:none">
+      <div class="sch-section-label">⏳ 연장 사유 (+1개월)</div>
+      <input class="sch-input" id="bd-d-reason" placeholder="사유 (예: 군대, 출장, 휴식)" maxlength="30" onkeydown="if(event.key==='Enter')bdConfirmDate()"/>
+    </div>
+    <button class="sch-add-btn" onclick="bdConfirmDate()">확인</button>
+    <button class="sch-modal-close" onclick="bdCloseDate()">취소</button>
   </div>
 </div>
 
@@ -4346,15 +4361,52 @@ function bdAdd() {
 // 닉네임 비교용 (공백 제거, 대소문자 무시)
 function bdNameKey(n) { return String(n || '').replace(/\s+/g, '').toLowerCase(); }
 
+let bdDateId = null, bdDateMode = null;
+
 function bdAttend(id) {
   const m = bdMembers.find(x => x.id === id);
   if (!m || m.staff) return;
-  m.last = bdYmd(bdToday());
-  m.excuse = ''; m.ext = 0;
-  bdLog(m, 'attend');
-  bdSaveMembers();
-  bdRenderList();
-  showToast('✅ ' + m.name + '님 오늘 참석 처리');
+  bdOpenDate(m, 'attend');
+}
+
+function bdOpenDate(m, mode) {
+  bdDateId = m.id; bdDateMode = mode;
+  const isAttend = mode === 'attend';
+  document.getElementById('bd-d-title').textContent = (isAttend ? '✅ ' : '⏳ ') + m.name + '님 ' + (isAttend ? '참석 처리' : '사유 연장');
+  document.getElementById('bd-d-label').textContent = isAttend ? '📅 참석 날짜' : '📅 연장 처리 날짜';
+  document.getElementById('bd-d-date').value = bdYmd(bdToday());
+  document.getElementById('bd-d-reason').value = '';
+  document.getElementById('bd-d-reason-wrap').style.display = isAttend ? 'none' : '';
+  document.getElementById('bd-date-modal').style.display = 'flex';
+}
+
+function bdCloseDate() {
+  document.getElementById('bd-date-modal').style.display = 'none';
+  bdDateId = null; bdDateMode = null;
+}
+
+function bdConfirmDate() {
+  const m = bdMembers.find(x => x.id === bdDateId);
+  if (!m || m.staff) { bdCloseDate(); return; }
+  const date = document.getElementById('bd-d-date').value;
+  if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
+  const md = date.slice(5).replace(/^0/, '').replace('-0', '/').replace('-', '/');
+  if (bdDateMode === 'attend') {
+    m.last = date;
+    m.excuse = ''; m.ext = 0;
+    bdLog(m, 'attend', '', date);
+    bdSaveMembers(); bdCloseDate(); bdRenderList();
+    showToast('✅ ' + m.name + '님 ' + md + ' 참석 처리');
+  } else {
+    const reason = document.getElementById('bd-d-reason').value.trim();
+    if (!reason) { showToast('💡 사유를 입력해주세요'); return; }
+    m.ext = bdExt(m) + 1;
+    m.excuse = reason;
+    bdLog(m, 'extend', reason, date);
+    bdSaveMembers(); bdCloseDate(); bdRenderList();
+    const st = bdStatus(m);
+    showToast('⏳ ' + m.name + '님 ' + (st.edl.getMonth() + 1) + '/' + st.edl.getDate() + '까지 연장 (' + reason + ')');
+  }
 }
 
 function bdDelete(id) {
@@ -4372,16 +4424,7 @@ function bdDelete(id) {
 function bdExcuse(id) {
   const m = bdMembers.find(x => x.id === id);
   if (!m || m.staff) return;
-  const r = prompt(m.name + '님 사유 연장 (+1개월)\n사유를 입력하세요 (예: 군대, 출장, 휴식)');
-  if (r === null) return;
-  const reason = r.trim();
-  if (!reason) { showToast('💡 사유를 입력해주세요'); return; }
-  m.ext = bdExt(m) + 1;
-  m.excuse = reason;
-  bdLog(m, 'extend', reason);
-  bdSaveMembers(); bdRenderList();
-  const st = bdStatus(m);
-  showToast('⏳ ' + m.name + '님 ' + (st.edl.getMonth() + 1) + '/' + st.edl.getDate() + '까지 연장 (' + reason + ')');
+  bdOpenDate(m, 'extend');
 }
 
 function bdUnextend(id) {
@@ -4500,7 +4543,7 @@ function bdRenderList() {
       </div>
       <div class="dd-badge" style="font-size:16px;color:${color}">${badge}</div>
       <button class="item-edit" onclick="bdToggleExclude(${m.id})" title="${m.exclude ? '안내 메시지 제외 해제' : '안내 메시지에서 항상 제외'}" style="${m.exclude ? '' : 'opacity:.45'}">${m.exclude ? '🔕' : '🔔'}</button>
-      <button class="item-edit" onclick="bdAttend(${m.id})" title="오늘 참석">✅</button>
+      <button class="item-edit" onclick="bdAttend(${m.id})" title="참석 처리 (날짜 선택)">✅</button>
       <button class="item-edit" onclick="bdExcuse(${m.id})" title="사유로 1개월 연장">⏳</button>${m.ext > 0 ? `
       <button class="item-edit" onclick="bdUnextend(${m.id})" title="연장 취소">↩️</button>` : ''}
       <button class="item-edit" onclick="bdOpenEdit(${m.id})">✏️</button>
