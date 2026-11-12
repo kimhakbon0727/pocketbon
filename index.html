@@ -1034,34 +1034,7 @@
     </div>
   </div>
 
-  <!-- 입력 폼 -->
-  <div class="ledger-form">
-    <div class="ledger-type-row">
-      <button class="ledger-type-btn income active" id="ltype-income"  onclick="setLedgerType('income')">💚 수입</button>
-      <button class="ledger-type-btn expense"       id="ltype-expense" onclick="setLedgerType('expense')">❤️ 지출</button>
-    </div>
-    <input type="text"   class="ledger-input" id="ledger-desc"   placeholder="내용 (예: 점심)">
-    <input type="text"   class="ledger-input" id="ledger-amount" placeholder="금액 (원)" inputmode="numeric" oninput="formatLedgerAmount(this)">
-    <input type="date"   class="ledger-input" id="ledger-date">
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-      <input type="checkbox" id="ledger-recurring" onchange="toggleRecurringFields()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-      <label for="ledger-recurring" style="font-size:14px;color:var(--text2);cursor:pointer">📌 매월 고정 항목으로 등록</label>
-    </div>
-    <div id="ledger-rec-block" style="display:none;margin-bottom:8px">
-      <div style="display:flex;gap:8px">
-        <div style="flex:1;min-width:0">
-          <div class="sch-section-label">📅 시작일</div>
-          <input type="date" class="ledger-input" id="ledger-rec-start" style="font-size:14px;padding:12px 10px">
-        </div>
-        <div style="flex:1;min-width:0">
-          <div class="sch-section-label">🏁 종료일 (선택)</div>
-          <input type="date" class="ledger-input" id="ledger-rec-end" style="font-size:14px;padding:12px 10px">
-        </div>
-      </div>
-      <div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5">시작일의 '일'에 맞춰 매월 반복돼요. 종료일을 비워두면 계속 반복돼요.</div>
-    </div>
-    <button class="ledger-add-btn" onclick="addLedger()">추가</button>
-  </div>
+  <button class="ledger-add-btn" onclick="openLedgerModal()">+ 내역 추가</button>
 
   <!-- 필터 -->
   <div class="ledger-filter-row">
@@ -1328,20 +1301,7 @@
 
 <!-- D-DAY -->
 <div class="screen" id="dday">
-  <div class="dd-form">
-    <input type="text" class="ledger-input" id="dd-title" placeholder="이름 (예: 수능, 여행, 생일)" maxlength="30">
-    <input type="date" class="ledger-input" id="dd-date">
-    <div style="display:flex;gap:8px;align-items:center">
-      <input type="checkbox" id="dd-repeat" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-      <label for="dd-repeat" style="font-size:14px;color:var(--text2);cursor:pointer">🔁 매년 반복 (생일·기념일)</label>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <input type="checkbox" id="dd-since" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-      <label for="dd-since" style="font-size:14px;color:var(--text2);cursor:pointer">💕 만난 날부터 세기 (1일째~)</label>
-    </div>
-    <button class="ledger-add-btn" id="dd-add-btn" onclick="saveDday()">+ 디데이 추가</button>
-    <button class="sch-modal-close" id="dd-cancel-btn" style="display:none;margin-top:0" onclick="cancelDdayEdit()">수정 취소</button>
-  </div>
+  <button class="ledger-add-btn" onclick="openDdayModal()">+ 디데이 추가</button>
   <div class="dd-list" id="dd-list"></div>
 </div>
 
@@ -1539,6 +1499,58 @@
     </div>
     <button class="sch-add-btn" onclick="addTask()">+ 할일 추가</button>
     <button class="sch-modal-close" onclick="closeAddModal('task')">취소</button>
+  </div>
+</div>
+
+<!-- 가계부 추가 -->
+<div class="sch-edit-overlay" id="ledger-add-modal" style="display:none" onclick="if(event.target===this)closeLedgerModal()">
+  <div class="sch-edit-box" style="display:flex;flex-direction:column;gap:10px">
+    <div class="sch-edit-title" style="margin:0">💰 내역 추가</div>
+    <div class="ledger-type-row">
+      <button class="ledger-type-btn income active" id="ltype-income"  onclick="setLedgerType('income')">💚 수입</button>
+      <button class="ledger-type-btn expense"       id="ltype-expense" onclick="setLedgerType('expense')">❤️ 지출</button>
+    </div>
+    <input type="text"   class="ledger-input" id="ledger-desc"   placeholder="내용 (예: 점심)">
+    <input type="text"   class="ledger-input" id="ledger-amount" placeholder="금액 (원)" inputmode="numeric" oninput="formatLedgerAmount(this)">
+    <input type="date"   class="ledger-input" id="ledger-date">
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="ledger-recurring" onchange="toggleRecurringFields()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="ledger-recurring" style="font-size:14px;color:var(--text2);cursor:pointer">📌 매월 고정 항목으로 등록</label>
+    </div>
+    <div id="ledger-rec-block" style="display:none">
+      <div style="display:flex;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div class="sch-section-label">📅 시작일</div>
+          <input type="date" class="ledger-input" id="ledger-rec-start" style="font-size:14px;padding:12px 10px">
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="sch-section-label">🏁 종료일 (선택)</div>
+          <input type="date" class="ledger-input" id="ledger-rec-end" style="font-size:14px;padding:12px 10px">
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5">시작일의 '일'에 맞춰 매월 반복돼요. 종료일을 비워두면 계속 반복돼요.</div>
+    </div>
+    <button class="sch-add-btn" onclick="addLedger()">추가</button>
+    <button class="sch-modal-close" onclick="closeLedgerModal()">취소</button>
+  </div>
+</div>
+
+<!-- 디데이 추가/수정 -->
+<div class="sch-edit-overlay" id="dd-modal" style="display:none" onclick="if(event.target===this)cancelDdayEdit()">
+  <div class="sch-edit-box" style="display:flex;flex-direction:column;gap:10px">
+    <div class="sch-edit-title" id="dd-modal-title" style="margin:0">📅 디데이 추가</div>
+    <input type="text" class="ledger-input" id="dd-title" placeholder="이름 (예: 수능, 여행, 생일)" maxlength="30" onkeydown="if(event.key==='Enter')document.getElementById('dd-date').focus()">
+    <input type="date" class="ledger-input" id="dd-date">
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="dd-repeat" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="dd-repeat" style="font-size:14px;color:var(--text2);cursor:pointer">🔁 매년 반복 (생일·기념일)</label>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input type="checkbox" id="dd-since" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="dd-since" style="font-size:14px;color:var(--text2);cursor:pointer">💕 만난 날부터 세기 (1일째~)</label>
+    </div>
+    <button class="sch-add-btn" id="dd-add-btn" onclick="saveDday()">+ 디데이 추가</button>
+    <button class="sch-modal-close" id="dd-cancel-btn" onclick="cancelDdayEdit()">취소</button>
   </div>
 </div>
 
@@ -3047,6 +3059,14 @@ function changeMonth(dir) {
   renderLedger();
 }
 
+function openLedgerModal() {
+  const d = document.getElementById('ledger-date');
+  if (!d.value) d.value = new Date().toISOString().slice(0, 10);
+  document.getElementById('ledger-add-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('ledger-desc').focus(), 50);
+}
+function closeLedgerModal() { document.getElementById('ledger-add-modal').style.display = 'none'; }
+
 function addLedger() {
   const desc   = document.getElementById('ledger-desc').value.trim();
   const amount = getLedgerAmountRaw(document.getElementById('ledger-amount'));
@@ -3082,6 +3102,7 @@ function addLedger() {
   document.getElementById('ledger-rec-start').value = '';
   document.getElementById('ledger-rec-end').value = '';
   toggleRecurringFields();
+  closeLedgerModal();
 }
 
 // 고정 항목 체크 시: 날짜 입력 대신 시작일/종료일 입력칸 표시
@@ -3958,6 +3979,12 @@ function ddLabel(diff) {
   return diff > 0 ? 'D-' + diff : 'D+' + Math.abs(diff);
 }
 
+function openDdayModal() {
+  cancelDdayEdit();   // 폼 초기화 (추가 모드)
+  document.getElementById('dd-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('dd-title').focus(), 50);
+}
+
 function saveDday() {
   const title = document.getElementById('dd-title').value.trim();
   const date = document.getElementById('dd-date').value;
@@ -3987,8 +4014,8 @@ function editDday(id) {
   document.getElementById('dd-repeat').checked = !!it.repeat;
   document.getElementById('dd-since').checked = !!it.since;
   document.getElementById('dd-add-btn').textContent = '저장';
-  document.getElementById('dd-cancel-btn').style.display = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('dd-modal-title').textContent = '✏️ 디데이 수정';
+  document.getElementById('dd-modal').style.display = 'flex';
 }
 
 function cancelDdayEdit() {
@@ -3998,7 +4025,8 @@ function cancelDdayEdit() {
   document.getElementById('dd-repeat').checked = false;
   document.getElementById('dd-since').checked = false;
   document.getElementById('dd-add-btn').textContent = '+ 디데이 추가';
-  document.getElementById('dd-cancel-btn').style.display = 'none';
+  document.getElementById('dd-modal-title').textContent = '📅 디데이 추가';
+  document.getElementById('dd-modal').style.display = 'none';
 }
 
 function deleteDday(id) {
