@@ -943,14 +943,7 @@
 
   <!-- 메모 패널 -->
   <div class="memo-panel active" id="mpanel-memo">
-    <div class="memo-input-row" style="flex-direction:column">
-      <textarea class="memo-input" id="memo-input" rows="8" style="min-height:200px;resize:vertical" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&event.metaKey)addMemo()"></textarea>
-      <button class="add-btn" onclick="addMemo()" style="width:100%;align-self:stretch;font-size:16px">+ 메모 추가</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
-      <input type="checkbox" id="memo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
-      <label for="memo-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
-    </div>
+    <button class="add-btn" onclick="openAddModal('memo')" style="width:100%;align-self:stretch;font-size:16px">+ 메모 추가</button>
     <div class="search-bar">
       <span class="search-bar-icon">🔍</span>
       <input type="text" id="memo-search" placeholder="메모 검색..." oninput="renderMemos()"/>
@@ -961,23 +954,7 @@
 
   <!-- 노래 패널 -->
   <div class="memo-panel" id="mpanel-todo">
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <input type="text" class="memo-input" id="song-title" placeholder="🎵 노래제목" maxlength="60" style="flex:none;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-artist').focus()">
-      <input type="text" class="memo-input" id="song-artist" placeholder="🎤 가수" maxlength="40" style="flex:none;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-tj').focus()">
-      <div style="display:flex;gap:8px">
-        <input type="text" inputmode="numeric" class="memo-input" id="song-tj" placeholder="태진 번호" maxlength="10" style="min-width:0;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-ky').focus()">
-        <input type="text" inputmode="numeric" class="memo-input" id="song-ky" placeholder="금영 번호" maxlength="10" style="min-width:0;height:46px" onkeydown="if(event.key==='Enter')addTodo()">
-      </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <select class="ledger-input" id="song-cat" style="flex:1;min-width:0;height:46px"></select>
-        <button class="item-edit" style="font-size:14px;padding:10px 12px;width:auto;white-space:nowrap" onclick="songOpenCatModal()">🏷️ 관리</button>
-      </div>
-      <button class="add-btn" onclick="addTodo()" style="width:100%;align-self:stretch;font-size:16px">+ 노래 등록</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:4px">
-      <input type="checkbox" id="todo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
-      <label for="todo-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
-    </div>
+    <button class="add-btn" onclick="openAddModal('song')" style="width:100%;align-self:stretch;font-size:16px">+ 노래 등록</button>
     <div class="search-bar">
       <span class="search-bar-icon">🔍</span>
       <input type="text" id="todo-search" placeholder="제목 / 가수 / 번호 검색..." oninput="renderTodos()"/>
@@ -1022,14 +999,7 @@
 
   <!-- 할일 패널 (새로 추가) -->
   <div class="memo-panel" id="mpanel-task">
-    <div class="memo-input-row">
-      <input type="text" class="memo-input" id="task-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTask()" style="height:48px">
-      <button class="add-btn" onclick="addTask()">+</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;margin-bottom:4px">
-      <input type="checkbox" id="task-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
-      <label for="task-pinned" style="font-size:13px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
-    </div>
+    <button class="add-btn" onclick="openAddModal('task')" style="width:100%;align-self:stretch;font-size:16px">+ 할일 추가</button>
     <div class="search-bar">
       <span class="search-bar-icon">🔍</span>
       <input type="text" id="task-search" placeholder="할일 검색..." oninput="renderTasks()"/>
@@ -1518,6 +1488,57 @@
     </div>
     <button class="sch-add-btn" onclick="bdSaveEdit()">저장</button>
     <button class="sch-modal-close" onclick="bdCloseEdit()">취소</button>
+  </div>
+</div>
+
+<!-- 메모 추가 -->
+<div class="sch-edit-overlay" id="memo-add-modal" style="display:none" onclick="if(event.target===this)closeAddModal('memo')">
+  <div class="sch-edit-box" style="display:flex;flex-direction:column;gap:10px">
+    <div class="sch-edit-title" style="margin:0">📝 메모 추가</div>
+    <textarea class="memo-input" id="memo-input" rows="8" style="flex:none;min-height:200px;resize:vertical;width:100%" placeholder="메모를 입력하세요..." onkeydown="if(event.key==='Enter'&&(event.metaKey||event.ctrlKey))addMemo()"></textarea>
+    <div style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="memo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <label for="memo-pinned" style="font-size:14px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
+    </div>
+    <button class="sch-add-btn" onclick="addMemo()">+ 메모 추가</button>
+    <button class="sch-modal-close" onclick="closeAddModal('memo')">취소</button>
+  </div>
+</div>
+
+<!-- 노래 등록 -->
+<div class="sch-edit-overlay" id="song-add-modal" style="display:none" onclick="if(event.target===this)closeAddModal('song')">
+  <div class="sch-edit-box" style="display:flex;flex-direction:column;gap:8px">
+    <div class="sch-edit-title" style="margin:0 0 4px">🎤 노래 등록</div>
+    <input type="text" class="memo-input" id="song-title" placeholder="🎵 노래제목" maxlength="60" style="flex:none;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-artist').focus()">
+    <input type="text" class="memo-input" id="song-artist" placeholder="🎤 가수" maxlength="40" style="flex:none;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-tj').focus()">
+    <div style="display:flex;gap:8px">
+      <input type="text" inputmode="numeric" class="memo-input" id="song-tj" placeholder="태진 번호" maxlength="10" style="min-width:0;height:46px" onkeydown="if(event.key==='Enter')document.getElementById('song-ky').focus()">
+      <input type="text" inputmode="numeric" class="memo-input" id="song-ky" placeholder="금영 번호" maxlength="10" style="min-width:0;height:46px" onkeydown="if(event.key==='Enter')addTodo()">
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="ledger-input" id="song-cat" style="flex:1;min-width:0;height:46px"></select>
+      <button class="item-edit" style="font-size:14px;padding:10px 12px;width:auto;white-space:nowrap" onclick="songOpenCatModal()">🏷️ 관리</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="todo-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <label for="todo-pinned" style="font-size:14px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
+    </div>
+    <button class="sch-add-btn" onclick="addTodo()">+ 노래 등록</button>
+    <button class="sch-modal-close" onclick="closeAddModal('song')">취소</button>
+  </div>
+</div>
+
+<!-- 할일 추가 -->
+<div class="sch-edit-overlay" id="task-add-modal" style="display:none" onclick="if(event.target===this)closeAddModal('task')">
+  <div class="sch-edit-box" style="display:flex;flex-direction:column;gap:10px">
+    <div class="sch-edit-title" style="margin:0">✅ 할일 추가</div>
+    <input type="text" class="memo-input" id="task-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTask()" style="flex:none;height:48px;width:100%">
+    <div style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="task-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      <label for="task-pinned" style="font-size:14px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
+    </div>
+    <button class="sch-add-btn" onclick="addTask()">+ 할일 추가</button>
+    <button class="sch-modal-close" onclick="closeAddModal('task')">취소</button>
   </div>
 </div>
 
@@ -2529,14 +2550,24 @@ function switchMemoTab(which) {
   document.getElementById('mpanel-' + which).classList.add('active');
 }
 
+// 메모/노래/할일 추가 팝업
+const ADD_MODALS = { memo: ['memo-add-modal', 'memo-input'], song: ['song-add-modal', 'song-title'], task: ['task-add-modal', 'task-input'] };
+function openAddModal(kind) {
+  const [modal, focusId] = ADD_MODALS[kind];
+  document.getElementById(modal).style.display = 'flex';
+  setTimeout(() => { const el = document.getElementById(focusId); if (el) el.focus(); }, 50);
+}
+function closeAddModal(kind) { document.getElementById(ADD_MODALS[kind][0]).style.display = 'none'; }
+
 function addMemo() {
   const val = document.getElementById('memo-input').value.trim();
-  if (!val) return;
+  if (!val) { showToast('💡 메모를 입력해주세요'); return; }
   const pinned = document.getElementById('memo-pinned').checked;
   memos.unshift({ id: Date.now(), text: val, date: new Date().toISOString(), pinned });
   saveMemos(); renderMemos();
   document.getElementById('memo-input').value = '';
   document.getElementById('memo-pinned').checked = false;
+  closeAddModal('memo');
 }
 
 function deleteMemo(id) {
@@ -2718,7 +2749,7 @@ function addTodo() {
   saveTodos(); renderTodos();
   ['song-title', 'song-artist', 'song-tj', 'song-ky'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('todo-pinned').checked = false;
-  document.getElementById('song-title').focus();
+  closeAddModal('song');
   showToast('🎤 노래를 등록했어요');
 }
 
@@ -2893,12 +2924,13 @@ function saveTasks() { localStorage.setItem('pocketbon-tasks', JSON.stringify(ta
 
 function addTask() {
   const val = document.getElementById('task-input').value.trim();
-  if (!val) return;
+  if (!val) { showToast('💡 할 일을 입력해주세요'); return; }
   const pinned = document.getElementById('task-pinned').checked;
   tasks.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString(), pinned });
   saveTasks(); renderTasks();
   document.getElementById('task-input').value = '';
   document.getElementById('task-pinned').checked = false;
+  closeAddModal('task');
 }
 
 function toggleTask(id) {
