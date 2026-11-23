@@ -800,7 +800,7 @@
 <div class="tab-bar" id="tab-bar"></div>
 
 <!-- CALCULATOR -->
-<div class="screen active" id="calc">
+<div class="screen" id="calc">
   <div class="calc-display">
     <div class="calc-expr" id="expr"></div>
     <div class="calc-result" id="result">0</div>
@@ -1300,7 +1300,7 @@
 -->
 
 <!-- D-DAY -->
-<div class="screen" id="dday">
+<div class="screen active" id="dday">
   <button class="ledger-add-btn" onclick="openDdayModal()">+ 디데이 추가</button>
   <div class="dd-list" id="dd-list"></div>
 </div>
@@ -1796,7 +1796,7 @@ function getVisibleTabs() {
   });
 }
 
-let currentTab = 'calc';
+let currentTab = 'dday';
 
 function renderTabBar() {
   const bar = document.getElementById('tab-bar');
@@ -4793,7 +4793,15 @@ bdSetAddMode(localStorage.getItem('pb-bday-addmode') || 'split');
 
 calInit();
 renderTabBar();
-switchTab('calc');
+// 앱을 열면 디데이 탭부터 표시 (디데이 탭을 꺼둔 경우엔 첫 번째 탭)
+{
+  const startTab = tabEnabled['dday'] ? 'dday' : getVisibleTabs()[0].id;
+  const _n = tabCounts[startTab] || 0;   // 자동 진입은 탭 클릭 수에 넣지 않음
+  switchTab(startTab);
+  tabCounts[startTab] = _n;
+  saveTabPrefs();
+  renderTabBar();
+}
 </script>
 <!-- <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=dccb14fb604dd641939de28221277303&libraries=services,clusterer"></script> -->
 <script>
