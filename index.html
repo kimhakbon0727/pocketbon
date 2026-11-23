@@ -1546,9 +1546,10 @@
       <label for="dd-repeat" style="font-size:14px;color:var(--text2);cursor:pointer">🔁 매년 반복 (생일·기념일)</label>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
-      <input type="checkbox" id="dd-since" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
-      <label for="dd-since" style="font-size:14px;color:var(--text2);cursor:pointer">💕 만난 날부터 세기 (1일째~)</label>
+      <input type="checkbox" id="dd-since" onchange="ddSinceChanged()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
+      <label for="dd-since" style="font-size:14px;color:var(--text2);cursor:pointer">📆 시작일부터 세기 (1일째~)</label>
     </div>
+    <div id="dd-icon-row" style="display:none;flex-wrap:wrap;gap:6px"></div>
     <button class="sch-add-btn" id="dd-add-btn" onclick="saveDday()">+ 디데이 추가</button>
     <button class="sch-modal-close" id="dd-cancel-btn" onclick="cancelDdayEdit()">취소</button>
   </div>
@@ -3955,6 +3956,23 @@ window.switchTab = function(id) {
 // ===== D-Day =====
 let ddays = JSON.parse(localStorage.getItem('pocketbon-ddays') || '[]');
 let ddEditId = null;
+const DD_ICONS = ['💕','🚭','💪','💼','🐶','🎓','🏠','🎂','✈️','⭐'];
+let ddIcon = '💕';
+function ddRenderIcons() {
+  const row = document.getElementById('dd-icon-row');
+  if (!row) return;
+  row.innerHTML = DD_ICONS.map(ic => {
+    const on = ic === ddIcon;
+    return `<button type="button" onclick="ddPickIcon('${ic}')" style="width:38px;height:38px;font-size:20px;border-radius:10px;cursor:pointer;background:${on ? 'var(--surface2)' : 'none'};border:2px solid ${on ? 'var(--accent)' : 'var(--border)'}">${ic}</button>`;
+  }).join('');
+}
+function ddPickIcon(ic) { ddIcon = ic; ddRenderIcons(); }
+function ddSinceChanged() {
+  const row = document.getElementById('dd-icon-row');
+  if (!row) return;
+  row.style.display = document.getElementById('dd-since').checked ? 'flex' : 'none';
+  ddRenderIcons();
+}
 function saveDdays() { localStorage.setItem('pocketbon-ddays', JSON.stringify(ddays)); }
 
 function ddParse(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
@@ -3994,10 +4012,10 @@ function saveDday() {
   if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
   if (ddEditId) {
     const it = ddays.find(x => x.id === ddEditId);
-    if (it) { it.title = title; it.date = date; it.repeat = repeat; it.since = since; }
+    if (it) { it.title = title; it.date = date; it.repeat = repeat; it.since = since; if (since) it.icon = ddIcon; }
     showToast('수정됐어요 ✅');
   } else {
-    ddays.push({ id: Date.now(), title, date, repeat, since });
+    ddays.push({ id: Date.now(), title, date, repeat, since, icon: since ? ddIcon : undefined });
     showToast('📅 디데이가 추가됐어요');
   }
   saveDdays();
@@ -4013,6 +4031,8 @@ function editDday(id) {
   document.getElementById('dd-date').value = it.date;
   document.getElementById('dd-repeat').checked = !!it.repeat;
   document.getElementById('dd-since').checked = !!it.since;
+  ddIcon = it.icon || '💕';
+  ddSinceChanged();
   document.getElementById('dd-add-btn').textContent = '저장';
   document.getElementById('dd-modal-title').textContent = '✏️ 디데이 수정';
   document.getElementById('dd-modal').style.display = 'flex';
@@ -4024,6 +4044,8 @@ function cancelDdayEdit() {
   document.getElementById('dd-date').value = '';
   document.getElementById('dd-repeat').checked = false;
   document.getElementById('dd-since').checked = false;
+  ddIcon = '💕';
+  ddSinceChanged();
   document.getElementById('dd-add-btn').textContent = '+ 디데이 추가';
   document.getElementById('dd-modal-title').textContent = '📅 디데이 추가';
   document.getElementById('dd-modal').style.display = 'none';
@@ -4062,7 +4084,7 @@ function renderDdays() {
         : dateStr + ' · ' + next + '일까지 ' + (next - x.days) + '일';
       return `<div class="dd-item">
         <div class="dd-info">
-          <div class="dd-title">💕 ${escHtml(x.title)}</div>
+          <div class="dd-title">${x.icon || '💕'} ${escHtml(x.title)}</div>
           <div class="dd-date">${sub}</div>
         </div>
         <div class="dd-badge">${x.days < 1 ? 'D' + (x.days - 1) : x.days + '일째'}</div>
