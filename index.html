@@ -35,6 +35,26 @@
     [data-theme="light"] .cal-day.holiday:not(.today) .cal-day-num, [data-theme="light"] .cal-holiday { color: var(--accent2); }
     [data-theme="light"] .cal-dow:last-child, [data-theme="light"] .cal-day.sat:not(.today) .cal-day-num { color: var(--accent); }
 
+    /* 홈 */
+    .home-logo {
+      align-self: center; margin-top: 12vh; padding: 0 4px; font-size: 40px; font-weight: 800; letter-spacing: -1.5px; line-height: 1.3;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .home-search {
+      display: flex; align-items: center; gap: 10px; padding: 0 18px; margin: 8px 0 12px;
+      background: var(--surface); border: 2px solid var(--accent); border-radius: 30px;
+    }
+    .home-search input { flex: 1; min-width: 0; height: 52px; background: none; border: none; outline: none; color: var(--text); font-size: 16px; font-family: inherit; }
+    .home-search input::placeholder { color: var(--text2); }
+    .home-search svg { width: 22px; height: 22px; color: var(--accent); flex-shrink: 0; }
+    .home-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 8px; }
+    .home-item { display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; color: var(--text); font-size: 13px; font-family: inherit; }
+    .home-icon { width: 56px; height: 56px; border-radius: 18px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+    .home-icon svg { width: 26px; height: 26px; }
+    .home-item:active .home-icon { background: var(--surface2); }
+    #home.searching .home-logo { margin-top: 0; font-size: 28px; }
+
     /* 가계부 그래프 */
     .lc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
     .lc-title { font-size: 14px; font-weight: 600; }
@@ -836,7 +856,18 @@
 </head>
 <body>
 
-<div class="tab-bar" id="tab-bar"></div>
+<div class="tab-bar" id="tab-bar" style="display:none"></div>
+
+<!-- 홈: 로고 + 통합 검색 + 바로가기 -->
+<div class="screen active" id="home">
+  <h1 class="home-logo">PocketBon</h1>
+  <div class="home-search">
+    <input type="search" id="all-search" placeholder="통합 검색" aria-label="통합 검색" autocomplete="off" oninput="renderSearch()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+  </div>
+  <div class="home-grid" id="home-grid"></div>
+  <div id="all-search-result" style="display:none;flex-direction:column;gap:8px"></div>
+</div>
 
 <!-- CALCULATOR -->
 <div class="screen" id="calc">
@@ -1345,7 +1376,7 @@
 -->
 
 <!-- D-DAY -->
-<div class="screen active" id="dday">
+<div class="screen" id="dday">
   <button class="ledger-add-btn" onclick="openDdayModal()">+ 디데이 추가</button>
   <div class="ledger-filter-row" id="dd-tabs"></div>
   <div id="dd-sort-row" style="display:none;gap:8px"></div>
@@ -1678,12 +1709,6 @@
   </div>
 </div>
 
-<!-- 통합 검색 -->
-<div class="screen" id="search">
-  <input type="search" class="ledger-input" id="all-search" placeholder="🔍 메모·노래·할일·가계부·일정·멤버·디데이" oninput="renderSearch()" style="flex:none">
-  <div id="all-search-result" style="display:flex;flex-direction:column;gap:8px"></div>
-</div>
-
 <!-- SETTINGS -->
 <div class="screen" id="settings">
   <div class="settings-section">
@@ -1818,7 +1843,6 @@ const ALL_TABS = [
   { id: 'dday',     label: '디데이', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22V4"/><path d="M4 4h14l-3 4 3 4H4"/></svg>` },
   // { id: 'map',      label: '길찾기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>` },
   // { id: 'camera',   label: '카메라', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
-  { id: 'search',   label: '검색',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>` },
   { id: 'settings', label: '설정',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` },
 ];
 
@@ -1861,12 +1885,22 @@ function getVisibleTabs() {
   });
 }
 
-let currentTab = 'dday';
+let currentTab = 'home';
+
+// 홈 화면의 탭 바로가기
+function renderHomeGrid() {
+  document.getElementById('home-grid').innerHTML = getVisibleTabs().map(t => `
+    <button type="button" class="home-item" onclick="switchTab('${t.id}')">
+      <span class="home-icon">${t.svg}</span>${t.label}
+    </button>`).join('');
+}
 
 function renderTabBar() {
   const bar = document.getElementById('tab-bar');
   const visible = getVisibleTabs();
-  bar.innerHTML = visible.map(t => `
+  bar.style.display = currentTab === 'home' ? 'none' : '';
+  const home = `<button class="tab" aria-label="홈" onclick="switchTab('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg></button>`;
+  bar.innerHTML = home + visible.map(t => `
     <button class="tab ${t.id === currentTab ? 'active' : ''}" onclick="switchTab('${t.id}')">
       ${t.svg}
     </button>`).join('');
@@ -2023,8 +2057,8 @@ function switchTab(id) {
     });
     return;
   }
-  // 클릭 수 증가 (설정 제외)
-  if (id !== 'settings') {
+  // 클릭 수 증가 (홈·설정 제외)
+  if (id !== 'settings' && id !== 'home') {
     tabCounts[id] = (tabCounts[id] || 0) + 1;
     saveTabPrefs();
   }
@@ -2033,7 +2067,7 @@ function switchTab(id) {
   document.getElementById(id).classList.add('active');
   renderTabBar();
   if (id === 'settings') renderTabSettings();
-  if (id === 'search') renderSearch();
+  if (id === 'home') { renderHomeGrid(); renderSearch(); }
   if (id === 'calendar') renderCal();
   if (id === 'dday') renderDdays();
   if (id === 'bday') bdRenderList();
@@ -4236,7 +4270,10 @@ function renderSearch() {
   const q = document.getElementById('all-search').value.toLowerCase().trim();
   searchHits = [];
   const hint = (icon, msg) => `<div class="empty-hint"><span>${icon}</span>${msg}</div>`;
-  if (!q) { el.innerHTML = hint('🔍', '찾고 싶은 단어를 입력해주세요'); return; }
+  document.getElementById('home').classList.toggle('searching', !!q);
+  document.getElementById('home-grid').style.display = q ? 'none' : '';
+  el.style.display = q ? 'flex' : 'none';
+  if (!q) { el.innerHTML = ''; return; }
   let html = '', locked = false;
   searchSources(q).forEach(src => {
     if (!tabEnabled[src.tab]) return;                                              // 꺼둔 탭 제외
@@ -5162,15 +5199,9 @@ bdSetAddMode(localStorage.getItem('pb-bday-addmode') || 'split');
 
 calInit();
 renderTabBar();
-// 앱을 열면 디데이 탭부터 표시 (디데이 탭을 꺼둔 경우엔 첫 번째 탭)
-{
-  const startTab = tabEnabled['dday'] ? 'dday' : getVisibleTabs()[0].id;
-  const _n = tabCounts[startTab] || 0;   // 자동 진입은 탭 클릭 수에 넣지 않음
-  switchTab(startTab);
-  tabCounts[startTab] = _n;
-  saveTabPrefs();
-  renderTabBar();
-}
+// 앱을 열면 홈 화면 표시
+renderTabBar();
+renderHomeGrid();
 </script>
 <!-- <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=dccb14fb604dd641939de28221277303&libraries=services,clusterer"></script> -->
 <script>
