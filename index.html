@@ -949,6 +949,7 @@
       <input type="text" id="memo-search" placeholder="메모 검색..." oninput="renderMemos()"/>
       <button class="search-bar-clear" onclick="clearMemoSearch()">✕</button>
     </div>
+    <div id="memo-sort-row" style="display:none;gap:8px"></div>
     <div class="memo-list" id="memo-list"></div>
   </div>
 
@@ -1010,6 +1011,7 @@
       <button class="filter-btn"        id="task-filter-active" onclick="setTaskFilter('active')">미완료</button>
       <button class="filter-btn"        id="task-filter-done"   onclick="setTaskFilter('done')">완료</button>
     </div>
+    <div id="task-sort-row" style="display:none;gap:8px"></div>
     <div class="memo-list" id="task-list"></div>
   </div>
 </div>
@@ -2619,6 +2621,53 @@ function saveMemoEdit(id) {
   saveMemos(); renderMemos();
 }
 
+// 메모·할일 순서 바꾸기 (배열 순서를 그대로 저장, 고정 항목은 항상 위)
+const listSortMode = { memo: false, task: false };
+const listShown = { memo: [], task: [] };   // 지금 화면에 보이는 항목
+function listInfo(kind) {
+  return kind === 'memo'
+    ? { items: memos, save: saveMemos, render: renderMemos }
+    : { items: tasks, save: saveTasks, render: renderTasks };
+}
+function toggleListSort(kind) { listSortMode[kind] = !listSortMode[kind]; listInfo(kind).render(); }
+function moveListItem(kind, id, dir) {
+  const { items, save, render } = listInfo(kind);
+  const shown = listShown[kind];
+  const i = shown.findIndex(x => x.id === id);
+  const me = shown[i], other = shown[i + dir];
+  if (!me || !other || !!me.pinned !== !!other.pinned) return;
+  const a = items.indexOf(me), b = items.indexOf(other);
+  [items[a], items[b]] = [items[b], items[a]];
+  save(); render();
+}
+function resetListOrder(kind) {
+  const { items, save, render } = listInfo(kind);
+  items.sort((a, b) => b.id - a.id);   // 처음 순서: 최근에 추가한 것부터
+  save(); render();
+  showToast('자동 정렬로 돌아왔어요');
+}
+function listRenderSortRow(kind, shown) {
+  listShown[kind] = shown;
+  const row = document.getElementById(kind + '-sort-row');
+  if (!row) return;
+  const { items } = listInfo(kind);
+  if (items.length < 2) listSortMode[kind] = false;
+  const on = listSortMode[kind];
+  row.style.display = on || shown.length > 1 ? 'flex' : 'none';
+  const manual = items.some((x, i) => i > 0 && items[i - 1].id < x.id);
+  row.innerHTML = (on && manual ? `<button type="button" class="ledger-add-btn" style="flex:1;background:var(--surface2);color:var(--text2)" onclick="resetListOrder('${kind}')">자동 정렬로</button>` : '')
+    + `<button type="button" class="ledger-add-btn" style="flex:1" onclick="toggleListSort('${kind}')">${on ? '✓ 완료' : '↕ 순서 바꾸기'}</button>`;
+}
+function listMoveButtons(kind, i) {
+  const shown = listShown[kind];
+  const btn = (dir, label) => {
+    const other = shown[i + dir];
+    const off = !other || !!other.pinned !== !!shown[i].pinned;
+    return `<button type="button" class="filter-btn" aria-label="${dir < 0 ? '위로' : '아래로'}" onclick="moveListItem('${kind}',${shown[i].id},${dir})" ${off ? 'disabled style="opacity:0.3"' : ''}>${label}</button>`;
+  };
+  return btn(-1, '▲') + btn(1, '▼');
+}
+
 function renderMemos() {
   const el = document.getElementById('memo-list');
   const q = (document.getElementById('memo-search')?.value || '').toLowerCase().trim();
@@ -2626,20 +2675,21 @@ function renderMemos() {
   if (q) list = list.filter(m => m.text.toLowerCase().includes(q));
   // 고정 항목 상단 정렬
   list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  listRenderSortRow('memo', list);
   if (!list.length) {
     el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '📝'}</span>${q ? '검색 결과가 없어요' : '메모가 없어요'}</div>`;
     return;
   }
-  el.innerHTML = list.map(m => `
+  el.innerHTML = list.map((m, i) => `
     <div class="memo-item ${m.pinned ? 'pinned' : ''}" id="memo-item-${m.id}">
       ${m.pinned ? '<span class="memo-pin-badge">📌</span>' : ''}
       <div style="flex:1">
         <div class="memo-item-text">${escHtml(m.text)}</div>
         <div class="memo-item-date">${fmtDate(m.date)}</div>
       </div>
-      <button class="item-edit" onclick="toggleMemoPinned(${m.id})" title="${m.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${m.pinned ? '📍' : '📌'}</button>
+      ${listSortMode.memo ? listMoveButtons('memo', i) : `<button class="item-edit" onclick="toggleMemoPinned(${m.id})" title="${m.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${m.pinned ? '📍' : '📌'}</button>
       <button class="item-edit" onclick="editMemo(${m.id})">✏️</button>
-      <button class="item-del" onclick="deleteMemo(${m.id})">✕</button>
+      <button class="item-del" onclick="deleteMemo(${m.id})">✕</button>`}
     </div>`).join('');
 }
 
@@ -2999,17 +3049,18 @@ function renderTasks() {
   let list = tasks.filter(t => taskFilter === 'all' ? true : taskFilter === 'done' ? t.done : !t.done);
   if (q) list = list.filter(t => t.text.toLowerCase().includes(q));
   list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  listRenderSortRow('task', list);
   if (!list.length) {
     el.innerHTML = `<div class="empty-hint"><span>${q ? '🔍' : '✅'}</span>${q ? '검색 결과가 없어요' : '할 일이 없어요'}</div>`;
     return;
   }
-  el.innerHTML = list.map(t => `
+  el.innerHTML = list.map((t, i) => `
     <div class="todo-item" id="task-item-${t.id}" style="${t.pinned ? 'border:1px solid var(--accent);background:rgba(124,111,255,0.06);border-radius:14px;' : ''}">
       <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTask(${t.id})"></div>
       <div class="todo-text ${t.done ? 'done' : ''}" style="flex:1">${t.pinned ? '📌 ' : ''}${escHtml(t.text)}</div>
-      <button class="item-edit" onclick="toggleTaskPinned(${t.id})" title="${t.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${t.pinned ? '📍' : '📌'}</button>
+      ${listSortMode.task ? listMoveButtons('task', i) : `<button class="item-edit" onclick="toggleTaskPinned(${t.id})" title="${t.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${t.pinned ? '📍' : '📌'}</button>
       <button class="item-edit" onclick="editTask(${t.id})">✏️</button>
-      <button class="item-del" onclick="deleteTask(${t.id})">✕</button>
+      <button class="item-del" onclick="deleteTask(${t.id})">✕</button>`}
     </div>`).join('');
 }
 
