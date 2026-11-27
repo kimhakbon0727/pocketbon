@@ -2044,6 +2044,16 @@ function toggleTab(id) {
   renderTabSettings();
 }
 
+// 폰의 뒤로가기(제스처/버튼)를 누르면 앱이 닫히지 않고 메인으로 돌아가게 함
+function navHistory(id) {
+  try {
+    const marked = history.state && history.state.pb;
+    if (id === 'home') { if (marked) history.back(); }
+    else if (!marked) history.pushState({ pb: 1 }, '');
+  } catch (e) {}
+}
+window.addEventListener('popstate', () => { if (currentTab !== 'home') switchTab('home'); });
+
 function switchTab(id) {
   // 가계부 PIN 체크
   if (id === 'ledger' && localStorage.getItem('pb-ledger-pin')) {
@@ -2051,6 +2061,7 @@ function switchTab(id) {
       // PIN 확인 후 실제 탭 전환
       if (id !== 'settings') { tabCounts[id] = (tabCounts[id] || 0) + 1; saveTabPrefs(); }
       currentTab = id;
+      navHistory(id);
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       renderTabBar();
@@ -2063,6 +2074,7 @@ function switchTab(id) {
     saveTabPrefs();
   }
   currentTab = id;
+  navHistory(id);
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   renderTabBar();
