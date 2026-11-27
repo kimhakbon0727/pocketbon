@@ -4299,7 +4299,11 @@ function renderSearch() {
         <span style="color:var(--text2)">›</span></button>`;
     });
   });
-  el.innerHTML = (html || hint('🔍', '검색 결과가 없어요'))
+  // 네이버·구글에서 같은 검색어로 바로 검색 (새 탭)
+  const wq = encodeURIComponent(document.getElementById('all-search').value.trim());
+  const webBtn = (label, url, color) => `<a href="${url}" target="_blank" rel="noopener noreferrer" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:14px;text-decoration:none"><b style="color:${color}">${label}</b>에서 검색 ↗</a>`;
+  const webRow = `<div style="display:flex;gap:8px;margin-bottom:4px">${webBtn('네이버', 'https://search.naver.com/search.naver?query=' + wq, '#03c75a')}${webBtn('구글', 'https://www.google.com/search?q=' + wq, '#4285f4')}</div>`;
+  el.innerHTML = webRow + (html || hint('🔍', '내 데이터에는 검색 결과가 없어요'))
     + (locked ? '<div style="font-size:12px;color:var(--text2);text-align:center;margin-top:8px">🔒 PIN으로 잠근 탭은 검색에서 빠져요</div>' : '');
 }
 function openSearchHit(i) {
