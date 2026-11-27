@@ -1303,6 +1303,7 @@
 <div class="screen active" id="dday">
   <button class="ledger-add-btn" onclick="openDdayModal()">+ 디데이 추가</button>
   <div class="ledger-filter-row" id="dd-tabs"></div>
+  <div id="dd-sort-row" style="display:none;justify-content:flex-end;gap:6px"></div>
   <div class="dd-list" id="dd-list"></div>
 </div>
 
@@ -4080,24 +4081,66 @@ function ddRenderTabs() {
   }).join('');
 }
 
-function renderDdays() {
-  const el = document.getElementById('dd-list');
-  if (!el) return;
-  ddRenderTabs();
-  const shown = ddTab === 'all' ? ddays : ddays.filter(x => ddCategory(x) === ddTab);
-  if (!shown.length) {
-    el.innerHTML = `<div class="empty-hint"><span>📅</span>${DD_TABS.find(t => t.key === ddTab).empty}</div>`;
-    return;
-  }
-  const list = shown.map(x => ({ ...x, ...ddCalc(x) }))
+// 순서 바꾸기 (순서는 각 항목의 order 값으로 저장 → 백업에도 포함됨)
+let ddSortMode = false;
+// 직접 정한 순서 우선, 없으면 자동: 날짜 세기 → 다가오는 → 지난
+function ddSorted(items) {
+  return items.map(x => ({ ...x, ...ddCalc(x) }))
     .sort((a, b) => {
-      // 만난 날 카운터 → 다가오는 디데이 → 지난 디데이
+      const oa = a.order ?? Infinity, ob = b.order ?? Infinity;
+      if (oa !== ob) return oa - ob;
       const rank = x => x.since ? 0 : x.diff >= 0 ? 1 : 2;
       if (rank(a) !== rank(b)) return rank(a) - rank(b);
       if (a.since) return b.days - a.days;
       return a.diff >= 0 ? a.diff - b.diff : b.diff - a.diff;
     });
-  el.innerHTML = list.map(x => {
+}
+function toggleDdSort() { ddSortMode = !ddSortMode; renderDdays(); }
+function moveDday(id, dir) {
+  const all = ddSorted(ddays).map(x => x.id);
+  const shown = all.filter(i => ddTab === 'all' || ddCategory(ddays.find(x => x.id === i)) === ddTab);
+  const other = shown[shown.indexOf(id) + dir];
+  if (other === undefined) return;
+  const a = all.indexOf(id), b = all.indexOf(other);
+  [all[a], all[b]] = [all[b], all[a]];
+  ddays.forEach(x => x.order = all.indexOf(x.id));
+  saveDdays();
+  renderDdays();
+}
+function resetDdOrder() {
+  ddays.forEach(x => delete x.order);
+  saveDdays();
+  renderDdays();
+  showToast('자동 정렬로 돌아왔어요');
+}
+function ddRenderSortRow(count) {
+  const row = document.getElementById('dd-sort-row');
+  if (!row) return;
+  if (ddays.length < 2) ddSortMode = false;
+  row.style.display = ddSortMode || count > 1 ? 'flex' : 'none';
+  const manual = ddays.some(x => x.order !== undefined);
+  row.innerHTML = (ddSortMode && manual ? '<button type="button" class="filter-btn" onclick="resetDdOrder()">자동 정렬로</button>' : '')
+    + `<button type="button" class="filter-btn ${ddSortMode ? 'active' : ''}" onclick="toggleDdSort()">${ddSortMode ? '✓ 완료' : '↕ 순서 바꾸기'}</button>`;
+}
+function ddActions(id, i, count) {
+  if (!ddSortMode) return `<button class="item-edit" onclick="editDday(${id})">✏️</button>
+      <button class="item-del" onclick="deleteDday(${id})">✕</button>`;
+  const btn = (dir, label, off) => `<button type="button" class="filter-btn" aria-label="${dir < 0 ? '위로' : '아래로'}" onclick="moveDday(${id},${dir})" ${off ? 'disabled style="opacity:0.3"' : ''}>${label}</button>`;
+  return btn(-1, '▲', i === 0) + btn(1, '▼', i === count - 1);
+}
+
+function renderDdays() {
+  const el = document.getElementById('dd-list');
+  if (!el) return;
+  ddRenderTabs();
+  const shown = ddTab === 'all' ? ddays : ddays.filter(x => ddCategory(x) === ddTab);
+  ddRenderSortRow(shown.length);
+  if (!shown.length) {
+    el.innerHTML = `<div class="empty-hint"><span>📅</span>${DD_TABS.find(t => t.key === ddTab).empty}</div>`;
+    return;
+  }
+  const list = ddSorted(shown);
+  el.innerHTML = list.map((x, i) => {
     const t = x.target;
     const dateStr = t.getFullYear() + '.' + String(t.getMonth() + 1).padStart(2, '0') + '.' + String(t.getDate()).padStart(2, '0');
     if (x.since) {
@@ -4111,8 +4154,7 @@ function renderDdays() {
           <div class="dd-date">${sub}</div>
         </div>
         <div class="dd-badge">${x.days < 1 ? 'D' + (x.days - 1) : x.days + '일째'}</div>
-        <button class="item-edit" onclick="editDday(${x.id})">✏️</button>
-        <button class="item-del" onclick="deleteDday(${x.id})">✕</button>
+        ${ddActions(x.id, i, list.length)}
       </div>`;
     }
     const cls = x.diff === 0 ? 'today' : x.diff < 0 ? 'past' : '';
@@ -4122,8 +4164,7 @@ function renderDdays() {
         <div class="dd-date">${dateStr}</div>
       </div>
       <div class="dd-badge">${ddLabel(x.diff)}</div>
-      <button class="item-edit" onclick="editDday(${x.id})">✏️</button>
-      <button class="item-del" onclick="deleteDday(${x.id})">✕</button>
+      ${ddActions(x.id, i, list.length)}
     </div>`;
   }).join('');
 }
