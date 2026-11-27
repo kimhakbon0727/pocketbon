@@ -1303,7 +1303,7 @@
 <div class="screen active" id="dday">
   <button class="ledger-add-btn" onclick="openDdayModal()">+ 디데이 추가</button>
   <div class="ledger-filter-row" id="dd-tabs"></div>
-  <div id="dd-sort-row" style="display:none;justify-content:flex-end;gap:6px"></div>
+  <div id="dd-sort-row" style="display:none;gap:8px"></div>
   <div class="dd-list" id="dd-list"></div>
 </div>
 
@@ -4119,8 +4119,8 @@ function ddRenderSortRow(count) {
   if (ddays.length < 2) ddSortMode = false;
   row.style.display = ddSortMode || count > 1 ? 'flex' : 'none';
   const manual = ddays.some(x => x.order !== undefined);
-  row.innerHTML = (ddSortMode && manual ? '<button type="button" class="filter-btn" onclick="resetDdOrder()">자동 정렬로</button>' : '')
-    + `<button type="button" class="filter-btn ${ddSortMode ? 'active' : ''}" onclick="toggleDdSort()">${ddSortMode ? '✓ 완료' : '↕ 순서 바꾸기'}</button>`;
+  row.innerHTML = (ddSortMode && manual ? '<button type="button" class="ledger-add-btn" style="flex:1;background:var(--surface2);color:var(--text2)" onclick="resetDdOrder()">자동 정렬로</button>' : '')
+    + `<button type="button" class="ledger-add-btn" style="flex:1" onclick="toggleDdSort()">${ddSortMode ? '✓ 완료' : '↕ 순서 바꾸기'}</button>`;
 }
 function ddActions(id, i, count) {
   if (!ddSortMode) return `<button class="item-edit" onclick="editDday(${id})">✏️</button>
