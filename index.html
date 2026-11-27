@@ -1302,6 +1302,7 @@
 <!-- D-DAY -->
 <div class="screen active" id="dday">
   <button class="ledger-add-btn" onclick="openDdayModal()">+ 디데이 추가</button>
+  <div class="ledger-filter-row" id="dd-tabs"></div>
   <div class="dd-list" id="dd-list"></div>
 </div>
 
@@ -3956,7 +3957,7 @@ window.switchTab = function(id) {
 // ===== D-Day =====
 let ddays = JSON.parse(localStorage.getItem('pocketbon-ddays') || '[]');
 let ddEditId = null;
-const DD_ICONS = ['💕','🚭','💪','💼','🐶','🎓','🏠','🎂','✈️','⭐'];
+const DD_ICONS = ['💕','🚭','💪','💼','🐶','🎓','🏠','🎂','✈️','⭐','🍻'];
 let ddIcon = '💕';
 function ddRenderIcons() {
   const row = document.getElementById('dd-icon-row');
@@ -4019,6 +4020,7 @@ function saveDday() {
     showToast('📅 디데이가 추가됐어요');
   }
   saveDdays();
+  if (ddTab !== 'all') ddTab = ddCategory({ date, repeat, since });
   cancelDdayEdit();
   renderDdays();
 }
@@ -4059,14 +4061,35 @@ function deleteDday(id) {
   renderDdays();
 }
 
+// 리스트 탭
+const DD_TABS = [
+  { key: 'all',   label: '전체',      empty: '디데이가 없어요' },
+  { key: 'next',  label: '다가오는',  empty: '다가오는 디데이가 없어요' },
+  { key: 'since', label: '날짜 세기', empty: '날짜를 세는 항목이 없어요' },
+  { key: 'past',  label: '지난',      empty: '지난 디데이가 없어요' }
+];
+let ddTab = 'all';
+function ddCategory(x) { return x.since ? 'since' : ddCalc(x).diff >= 0 ? 'next' : 'past'; }
+function setDdTab(key) { ddTab = key; renderDdays(); }
+function ddRenderTabs() {
+  const row = document.getElementById('dd-tabs');
+  if (!row) return;
+  row.innerHTML = DD_TABS.map(t => {
+    const n = t.key === 'all' ? ddays.length : ddays.filter(x => ddCategory(x) === t.key).length;
+    return `<button type="button" class="filter-btn ${ddTab === t.key ? 'active' : ''}" onclick="setDdTab('${t.key}')">${t.label} ${n}</button>`;
+  }).join('');
+}
+
 function renderDdays() {
   const el = document.getElementById('dd-list');
   if (!el) return;
-  if (!ddays.length) {
-    el.innerHTML = '<div class="empty-hint"><span>📅</span>디데이가 없어요</div>';
+  ddRenderTabs();
+  const shown = ddTab === 'all' ? ddays : ddays.filter(x => ddCategory(x) === ddTab);
+  if (!shown.length) {
+    el.innerHTML = `<div class="empty-hint"><span>📅</span>${DD_TABS.find(t => t.key === ddTab).empty}</div>`;
     return;
   }
-  const list = ddays.map(x => ({ ...x, ...ddCalc(x) }))
+  const list = shown.map(x => ({ ...x, ...ddCalc(x) }))
     .sort((a, b) => {
       // 만난 날 카운터 → 다가오는 디데이 → 지난 디데이
       const rank = x => x.since ? 0 : x.diff >= 0 ? 1 : 2;
