@@ -8,6 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="PocketBon" />
   <title>PocketBon</title>
+  <script>
+    // 화면이 그려지기 전에 저장된 테마 적용
+    try { if (localStorage.getItem('pb-theme') === 'light') { document.documentElement.dataset.theme = 'light'; document.querySelector('meta[name="theme-color"]').content = '#f5f5fa'; } } catch (e) {}
+  </script>
   <link rel="manifest" href="manifest.json" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,7 +20,42 @@
       --accent: #7c6fff; --accent2: #ff6fa8;
       --text: #f0f0ff; --text2: #9090b0;
       --border: rgba(255,255,255,0.08); --radius: 16px;
+      --income: #6fff9e; --danger: #ff8080;
     }
+    :root[data-theme="light"] {
+      --bg: #f5f5fa; --surface: #ffffff; --surface2: #ececf5;
+      --accent: #5b4de0; --accent2: #d6407f;
+      --text: #1c1c2b; --text2: #5f5f7a;
+      --border: rgba(20,20,50,0.12);
+      --income: #0f7a45; --danger: #c62f3b;
+      color-scheme: light;
+    }
+    /* 라이트 모드에서 옅은 색 글자는 진하게 */
+    [data-theme="light"] .cal-dow:first-child, [data-theme="light"] .cal-day.sun:not(.today) .cal-day-num,
+    [data-theme="light"] .cal-day.holiday:not(.today) .cal-day-num, [data-theme="light"] .cal-holiday { color: var(--accent2); }
+    [data-theme="light"] .cal-dow:last-child, [data-theme="light"] .cal-day.sat:not(.today) .cal-day-num { color: var(--accent); }
+
+    /* 가계부 그래프 */
+    .lc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .lc-title { font-size: 14px; font-weight: 600; }
+    .lc-legend { display: flex; gap: 14px; font-size: 12px; color: var(--text2); }
+    .lc-key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; }
+    .lc-months { display: flex; gap: 6px; }
+    .lc-month { flex: 1; min-width: 0; background: none; border: none; border-radius: 10px; padding: 6px 0; cursor: pointer; color: var(--text2); font-size: 12px; font-family: inherit; }
+    .lc-month.active { background: var(--surface2); color: var(--text); font-weight: 600; }
+    .lc-bars { height: 110px; display: flex; align-items: flex-end; justify-content: center; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .lc-bar { width: 12px; border-radius: 4px 4px 0 0; }
+    .lc-bar.income, .lc-key.income { background: var(--income); }
+    .lc-bar.expense, .lc-key.expense { background: var(--danger); }
+    .lc-values { font-size: 13px; text-align: center; color: var(--text2); }
+    .lc-cat-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; gap: 8px; }
+    .lc-track { height: 8px; background: var(--surface2); border-radius: 4px; }
+    .lc-fill { height: 8px; background: var(--accent); border-radius: 4px; }
+
+    /* 할일 마감일 */
+    .task-due { display: inline-block; font-size: 12px; margin-top: 4px; padding: 2px 8px; border-radius: 8px; background: var(--surface2); color: var(--text2); }
+    .task-due.soon { color: var(--accent2); font-weight: 600; }
+    .task-due.over { color: var(--danger); font-weight: 600; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--bg); color: var(--text);
@@ -274,7 +313,7 @@
     /* [주석처리됨] .weather-hint { text-align: center; color: var(--text2); font-size: 15px; padding: 40px 0; } */
     /* [주석처리됨] .weather-hint span { display: block; font-size: 40px; margin-bottom: 12px; } */
     /* [주석처리됨] .weather-loading { text-align: center; padding: 40px 0; color: var(--text2); } */
-    /* [주석처리됨] .weather-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3); border-radius: 14px; padding: 16px; color: #ff8080; font-size: 14px; text-align: center; } */
+    /* [주석처리됨] .weather-error { background: rgba(255,80,80,0.1); border: 1px solid rgba(255,80,80,0.3); border-radius: 14px; padding: 16px; color: var(--danger); font-size: 14px; text-align: center; } */
 
     /* Alarm */
     /* [주석처리됨] .alarm-add {
@@ -389,7 +428,7 @@
     } */
     /* [주석처리됨] .ts-btn:active { transform: scale(0.92); opacity: 0.8; } */
     .ts-btn.start { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
-    /* [주석처리됨] .ts-btn.stop  { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); } */
+    /* [주석처리됨] .ts-btn.stop  { background: rgba(255,80,80,0.15); color: var(--danger); border: 1px solid rgba(255,80,80,0.3); } */
     .ts-btn.reset { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
     /* [주석처리됨] .ts-btn.lap   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); } */
 
@@ -421,8 +460,8 @@
       border: 1px solid var(--border);
     } */
     /* [주석처리됨] .lap-item .lap-num { color: var(--text2); } */
-    /* [주석처리됨] .lap-item .lap-best { color: #6fff9e; } */
-    /* [주석처리됨] .lap-item .lap-worst { color: #ff8080; } */
+    /* [주석처리됨] .lap-item .lap-best { color: var(--income); } */
+    /* [주석처리됨] .lap-item .lap-worst { color: var(--danger); } */
 
     .install-banner {
       position: fixed; bottom: 80px; left: 16px; right: 16px;
@@ -510,11 +549,11 @@
       border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px;
     }
     .ledger-balance { font-size: 36px; font-weight: 200; letter-spacing: -1px; text-align: center; padding: 4px 0; }
-    .ledger-balance.plus { color: #6fff9e; }
-    .ledger-balance.minus { color: #ff8080; }
+    .ledger-balance.plus { color: var(--income); }
+    .ledger-balance.minus { color: var(--danger); }
     .ledger-row { display: flex; justify-content: space-between; font-size: 14px; }
-    .ledger-income { color: #6fff9e; }
-    .ledger-expense { color: #ff8080; }
+    .ledger-income { color: var(--income); }
+    .ledger-expense { color: var(--danger); }
 
     .ledger-form {
       background: var(--surface); border-radius: var(--radius); padding: 16px;
@@ -525,8 +564,8 @@
       flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border);
       background: var(--surface2); color: var(--text2); font-size: 14px; cursor: pointer; transition: all 0.2s;
     }
-    .ledger-type-btn.income.active  { background: rgba(111,255,158,0.15); color: #6fff9e; border-color: #6fff9e; }
-    .ledger-type-btn.expense.active { background: rgba(255,128,128,0.15); color: #ff8080; border-color: #ff8080; }
+    .ledger-type-btn.income.active  { background: rgba(111,255,158,0.15); color: var(--income); border-color: var(--income); }
+    .ledger-type-btn.expense.active { background: rgba(255,128,128,0.15); color: var(--danger); border-color: var(--danger); }
     /* [주석처리됨] .ledger-fields { display: flex; gap: 8px; } */
     .ledger-input {
       width: 100%; min-width: 0; box-sizing: border-box;
@@ -554,14 +593,14 @@
       overflow: hidden; min-width: 0;
     }
     .ledger-item-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .ledger-item-dot.income  { background: #6fff9e; }
-    .ledger-item-dot.expense { background: #ff8080; }
+    .ledger-item-dot.income  { background: var(--income); }
+    .ledger-item-dot.expense { background: var(--danger); }
     .ledger-item-info { flex: 1; min-width: 0; overflow: hidden; }
     .ledger-item-desc { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .ledger-item-date { font-size: 12px; color: var(--text2); margin-top: 2px; }
     .ledger-item-amount { font-size: 15px; font-weight: 500; flex-shrink: 0; text-align: right; white-space: nowrap; }
-    .ledger-item-amount.income  { color: #6fff9e; }
-    .ledger-item-amount.expense { color: #ff8080; }
+    .ledger-item-amount.income  { color: var(--income); }
+    .ledger-item-amount.expense { color: var(--danger); }
 
     .month-nav { display: flex; align-items: center; justify-content: space-between; padding: 0 4px; }
     .month-nav-btn { background: none; border: none; color: var(--text2); font-size: 22px; cursor: pointer; padding: 4px 10px; }
@@ -583,7 +622,7 @@
     .settings-row-label { font-size: 15px; font-weight: 500; }
     .settings-row-desc { font-size: 13px; color: var(--text2); margin-top: 2px; }
     .settings-row-arrow { color: var(--text2); font-size: 18px; }
-    .settings-row.danger .settings-row-label { color: #ff8080; }
+    .settings-row.danger .settings-row-label { color: var(--danger); }
     .settings-row.danger .settings-row-icon { filter: hue-rotate(180deg); }
 
     /* PIN Modal */
@@ -776,7 +815,7 @@
     .modal-btn:active { opacity: 0.8; }
     .modal-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
     .modal-btn.secondary { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
-    .modal-btn.danger-btn { background: rgba(255,80,80,0.15); color: #ff8080; border: 1px solid rgba(255,80,80,0.3); }
+    .modal-btn.danger-btn { background: rgba(255,80,80,0.15); color: var(--danger); border: 1px solid rgba(255,80,80,0.3); }
     .backup-info { background: var(--surface2); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 16px; }
     .backup-info strong { color: var(--text); }
 
@@ -1057,6 +1096,9 @@
     <button onclick="toggleRecurringSection()" id="recurring-toggle-btn" style="width:100%;padding:8px;border-radius:10px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;cursor:pointer">📌 고정 항목 보기</button>
   </div>
 
+  <button type="button" class="filter-btn" id="ledger-chart-btn" style="width:100%;padding:8px;border-radius:10px" onclick="toggleLedgerChart()"></button>
+  <div id="ledger-chart" style="flex-direction:column;gap:12px"></div>
+
   <div class="ledger-list" id="ledger-list"></div>
 </div>
 
@@ -1198,6 +1240,7 @@
     </div>
     <input class="sch-input" id="ledit-desc" placeholder="내용" maxlength="40"/>
     <input class="sch-input" id="ledit-amount" type="text" placeholder="금액" inputmode="numeric" oninput="formatLedgerAmount(this)"/>
+    <select class="sch-input" id="ledit-cat" aria-label="카테고리"></select>
     <input class="sch-input" id="ledit-date" type="date"/>
     <div id="ledit-rec-block" style="display:none">
       <div class="sch-section-label">📅 적용 기간 (종료일은 비우면 계속)</div>
@@ -1388,7 +1431,7 @@
     <div style="color:var(--text2)">마지막 참석일의 <b>다음 달 같은 날</b>이 마감이에요. (해당 날짜가 없으면 말일)<br>
     예) 10/31 참석 → 11/30 마감<br>
     명단 오른쪽 배지가 남은 일수(D-N), 마감 지난 일수를 보여줘요.<br>
-    마감이 임박한 사람은 <span style="color:var(--accent2)">분홍 테두리</span>, 지난 사람은 <span style="color:#ff8080">빨간색</span>으로 표시돼요.</div>
+    마감이 임박한 사람은 <span style="color:var(--accent2)">분홍 테두리</span>, 지난 사람은 <span style="color:var(--danger)">빨간색</span>으로 표시돼요.</div>
 
     <div style="font-weight:600;margin-top:12px">3. 명단 버튼</div>
     <div style="color:var(--text2)">✅ <b>참석</b> — 날짜를 입력하는 팝업이 떠요(기본값 오늘). 확인하면 마지막 참석일이 그 날짜로 바뀌고 연장이 초기화돼요.<br>
@@ -1497,6 +1540,8 @@
   <div class="sch-edit-box" style="display:flex;flex-direction:column;gap:10px">
     <div class="sch-edit-title" style="margin:0">✅ 할일 추가</div>
     <input type="text" class="memo-input" id="task-input" placeholder="할 일을 입력하세요..." onkeydown="if(event.key==='Enter')addTask()" style="flex:none;height:48px;width:100%">
+    <label class="sch-section-label" for="task-due" style="margin:0">📅 마감일 (선택)</label>
+    <input type="date" class="ledger-input" id="task-due">
     <div style="display:flex;align-items:center;gap:8px">
       <input type="checkbox" id="task-pinned" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
       <label for="task-pinned" style="font-size:14px;color:var(--text2);cursor:pointer">📌 상단 고정</label>
@@ -1516,6 +1561,7 @@
     </div>
     <input type="text"   class="ledger-input" id="ledger-desc"   placeholder="내용 (예: 점심)">
     <input type="text"   class="ledger-input" id="ledger-amount" placeholder="금액 (원)" inputmode="numeric" oninput="formatLedgerAmount(this)">
+    <select class="ledger-input" id="ledger-cat" aria-label="카테고리"></select>
     <input type="date"   class="ledger-input" id="ledger-date">
     <div style="display:flex;gap:8px;align-items:center">
       <input type="checkbox" id="ledger-recurring" onchange="toggleRecurringFields()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer;flex-shrink:0">
@@ -1632,8 +1678,22 @@
   </div>
 </div>
 
+<!-- 통합 검색 -->
+<div class="screen" id="search">
+  <input type="search" class="ledger-input" id="all-search" placeholder="🔍 메모·노래·할일·가계부·일정·멤버·디데이" oninput="renderSearch()" style="flex:none">
+  <div id="all-search-result" style="display:flex;flex-direction:column;gap:8px"></div>
+</div>
+
 <!-- SETTINGS -->
 <div class="screen" id="settings">
+  <div class="settings-section">
+    <div class="settings-title">🎨 화면 모드</div>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="filter-btn" id="theme-dark" style="flex:1;padding:12px" onclick="setTheme('dark')">🌙 다크</button>
+      <button type="button" class="filter-btn" id="theme-light" style="flex:1;padding:12px" onclick="setTheme('light')">☀️ 라이트</button>
+    </div>
+  </div>
+
   <div class="settings-section">
     <div class="settings-title">🗂️ 탭 관리</div>
     <div class="settings-card" id="tab-settings-list"></div>
@@ -1724,7 +1784,7 @@
 <div class="modal-overlay" id="clear-modal" style="display:none">
   <div class="modal-box">
     <div class="modal-title">🗑️ 모든 데이터 삭제</div>
-    <div class="modal-desc">저장된 모든 데이터가 <strong style="color:#ff8080">영구 삭제</strong>됩니다.<br>백업 없이 삭제하면 복구할 수 없어요.</div>
+    <div class="modal-desc">저장된 모든 데이터가 <strong style="color:var(--danger)">영구 삭제</strong>됩니다.<br>백업 없이 삭제하면 복구할 수 없어요.</div>
     <div class="modal-btn-row">
       <button class="modal-btn secondary" onclick="closeModal('clear-modal')">취소</button>
       <button class="modal-btn danger-btn" onclick="doClearAll()">전체 삭제</button>
@@ -1758,6 +1818,7 @@ const ALL_TABS = [
   { id: 'dday',     label: '디데이', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 22V4"/><path d="M4 4h14l-3 4 3 4H4"/></svg>` },
   // { id: 'map',      label: '길찾기', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>` },
   // { id: 'camera',   label: '카메라', svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>` },
+  { id: 'search',   label: '검색',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>` },
   { id: 'settings', label: '설정',   svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>` },
 ];
 
@@ -1827,7 +1888,7 @@ function renderTabSettings() {
         </div>
         <div style="display:flex;gap:8px">
           ${hasManualOrder
-            ? `<button onclick="resetTabOrder()" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">초기화</button>`
+            ? `<button onclick="resetTabOrder()" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--danger);font-size:12px;cursor:pointer">초기화</button>`
             : `<button onclick="startTabOrder()" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">순서 설정</button>`
           }
         </div>
@@ -1873,7 +1934,7 @@ function renderTabSettings() {
         <div style="display:flex;gap:8px;align-items:center">
           ${hasPIN ?
             `<button onclick="changePIN('${t.id}')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer">변경</button>
-            <button onclick="removePIN('${t.id}')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">해제</button>` :
+            <button onclick="removePIN('${t.id}')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--danger);font-size:12px;cursor:pointer">해제</button>` :
             `<button onclick="setPIN('${t.id}')" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">설정</button>`}
         </div>
       </div>` : ''}
@@ -1893,7 +1954,7 @@ function renderTabSettings() {
         <div style="display:flex;gap:8px;align-items:center">
           ${settingsHasPIN ?
             `<button onclick="changePIN('settings')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:12px;cursor:pointer">변경</button>
-            <button onclick="removePIN('settings')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:#ff8080;font-size:12px;cursor:pointer">해제</button>` :
+            <button onclick="removePIN('settings')" style="padding:6px 12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--danger);font-size:12px;cursor:pointer">해제</button>` :
             `<button onclick="setPIN('settings')" style="padding:6px 14px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-size:12px;cursor:pointer">설정</button>`}
         </div>
       </div>
@@ -1972,6 +2033,7 @@ function switchTab(id) {
   document.getElementById(id).classList.add('active');
   renderTabBar();
   if (id === 'settings') renderTabSettings();
+  if (id === 'search') renderSearch();
   if (id === 'calendar') renderCal();
   if (id === 'dday') renderDdays();
   if (id === 'bday') bdRenderList();
@@ -2991,9 +3053,11 @@ function addTask() {
   const val = document.getElementById('task-input').value.trim();
   if (!val) { showToast('💡 할 일을 입력해주세요'); return; }
   const pinned = document.getElementById('task-pinned').checked;
-  tasks.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString(), pinned });
+  const due = document.getElementById('task-due').value;
+  tasks.unshift({ id: Date.now(), text: val, done: false, date: new Date().toISOString(), pinned, due });
   saveTasks(); renderTasks();
   document.getElementById('task-input').value = '';
+  document.getElementById('task-due').value = '';
   document.getElementById('task-pinned').checked = false;
   closeAddModal('task');
 }
@@ -3016,6 +3080,8 @@ function editTask(id) {
   el.innerHTML = `
     <div style="flex:1">
       <input class="memo-edit-area" id="task-edit-${id}" value="${escHtml(task.text)}" style="height:42px;resize:none" />
+      <div style="font-size:12px;color:var(--text2);margin:8px 0 4px">📅 마감일 (비우면 없음)</div>
+      <input type="date" class="memo-edit-area" id="task-due-${id}" value="${task.due || ''}" style="height:42px;resize:none" />
       <div class="memo-edit-btns">
         <button class="memo-edit-save" onclick="saveTaskEdit(${id})">저장</button>
         <button class="memo-edit-cancel" onclick="renderTasks()">취소</button>
@@ -3028,7 +3094,7 @@ function saveTaskEdit(id) {
   const val = document.getElementById(`task-edit-${id}`).value.trim();
   if (!val) return;
   const task = tasks.find(t => t.id === id);
-  if (task) task.text = val;
+  if (task) { task.text = val; task.due = document.getElementById(`task-due-${id}`).value; }
   saveTasks(); renderTasks();
 }
 
@@ -3041,6 +3107,20 @@ function setTaskFilter(f) {
   taskFilter = f;
   ['all','active','done'].forEach(x => document.getElementById('task-filter-'+x).classList.toggle('active', x === f));
   renderTasks();
+}
+
+function taskDueBadge(t) {
+  if (!t.due) return '';
+  const { diff } = ddCalcDate(t.due);
+  const cls = t.done ? '' : diff < 0 ? 'over' : diff <= 3 ? 'soon' : '';
+  const label = diff === 0 ? '오늘 마감' : diff > 0 ? 'D-' + diff : (t.done ? '' : Math.abs(diff) + '일 지남');
+  return `<div class="task-due ${cls}">📅 ${t.due.replace(/-/g, '.')}${t.done || !label ? '' : ' · ' + label}</div>`;
+}
+// 오늘부터 해당 날짜까지 남은 일수
+function ddCalcDate(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return { diff: Math.round((new Date(y, m - 1, d) - today) / 86400000) };
 }
 
 function renderTasks() {
@@ -3057,7 +3137,10 @@ function renderTasks() {
   el.innerHTML = list.map((t, i) => `
     <div class="todo-item" id="task-item-${t.id}" style="${t.pinned ? 'border:1px solid var(--accent);background:rgba(124,111,255,0.06);border-radius:14px;' : ''}">
       <div class="todo-check ${t.done ? 'done' : ''}" onclick="toggleTask(${t.id})"></div>
-      <div class="todo-text ${t.done ? 'done' : ''}" style="flex:1">${t.pinned ? '📌 ' : ''}${escHtml(t.text)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="todo-text ${t.done ? 'done' : ''}" style="overflow-wrap:anywhere">${t.pinned ? '📌 ' : ''}${escHtml(t.text)}</div>
+        ${taskDueBadge(t)}
+      </div>
       ${listSortMode.task ? listMoveButtons('task', i) : `<button class="item-edit" onclick="toggleTaskPinned(${t.id})" title="${t.pinned ? '고정 해제' : '고정'}" style="font-size:14px">${t.pinned ? '📍' : '📌'}</button>
       <button class="item-edit" onclick="editTask(${t.id})">✏️</button>
       <button class="item-del" onclick="deleteTask(${t.id})">✕</button>`}
@@ -3094,10 +3177,25 @@ function getLedgerAmountRaw(el) {
   return parseInt((el.dataset.raw || el.value.replace(/[^0-9]/g, '')) || '0');
 }
 
+const LEDGER_CATS = {
+  expense: ['🍚 식비', '☕ 카페', '🚌 교통', '🍻 모임', '🛍️ 쇼핑', '🏠 생활', '💊 의료', '🎬 문화', '📦 기타'],
+  income:  ['💼 급여', '🎁 용돈', '💰 부수입', '📦 기타']
+};
+const NO_CAT = '❔ 미분류';
+function fillCatSelect(selId, type, value) {
+  const el = document.getElementById(selId);
+  if (!el) return;
+  const keep = value !== undefined ? value : el.value;
+  el.innerHTML = '<option value="">카테고리 선택</option>' + LEDGER_CATS[type].map(c => `<option value="${c}">${c}</option>`).join('');
+  el.value = LEDGER_CATS[type].includes(keep) ? keep : '';
+}
+fillCatSelect('ledger-cat', 'income');
+
 function setLedgerType(t) {
   ledgerType = t;
   document.getElementById('ltype-income').classList.toggle('active', t === 'income');
   document.getElementById('ltype-expense').classList.toggle('active', t === 'expense');
+  fillCatSelect('ledger-cat', t);
 }
 
 function setLedgerFilter(f) {
@@ -3135,12 +3233,13 @@ function addLedger() {
     if (recEnd && recEnd < recStart) { showToast('💡 종료일이 시작일보다 빨라요'); return; }
   } else if (!date) { showToast('💡 날짜를 선택해주세요'); return; }
 
-  const item = { id: Date.now(), type: ledgerType, desc, amount, date };
+  const cat = document.getElementById('ledger-cat').value;
+  const item = { id: Date.now(), type: ledgerType, desc, amount, date, cat };
 
   if (isRecurring) {
     // 시작일의 '일'이 매월 반복되는 날, 시작일~종료일 사이의 달에만 적용
     const day = parseInt(recStart.split('-')[2]);
-    recurringItems.push({ id: item.id, type: ledgerType, desc, amount, day, start: recStart, end: recEnd || '' });
+    recurringItems.push({ id: item.id, type: ledgerType, desc, amount, cat, day, start: recStart, end: recEnd || '' });
     saveRecurring();
     showToast('📌 고정 항목으로 등록됐어요!');
   } else {
@@ -3152,6 +3251,7 @@ function addLedger() {
   renderLedger();
   document.getElementById('ledger-desc').value = '';
   document.getElementById('ledger-amount').value = '';
+  document.getElementById('ledger-cat').value = '';
   document.getElementById('ledger-recurring').checked = false;
   document.getElementById('ledger-rec-start').value = '';
   document.getElementById('ledger-rec-end').value = '';
@@ -3216,7 +3316,7 @@ function renderRecurringList() {
       <div class="ledger-item-dot ${r.type}"></div>
       <div class="ledger-item-info">
         <div class="ledger-item-desc">📌 ${escHtml(r.desc)}</div>
-        <div class="ledger-item-date">매월 ${r.day}일</div>
+        <div class="ledger-item-date">매월 ${r.day}일${r.cat ? ' · ' + escHtml(r.cat) : ''}</div>
         <div class="ledger-item-date">${(r.start || r.end) ? (r.start ? fmtYmd(r.start) : '처음') + ' ~ ' + (r.end ? fmtYmd(r.end) : '계속') : '기간 제한 없음'}</div>
       </div>
       <div class="ledger-item-amount ${r.type}">${r.type === 'income' ? '+' : '-'}₩${r.amount.toLocaleString()}</div>
@@ -3234,6 +3334,7 @@ function openLedgerEdit(id) {
   if (!item) return;
   ledgerEditId = id;
   ledgerEditType = item.type;
+  fillCatSelect('ledit-cat', item.type, item.cat || '');
   document.getElementById('ledit-desc').value = item.desc;
   const amountEl = document.getElementById('ledit-amount');
   amountEl.value = item.amount.toLocaleString();
@@ -3254,6 +3355,7 @@ function openRecurringEdit(id) {
   ledgerEditId = id;
   ledgerEditType = item.type;
   ledgerEditRec = true;
+  fillCatSelect('ledit-cat', item.type, item.cat || '');
   document.getElementById('ledit-title').textContent = '✏️ 고정 항목 수정';
   document.getElementById('ledit-desc').value = item.desc;
   const amountEl = document.getElementById('ledit-amount');
@@ -3278,6 +3380,7 @@ function setLedgerEditType(t) {
   ledgerEditType = t;
   document.getElementById('ledit-type-income').classList.toggle('active', t === 'income');
   document.getElementById('ledit-type-expense').classList.toggle('active', t === 'expense');
+  fillCatSelect('ledit-cat', t);
 }
 
 function saveLedgerEdit() {
@@ -3286,6 +3389,7 @@ function saveLedgerEdit() {
   const date   = document.getElementById('ledit-date').value;
   if (!desc) { showToast('내용을 입력해주세요'); return; }
   if (!amount || amount <= 0) { showToast('금액을 입력해주세요'); return; }
+  const cat = document.getElementById('ledit-cat').value;
   if (ledgerEditRec) {
     const start = document.getElementById('ledit-start').value;
     const end   = document.getElementById('ledit-end').value;
@@ -3293,7 +3397,7 @@ function saveLedgerEdit() {
     const r = recurringItems.find(x => x.id === ledgerEditId);
     if (r) {
       r.type = ledgerEditType; r.desc = desc; r.amount = amount;
-      r.start = start; r.end = end;
+      r.start = start; r.end = end; r.cat = cat;
       if (start) r.day = parseInt(start.split('-')[2]);
     }
     saveRecurring();
@@ -3304,11 +3408,73 @@ function saveLedgerEdit() {
   }
   if (!date) { showToast('날짜를 선택해주세요'); return; }
   const item = ledger.find(l => l.id === ledgerEditId);
-  if (item) { item.type = ledgerEditType; item.desc = desc; item.amount = amount; item.date = date; }
+  if (item) { item.type = ledgerEditType; item.desc = desc; item.amount = amount; item.date = date; item.cat = cat; }
   saveLedger();
   closeLedgerEdit();
   renderLedger();
   showToast('수정됐어요 ✅');
+}
+
+// 해당 달의 내역 (고정 항목 포함)
+function ledgerMonthData(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  const rec = recurringItems
+    .map(r => ({ ...r, date: recurringDateFor(r, y, m), isRecurring: true }))
+    .filter(r => recurringActive(r, r.date));
+  return [...ledger.filter(l => l.date.startsWith(ym)), ...rec];
+}
+let ledgerChartOpen = localStorage.getItem('pb-ledger-chart') !== 'off';
+function toggleLedgerChart() {
+  ledgerChartOpen = !ledgerChartOpen;
+  localStorage.setItem('pb-ledger-chart', ledgerChartOpen ? 'on' : 'off');
+  renderLedgerChart();
+}
+function selectLedgerMonth(ym) { ledgerMonth = ym; renderLedger(); }
+function renderLedgerChart() {
+  const el = document.getElementById('ledger-chart');
+  if (!el) return;
+  document.getElementById('ledger-chart-btn').textContent = ledgerChartOpen ? '📊 그래프 접기' : '📊 그래프 보기';
+  el.style.display = ledgerChartOpen ? 'flex' : 'none';
+  if (!ledgerChartOpen) return;
+  const [y, m] = ledgerMonth.split('-').map(Number);
+  const sum = (list, type) => list.filter(l => l.type === type).reduce((s, l) => s + l.amount, 0);
+  const won = n => '₩' + n.toLocaleString();
+  // 선택한 달까지 최근 6개월
+  const months = [5, 4, 3, 2, 1, 0].map(back => {
+    const d = new Date(y, m - 1 - back, 1);
+    const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const data = ledgerMonthData(ym);
+    return { ym, label: (d.getMonth() + 1) + '월', income: sum(data, 'income'), expense: sum(data, 'expense') };
+  });
+  const max = Math.max(1, ...months.map(x => Math.max(x.income, x.expense)));
+  const h = v => v ? Math.max(3, Math.round(v / max * 100)) : 0;
+  const cur = months[5];
+  const monthly = `<div class="lc-card">
+    <div class="lc-title">월별 합계 (최근 6개월)</div>
+    <div class="lc-legend"><span><span class="lc-key income"></span>수입</span><span><span class="lc-key expense"></span>지출</span></div>
+    <div class="lc-months">${months.map(x => `
+      <button type="button" class="lc-month ${x.ym === ledgerMonth ? 'active' : ''}" onclick="selectLedgerMonth('${x.ym}')" title="${x.label} 수입 ${won(x.income)} / 지출 ${won(x.expense)}" aria-label="${x.label} 수입 ${won(x.income)}, 지출 ${won(x.expense)}">
+        <div class="lc-bars"><div class="lc-bar income" style="height:${h(x.income)}px"></div><div class="lc-bar expense" style="height:${h(x.expense)}px"></div></div>${x.label}
+      </button>`).join('')}</div>
+    <div class="lc-values">${cur.label} · 수입 ${won(cur.income)} · 지출 ${won(cur.expense)}</div>
+  </div>`;
+  // 선택한 달의 카테고리별 합계 (수입 필터일 때는 수입, 그 외에는 지출)
+  const type = ledgerFilter === 'income' ? 'income' : 'expense';
+  const totals = {};
+  ledgerMonthData(ledgerMonth).filter(l => l.type === type).forEach(l => {
+    const c = l.cat || NO_CAT;
+    totals[c] = (totals[c] || 0) + l.amount;
+  });
+  const rows = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+  const total = rows.reduce((s, r) => s + r[1], 0);
+  const cats = `<div class="lc-card">
+    <div class="lc-title">${m}월 카테고리별 ${type === 'income' ? '수입' : '지출'}</div>
+    ${rows.length ? rows.map(([c, v]) => `<div>
+      <div class="lc-cat-head"><span>${escHtml(c)}</span><span>${won(v)} <span style="color:var(--text2)">${Math.round(v / total * 100)}%</span></span></div>
+      <div class="lc-track"><div class="lc-fill" style="width:${v / rows[0][1] * 100}%"></div></div>
+    </div>`).join('') : '<div class="lc-values">내역이 없어요</div>'}
+  </div>`;
+  el.innerHTML = monthly + cats;
 }
 
 function renderLedger() {
@@ -3340,6 +3506,8 @@ function renderLedger() {
     .filter(l => ledgerFilter === 'all' ? true : l.type === ledgerFilter)
     .sort((a, b) => b.date.localeCompare(a.date));
 
+  renderLedgerChart();
+
   const el = document.getElementById('ledger-list');
   if (!sorted.length) { el.innerHTML = '<div class="empty-hint"><span>💰</span>이번 달 내역이 없어요</div>'; return; }
   el.innerHTML = sorted.map(l => `
@@ -3347,7 +3515,7 @@ function renderLedger() {
       <div class="ledger-item-dot ${l.type}"></div>
       <div class="ledger-item-info">
         <div class="ledger-item-desc">${l.isRecurring ? '📌 ' : ''}${escHtml(l.desc)}</div>
-        <div class="ledger-item-date">${l.date}</div>
+        <div class="ledger-item-date">${l.date}${l.cat ? ' · ' + escHtml(l.cat) : ''}</div>
       </div>
       <div class="ledger-item-amount ${l.type}">${l.type === 'income' ? '+' : '-'}₩${l.amount.toLocaleString()}</div>
       ${l.isRecurring
@@ -4005,6 +4173,92 @@ window.switchTab = function(id) {
     _origSwitchTab(id);
   }
 };
+
+// ===== 화면 모드 =====
+function setTheme(mode) {
+  localStorage.setItem('pb-theme', mode);
+  applyTheme();
+}
+function applyTheme() {
+  const light = localStorage.getItem('pb-theme') === 'light';
+  if (light) document.documentElement.dataset.theme = 'light';
+  else delete document.documentElement.dataset.theme;
+  document.querySelector('meta[name="theme-color"]').content = light ? '#f5f5fa' : '#0f0f1a';
+  document.getElementById('theme-dark').classList.toggle('active', !light);
+  document.getElementById('theme-light').classList.toggle('active', light);
+}
+applyTheme();
+
+// ===== 통합 검색 =====
+let searchHits = [];
+function searchSources(q) {
+  const has = (...v) => v.join(' ').toLowerCase().includes(q);
+  const sch = new Map();   // 여러 날짜에 걸친 일정은 한 번만
+  Object.keys(schedules).sort().forEach(day => schedules[day].forEach(x => { if (!sch.has(x.id)) sch.set(x.id, { ...x, day }); }));
+  const money = l => (l.type === 'income' ? '+' : '-') + '₩' + l.amount.toLocaleString();
+  return [
+    { tab: 'memo', name: '📝 메모', items: memos.filter(x => has(x.text))
+        .map(x => ({ title: x.text, sub: fmtDate(x.date), go: () => showInMemo('memo', 'memo-search', renderMemos) })) },
+    { tab: 'memo', name: '🎤 노래', items: todos.filter(x => has(x.title, x.artist, x.tj, x.ky))
+        .map(x => ({ title: x.title, sub: [x.artist, x.tj && '태진 ' + x.tj, x.ky && '금영 ' + x.ky].filter(Boolean).join(' · '),
+          go: () => { setSongCatFilter('all'); setTodoFilter('all'); showInMemo('todo', 'todo-search', renderTodos); } })) },
+    { tab: 'memo', name: '✅ 할일', items: tasks.filter(x => has(x.text))
+        .map(x => ({ title: x.text, sub: (x.done ? '완료' : '미완료') + (x.due ? ' · 마감 ' + fmtYmd(x.due) : ''),
+          go: () => { setTaskFilter('all'); showInMemo('task', 'task-search', renderTasks); } })) },
+    { tab: 'ledger', name: '💰 가계부', items: [
+        ...[...ledger].sort((a, b) => b.date.localeCompare(a.date)).filter(x => has(x.desc, x.cat || ''))
+          .map(x => ({ title: x.desc, sub: [fmtYmd(x.date), x.cat, money(x)].filter(Boolean).join(' · '),
+            go: () => { ledgerMonth = x.date.slice(0, 7); setLedgerFilter('all'); } })),
+        ...recurringItems.filter(x => has(x.desc, x.cat || ''))
+          .map(x => ({ title: '📌 ' + x.desc, sub: ['매월 ' + x.day + '일', x.cat, money(x)].filter(Boolean).join(' · '),
+            go: () => { if (!recurringVisible) toggleRecurringSection(); } }))
+      ] },
+    { tab: 'calendar', name: '🗓️ 일정', items: [...sch.values()].filter(x => has(x.title))
+        .map(x => ({ title: x.title, sub: fmtYmd(x.dateFrom || x.day) + (x.dateTo && x.dateTo !== x.dateFrom ? ' ~ ' + fmtYmd(x.dateTo) : ''),
+          go: () => { const [y, m, d] = x.day.split('-').map(Number); calYear = y; calMonth = m - 1; renderCal(); fetchHolidays(y, m); openSchModal(x.day, d); } })) },
+    { tab: 'bday', name: '📋 벙 멤버', items: bdMembers.filter(x => has(x.name, x.info || ''))
+        .map(x => ({ title: x.name, sub: x.info || '', go: () => {
+          bdQuery = x.name; bdFilter = 'all';
+          document.getElementById('bd-search').value = x.name; document.getElementById('bd-filter').value = 'all';
+          bdRenderList(); } })) },
+    { tab: 'dday', name: '🚩 디데이', items: ddays.filter(x => has(x.title))
+        .map(x => ({ title: x.title, sub: fmtYmd(x.date), go: () => setDdTab('all') })) }
+  ];
+}
+function showInMemo(panel, inputId, render) {
+  switchMemoTab(panel);
+  document.getElementById(inputId).value = document.getElementById('all-search').value.trim();
+  render();
+}
+function renderSearch() {
+  const el = document.getElementById('all-search-result');
+  if (!el) return;
+  const q = document.getElementById('all-search').value.toLowerCase().trim();
+  searchHits = [];
+  const hint = (icon, msg) => `<div class="empty-hint"><span>${icon}</span>${msg}</div>`;
+  if (!q) { el.innerHTML = hint('🔍', '찾고 싶은 단어를 입력해주세요'); return; }
+  let html = '', locked = false;
+  searchSources(q).forEach(src => {
+    if (!tabEnabled[src.tab]) return;                                              // 꺼둔 탭 제외
+    if (localStorage.getItem('pb-pin-' + src.tab)) { locked = true; return; }      // 잠긴 탭 제외
+    if (!src.items.length) return;
+    html += `<div style="font-size:13px;color:var(--text2);margin-top:8px">${src.name} ${src.items.length}</div>`;
+    src.items.forEach(item => {
+      const i = searchHits.push({ tab: src.tab, go: item.go }) - 1;
+      html += `<button type="button" class="ledger-item" style="width:100%;text-align:left;cursor:pointer;color:var(--text);font-family:inherit" onclick="openSearchHit(${i})">
+        <div class="ledger-item-info"><div class="ledger-item-desc">${escHtml(item.title)}</div>${item.sub ? `<div class="ledger-item-date">${escHtml(item.sub)}</div>` : ''}</div>
+        <span style="color:var(--text2)">›</span></button>`;
+    });
+  });
+  el.innerHTML = (html || hint('🔍', '검색 결과가 없어요'))
+    + (locked ? '<div style="font-size:12px;color:var(--text2);text-align:center;margin-top:8px">🔒 PIN으로 잠근 탭은 검색에서 빠져요</div>' : '');
+}
+function openSearchHit(i) {
+  const hit = searchHits[i];
+  if (!hit) return;
+  switchTab(hit.tab);
+  hit.go();
+}
 
 // ===== D-Day =====
 let ddays = JSON.parse(localStorage.getItem('pocketbon-ddays') || '[]');
@@ -4743,8 +4997,8 @@ function bdRenderList() {
       <button class="item-del" onclick="bdDelete(${m.id})">✕</button>
     </div>`;
     const badge = m.left > 0 ? 'D-' + m.left : m.left === 0 ? '오늘까지' : Math.abs(m.left) + '일 지남';
-    const color = m.left < 0 ? '#ff8080' : m.left <= before ? 'var(--accent2)' : 'var(--text2)';
-    const border = m.left <= before ? 'border-color:' + (m.left < 0 ? '#ff8080' : 'var(--accent2)') + ';' : '';
+    const color = m.left < 0 ? 'var(--danger)' : m.left <= before ? 'var(--accent2)' : 'var(--text2)';
+    const border = m.left <= before ? 'border-color:' + (m.left < 0 ? 'var(--danger)' : 'var(--accent2)') + ';' : '';
     const d = bdToDate(m.last);
     return `<div class="dd-item" style="${border}">
       ${bdSelMode ? `<input type="checkbox" ${bdSel.has(m.id) ? 'checked' : ''} onchange="bdSelToggleOne(${m.id})" style="width:20px;height:20px;accent-color:var(--accent);flex-shrink:0;cursor:pointer">` : ''}
